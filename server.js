@@ -100,6 +100,125 @@ app.post('/api/book', async (req, res) => {
     }
 });
 
+// === API Endpoint for ADMIN BOOKINGS ===
+app.get('/api/admin/bookings', async (req, res) => {
+    try {
+        // In a real application, this would fetch from a database
+        // For now, we'll return mock data
+        const mockBookings = [
+            {
+                id: 1,
+                car_id: "aygo",
+                car_name: "Toyota Aygo",
+                pickup_location: "Chania Airport",
+                dropoff_location: "Chania City Center",
+                pickup_date: "2025-04-22T00:00:00.000Z",
+                pickup_time: "10:00:00",
+                dropoff_date: "2025-04-23T00:00:00.000Z",
+                dropoff_time: "10:00:00",
+                customer_name: "Test User",
+                customer_email: "test@example.com",
+                customer_phone: "+30123456789",
+                customer_age: 25,
+                additional_requests: "This is a test booking",
+                status: "confirmed",
+                created_at: "2025-04-22T09:51:26.462Z",
+                updated_at: "2025-04-22T09:51:26.462Z"
+            },
+            {
+                id: 2,
+                car_id: "i10",
+                car_name: "Hyundai i10",
+                pickup_location: "Chania City Center",
+                dropoff_location: "Chania Airport",
+                pickup_date: "2025-05-12T00:00:00.000Z",
+                pickup_time: "14:00:00",
+                dropoff_date: "2025-05-15T00:00:00.000Z",
+                dropoff_time: "12:00:00",
+                customer_name: "Another User",
+                customer_email: "another@example.com",
+                customer_phone: "+30987654321",
+                customer_age: 30,
+                additional_requests: "I need a child seat",
+                status: "confirmed",
+                created_at: "2025-04-23T10:15:30.000Z",
+                updated_at: "2025-04-23T10:15:30.000Z"
+            }
+        ];
+
+        res.status(200).json({ 
+            success: true, 
+            bookings: mockBookings
+        });
+    } catch (error) {
+        console.error('Error retrieving bookings:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to load bookings data.' 
+        });
+    }
+});
+
+// === API Endpoint for DEBUG BOOKINGS (for testing) ===
+app.get('/api/debug/bookings', async (req, res) => {
+    try {
+        // This would also fetch from a database in a real application
+        // We're adding this for debugging purposes
+        res.status(200).json({
+            success: true,
+            hasBookingsTable: true,
+            hasCarsTable: true,
+            bookingsCount: 2,
+            carsCount: 6,
+            rawBookings: [
+                {
+                    id: 1,
+                    car_id: "aygo",
+                    pickup_location: "Chania Airport",
+                    dropoff_location: "Chania City Center",
+                    pickup_date: "2025-04-22T00:00:00.000Z",
+                    pickup_time: "10:00:00",
+                    dropoff_date: "2025-04-23T00:00:00.000Z",
+                    dropoff_time: "10:00:00",
+                    customer_name: "Test User",
+                    customer_email: "test@example.com",
+                    customer_phone: "+30123456789",
+                    customer_age: 25,
+                    additional_requests: "This is a test booking",
+                    status: "confirmed",
+                    created_at: "2025-04-22T09:51:26.462Z",
+                    updated_at: "2025-04-22T09:51:26.462Z"
+                },
+                {
+                    id: 2,
+                    car_id: "i10",
+                    pickup_location: "Chania City Center",
+                    dropoff_location: "Chania Airport",
+                    pickup_date: "2025-05-12T00:00:00.000Z",
+                    pickup_time: "14:00:00",
+                    dropoff_date: "2025-05-15T00:00:00.000Z",
+                    dropoff_time: "12:00:00",
+                    customer_name: "Another User",
+                    customer_email: "another@example.com",
+                    customer_phone: "+30987654321",
+                    customer_age: 30,
+                    additional_requests: "I need a child seat",
+                    status: "confirmed",
+                    created_at: "2025-04-23T10:15:30.000Z",
+                    updated_at: "2025-04-23T10:15:30.000Z"
+                }
+            ],
+            availableTables: ["cars", "bookings"]
+        });
+    } catch (error) {
+        console.error('Error in debug endpoint:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Debug endpoint error' 
+        });
+    }
+});
+
 // === Prevent 404 for missing favicon ===
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
