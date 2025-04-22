@@ -559,14 +559,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 if (data.success) {
-                    bookingForm.innerHTML = `
-                        <div class="success-message">
-                            <div class="success-checkmark"><i class="fas fa-check-circle"></i></div>
-                            <h3>Booking Request Received!</h3>
-                            <p>Thank you! We've received your request for the ${getCarName(bookingData['car-selection'])} and will contact you shortly via ${bookingData['customer-email']} to confirm.</p>
-                        </div>
-                    `;
-                    showNotification(data.message || 'Booking request submitted!', 'success');
+                    showBookingSuccess(data);
                     bookingForm.scrollIntoView({ behavior: 'smooth' });
                 } else {
                      throw new Error(data.message || 'Backend reported an issue.');
@@ -737,4 +730,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // After successful booking submission, show success message
+    function showBookingSuccess(data) {
+        const bookingForm = document.getElementById('booking-form');
+        const selectedCarName = getCarName(bookingData['car-selection']);
+        const successMessage = `
+            <div class="booking-success">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2>Booking Request Received!</h2>
+                <p class="booking-confirmation-message">Thank you! We've received your request for the ${selectedCarName} and will contact you shortly via ${bookingData['customer-email']} to confirm.</p>
+            </div>
+        `;
+        
+        bookingForm.innerHTML = successMessage;
+        showNotification(data.message || 'Booking request submitted!', 'success');
+    }
 }); 
