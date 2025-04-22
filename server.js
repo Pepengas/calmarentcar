@@ -17,8 +17,47 @@ app.use(express.json());
 // Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: true }));
 
-// --- Database & Email Config (Placeholders/Commented Out) ---
-// const transporter = nodemailer.createTransport({...
+// === Diagnostic Endpoint ===
+app.get('/api/diagnostic', async (req, res) => {
+    try {
+        // Test database connection
+        const dbResult = await db.query('SELECT NOW() as time');
+        
+        // Check for DATABASE_URL
+        const hasDbUrl = !!process.env.DATABASE_URL;
+        
+        // Check for tables
+        const tablesResult = await db.query(`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public'
+        `);
+        
+        const tables = tablesResult.rows.map(row => row.table_name);
+        
+        // Return diagnostic information
+        res.status(200).json({
+            success: true,
+            database: {
+                connected: true,
+                time: dbResult.rows[0].time,
+                hasDbUrl: hasDbUrl,
+                tables: tables
+            },
+            environment: {
+                nodeEnv: process.env.NODE_ENV,
+                port: port
+            }
+        });
+    } catch (error) {
+        console.error('Diagnostic error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
 
 // === API Endpoint for CARS ===
 app.get('/api/cars', async (req, res) => {
