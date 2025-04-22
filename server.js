@@ -7,7 +7,7 @@ const path = require('path');
 // const { Pool } = require('pg'); // Example for PostgreSQL - keep commented for now
 
 const app = express();
-const port = 3000; // Or any port you prefer
+const port = process.env.PORT || 3000; // Updated to use Heroku's PORT env variable
 
 // === Configuration ===
 // Allow requests from your frontend (adjust origin in production)
@@ -100,7 +100,16 @@ app.post('/api/book', async (req, res) => {
     }
 });
 
+// === Serve Static Files ===
+// Serve static files from the current directory
+app.use(express.static(__dirname));
+
+// Serve index.html for the root route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // === Start the Server ===
 app.listen(port, () => {
-    console.log(`Calma Car Rental backend server listening on http://localhost:${port}`);
+    console.log(`Calma Car Rental backend server listening on port ${port}`);
 }); 
