@@ -14,13 +14,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --- Storage ---
-// Determine storage location - use persistent storage if available
-const DATA_DIR = process.env.RAILWAY ? process.env.RAILWAY_VOLUME_MOUNT_PATH || '/data' : __dirname;
+// Determine storage location - use environment variable if available
+const DATA_DIR = process.env.DATA_DIR || (process.env.RAILWAY ? '/app/data' : __dirname);
 const BOOKINGS_FILE = path.join(DATA_DIR, 'bookings.json');
 
 // Initialize bookings file if it doesn't exist
 async function initBookingsDB() {
     try {
+        // Make sure the data directory exists
+        try {
+            await fs.mkdir(DATA_DIR, { recursive: true });
+            console.log('Ensured data directory exists:', DATA_DIR);
+        } catch (dirError) {
+            console.warn('Could not create data directory:', dirError.message);
+        }
+
         await fs.access(BOOKINGS_FILE);
         console.log('Bookings database file exists at:', BOOKINGS_FILE);
         // Load initial bookings
@@ -70,8 +78,6 @@ async function initBookingsDB() {
         ];
         
         try {
-            // Ensure the directory exists
-            await fs.mkdir(DATA_DIR, { recursive: true });
             // Write initial data
             await fs.writeFile(BOOKINGS_FILE, JSON.stringify(initialBookings, null, 2));
             return initialBookings;
