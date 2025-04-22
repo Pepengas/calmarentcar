@@ -1,26 +1,21 @@
 // server.js
 const express = require('express');
 const cors = require('cors');
-const nodemailer = require('nodemailer'); // Keep for later email sending
-const fs = require('fs').promises; // Use promises version of fs
+const nodemailer = require('nodemailer');
+const fs = require('fs').promises;
 const path = require('path');
-// const { Pool } = require('pg'); // Example for PostgreSQL - keep commented for now
 
 const app = express();
-const port = process.env.PORT || 3000; // Updated to use Heroku's PORT env variable
+const port = process.env.PORT || 3000;
 
 // === Configuration ===
-// Allow requests from your frontend (adjust origin in production)
-app.use(cors({ origin: '*' })); // Be more specific in production!
-// Parse JSON request bodies
+app.use(cors({ origin: '*' }));
 app.use(express.json());
-// Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: true }));
 
-// --- In-memory Storage for Heroku compatibility ---
-// Heroku has an ephemeral filesystem, so we'll use memory instead of files
+// --- Storage ---
+// In-memory storage (will be replaced with database)
 const bookingsStorage = {
-    // Start with some sample bookings for testing
     bookings: [
         {
             id: 1,
@@ -61,12 +56,9 @@ const bookingsStorage = {
             updated_at: "2025-04-23T10:15:30.000Z"
         }
     ],
-    // Method to add a new booking
     addBooking: function(booking) {
-        // Get highest existing ID for uniqueness
         const highestId = this.bookings.reduce((max, b) => b.id > max ? b.id : max, 0);
         
-        // Create new booking with ID and timestamps
         const newBooking = {
             ...booking,
             id: highestId + 1,
@@ -75,19 +67,16 @@ const bookingsStorage = {
             updated_at: new Date().toISOString()
         };
         
-        // Add to array
         this.bookings.push(newBooking);
-        
         console.log(`Added new booking #${newBooking.id} for ${newBooking.customer_name}`);
         return newBooking;
     },
-    // Method to get all bookings
     getAllBookings: function() {
-        return [...this.bookings]; // Return a copy to prevent direct modification
+        return [...this.bookings];
     }
 };
 
-// === API Endpoint for CARS ===
+// === API: Cars ===
 app.get('/api/cars', async (req, res) => {
     try {
         const carsFilePath = path.join(__dirname, 'cars.json');
@@ -100,37 +89,32 @@ app.get('/api/cars', async (req, res) => {
     }
 });
 
-// === API Endpoint for AVAILABILITY (Placeholder) ===
+// === API: Car Availability ===
 app.get('/api/cars/availability', async (req, res) => {
     const { carId, pickupDate, dropoffDate } = req.query;
 
-    // --- Basic Validation --- 
     if (!carId || !pickupDate || !dropoffDate) {
         return res.status(400).json({ success: false, message: 'Missing required parameters (carId, pickupDate, dropoffDate).' });
     }
 
-    console.log(`Availability check requested for car: ${carId} from ${pickupDate} to ${dropoffDate}`);
+    console.log(`Availability check for car: ${carId} from ${pickupDate} to ${dropoffDate}`);
 
-    // --- Placeholder Logic --- 
-    // In a real application, you would query your database here
-    // using carId, pickupDate, dropoffDate to check for overlapping bookings.
-    // For now, we assume the car is always available.
+    // Placeholder: In production, we would check database for overlapping bookings
     const isAvailable = true; 
 
     if (isAvailable) {
         res.status(200).json({ success: true, available: true });
     } else {
-        // This part won't be reached with the placeholder logic
         res.status(200).json({ success: true, available: false, message: 'Selected car is not available for the chosen dates.' }); 
     }
 });
 
-// === API Endpoint for BOOKING (from previous step) ===
+// === API: Book Car ===
 app.post('/api/book', async (req, res) => {
     console.log('Booking request received:', req.body);
     const bookingData = req.body;
 
-    // --- 1. Server-Side Validation --- 
+    // Validation
     const requiredFields = ['pickup-location', 'dropoff-location', 'pickup-date', 'pickup-time', 'dropoff-date', 'dropoff-time', 'car-selection', 'customer-name', 'customer-email', 'customer-phone', 'age'];
     for (const field of requiredFields) {
         if (!bookingData[field]) {
@@ -142,7 +126,7 @@ app.post('/api/book', async (req, res) => {
          console.error(`Validation Error: Age ${bookingData.age} is less than 21`);
          return res.status(400).json({ success: false, message: 'Minimum age requirement is 21.' });
     }
-    // Add date validation (dropoff >= pickup)
+    // Date validation
     if (new Date(bookingData['dropoff-date']) < new Date(bookingData['pickup-date'])) {
         console.error(`Validation Error: Drop-off date ${bookingData['dropoff-date']} is before pickup date ${bookingData['pickup-date']}`);
         return res.status(400).json({ success: false, message: 'Drop-off date cannot be earlier than pickup date.' });
@@ -150,14 +134,14 @@ app.post('/api/book', async (req, res) => {
     console.log('Validation passed.');
 
     try {
-        // Get the car details for the selected car
+        // Get car details
         const carsFilePath = path.join(__dirname, 'cars.json');
         const carsData = await fs.readFile(carsFilePath, 'utf8');
         const cars = JSON.parse(carsData);
         const selectedCar = cars.find(car => car.id === bookingData['car-selection']);
         const carName = selectedCar ? selectedCar.name : 'Unknown Car';
 
-        // Transform the form data into our booking object format
+        // Create booking object
         const booking = {
             car_id: bookingData['car-selection'],
             car_name: carName,
@@ -174,15 +158,14 @@ app.post('/api/book', async (req, res) => {
             additional_requests: bookingData['additional-requests'] || ''
         };
 
-        // Save the booking to our in-memory storage
+        // Save booking
         const savedBooking = bookingsStorage.addBooking(booking);
         console.log('Booking saved:', savedBooking);
 
-        // --- 3. Send Confirmation Emails (Placeholder) ---
-        console.log('Simulating sending emails.');
+        // Send confirmation email (placeholder)
+        console.log('Simulating sending confirmation email to:', booking.customer_email);
 
-        // --- 4. Send Success Response with booking ID --- 
-        console.log('Booking processed successfully.');
+        // Success response
         res.status(200).json({ 
             success: true, 
             message: 'Booking request received successfully!',
@@ -195,13 +178,12 @@ app.post('/api/book', async (req, res) => {
     }
 });
 
-// === API Endpoint for ADMIN BOOKINGS ===
+// === API: Admin Bookings ===
 app.get('/api/admin/bookings', async (req, res) => {
     try {
-        // Get bookings from in-memory storage
         const bookings = bookingsStorage.getAllBookings();
         
-        // Sort bookings by created_at date, most recent first
+        // Sort by created_at date, most recent first
         bookings.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
         res.status(200).json({ 
@@ -217,7 +199,7 @@ app.get('/api/admin/bookings', async (req, res) => {
     }
 });
 
-// === API Endpoint for DEBUG BOOKINGS (for testing) ===
+// === API: Debug ===
 app.get('/api/debug/bookings', async (req, res) => {
     try {
         const bookings = bookingsStorage.getAllBookings();
@@ -227,7 +209,7 @@ app.get('/api/debug/bookings', async (req, res) => {
             hasBookingsTable: true,
             hasCarsTable: true,
             bookingsCount: bookings.length,
-            carsCount: 6, // Hard-coded for now
+            carsCount: 6,
             rawBookings: bookings,
             availableTables: ["cars", "bookings"]
         });
@@ -244,15 +226,14 @@ app.get('/api/debug/bookings', async (req, res) => {
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 // === Serve Static Files ===
-// Serve static files from the current directory
 app.use(express.static(__dirname));
 
-// Serve index.html for the root route
+// Root route
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // === Start the Server ===
 app.listen(port, () => {
-    console.log(`Calma Car Rental backend server listening on port ${port}`);
+    console.log(`Calma Car Rental server listening on port ${port}`);
 }); 
