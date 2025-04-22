@@ -59,6 +59,59 @@ app.get('/api/diagnostic', async (req, res) => {
     }
 });
 
+// === Debug Endpoint ===
+app.get('/api/debug/bookings', async (req, res) => {
+    try {
+        // Get all tables
+        const tablesResult = await db.query(`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public'
+        `);
+        
+        // Check if bookings table exists
+        const tables = tablesResult.rows.map(row => row.table_name);
+        const hasBookingsTable = tables.includes('bookings');
+        
+        if (!hasBookingsTable) {
+            return res.status(200).json({
+                success: false,
+                message: 'Bookings table does not exist',
+                tables: tables
+            });
+        }
+        
+        // Try to get bookings without the join first
+        const bookingsResult = await db.query('SELECT * FROM bookings');
+        
+        // Check if cars table exists and has data
+        const hasCarsTable = tables.includes('cars');
+        let carsCount = 0;
+        
+        if (hasCarsTable) {
+            const carsResult = await db.query('SELECT COUNT(*) FROM cars');
+            carsCount = parseInt(carsResult.rows[0].count);
+        }
+        
+        res.status(200).json({
+            success: true,
+            hasBookingsTable: hasBookingsTable,
+            hasCarsTable: hasCarsTable,
+            bookingsCount: bookingsResult.rowCount,
+            carsCount: carsCount,
+            rawBookings: bookingsResult.rows,
+            availableTables: tables
+        });
+    } catch (error) {
+        console.error('Debug error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
 // === API Endpoint for CARS ===
 app.get('/api/cars', async (req, res) => {
     try {
