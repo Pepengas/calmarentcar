@@ -164,7 +164,9 @@
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Failed to load bookings');
+                        return response.text().then(text => {
+                            throw new Error(`Failed to load bookings: ${response.status} ${response.statusText} - ${text}`);
+                        });
                     }
                     return response.json();
                 })
@@ -177,7 +179,7 @@
                 })
                 .catch(error => {
                     console.error('Error loading bookings:', error);
-                    displayEmptyState('Failed to load bookings. Please try again later.');
+                    displayEmptyState(`Failed to load bookings: ${error.message}`);
                 });
             }
             
