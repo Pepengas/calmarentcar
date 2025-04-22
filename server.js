@@ -303,12 +303,46 @@ app.post('/api/book', async (req, res) => {
 // === Admin API Endpoint to get bookings ===
 app.get('/api/admin/bookings', async (req, res) => {
     try {
-        // Join with cars table to get car information
+        // Check if the bookings table exists
+        const tablesResult = await db.query(`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_name = 'bookings'
+        `);
+        
+        if (tablesResult.rowCount === 0) {
+            return res.status(200).json({
+                success: false,
+                message: 'No bookings table found. Please run the database initialization script.'
+            });
+        }
+        
+        // Check if the cars table exists
+        const carsResult = await db.query(`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_name = 'cars'
+        `);
+        
+        if (carsResult.rowCount === 0) {
+            // If cars table doesn't exist, return just the bookings without the join
+            const bookingsOnlyResult = await db.query(`
+                SELECT * FROM bookings ORDER BY created_at DESC
+            `);
+            
+            return res.status(200).json({
+                success: true,
+                bookings: bookingsOnlyResult.rows,
+                noCarData: true
+            });
+        }
+        
+        // If both tables exist, try the join query
         const query = `
             SELECT 
                 b.id, 
                 b.car_id,
-                c.name as car_name,
+                COALESCE(c.name, 'Unknown Car') as car_name,
                 b.pickup_location, 
                 b.dropoff_location, 
                 b.pickup_date, 
@@ -325,13 +359,16 @@ app.get('/api/admin/bookings', async (req, res) => {
                 b.updated_at
             FROM 
                 bookings b
-            JOIN 
+            LEFT JOIN 
                 cars c ON b.car_id = c.id
             ORDER BY 
                 b.created_at DESC
         `;
         
         const result = await db.query(query);
+        
+        // Log the query results
+        console.log(`Admin bookings query returned ${result.rowCount} rows`);
         
         res.status(200).json({
             success: true,
@@ -341,7 +378,8 @@ app.get('/api/admin/bookings', async (req, res) => {
         console.error('Error fetching bookings:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to fetch bookings'
+            message: 'Failed to fetch bookings',
+            error: error.message
         });
     }
 });
