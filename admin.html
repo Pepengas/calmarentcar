@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calma Car Rental - Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .admin-header h1 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        .booking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .booking-table th, .booking-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .booking-table th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .booking-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .booking-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-confirmed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .refresh-btn {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .refresh-btn:hover {
+            background-color: #2980b9;
+        }
+        .admin-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .filter-select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1><i class="fas fa-user-shield"></i> Calma Car Rental - Admin Panel</h1>
+            <button id="refresh-btn" class="refresh-btn"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+        </div>
+        
+        <div class="admin-filters">
+            <select id="status-filter" class="filter-select">
+                <option value="all">All Statuses</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="pending">Pending</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+            
+            <select id="date-filter" class="filter-select">
+                <option value="all">All Dates</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+            </select>
+        </div>
+        
+        <div id="bookings-container">
+            <div class="loading">Loading bookings...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const apiBase = window.location.hostname.includes('localhost') 
+                ? 'http://localhost:3000' 
+                : 'https://calma-car-rental-0c39a21370e6.herokuapp.com';
+            
+            const bookingsContainer = document.getElementById('bookings-container');
+            const refreshBtn = document.getElementById('refresh-btn');
+            const statusFilter = document.getElementById('status-filter');
+            const dateFilter = document.getElementById('date-filter');
+            
+            // Load bookings on page load
+            loadBookings();
+            
+            // Add event listeners for refreshing and filtering
+            refreshBtn.addEventListener('click', loadBookings);
+            statusFilter.addEventListener('change', applyFilters);
+            dateFilter.addEventListener('change', applyFilters);
+            
+            // Function to load bookings from the API
+            function loadBookings() {
+                bookingsContainer.innerHTML = '<div class="loading">Loading bookings...</div>';
+                
+                // Request bookings from the backend API
+                fetch(`${apiBase}/api/admin/bookings`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load bookings');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success && data.bookings && data.bookings.length > 0) {
+                        displayBookings(data.bookings);
+                    } else {
+                        displayEmptyState();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading bookings:', error);
+                    displayEmptyState('Failed to load bookings. Please try again later.');
+                });
+            }
+            
+            // Function to display bookings in the table
+            function displayBookings(bookings) {
+                let tableHtml = `
+                    <table class="booking-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Car</th>
+                                <th>Pickup</th>
+                                <th>Dropoff</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                bookings.forEach(booking => {
+                    const pickupDate = new Date(booking.pickup_date).toLocaleDateString();
+                    const dropoffDate = new Date(booking.dropoff_date).toLocaleDateString();
+                    const createdAt = new Date(booking.created_at).toLocaleString();
+                    
+                    let statusClass = '';
+                    switch(booking.status) {
+                        case 'confirmed':
+                            statusClass = 'status-confirmed';
+                            break;
+                        case 'pending':
+                            statusClass = 'status-pending';
+                            break;
+                        case 'cancelled':
+                            statusClass = 'status-cancelled';
+                            break;
+                    }
+                    
+                    tableHtml += `
+                        <tr data-status="${booking.status}" data-date="${booking.created_at}">
+                            <td>#${booking.id}</td>
+                            <td>${booking.customer_name}<br><small>${booking.customer_email}</small></td>
+                            <td>${booking.car_name}</td>
+                            <td>${pickupDate}<br><small>${booking.pickup_time}</small></td>
+                            <td>${dropoffDate}<br><small>${booking.dropoff_time}</small></td>
+                            <td><span class="booking-status ${statusClass}">${booking.status}</span></td>
+                            <td>${createdAt}</td>
+                        </tr>
+                    `;
+                });
+                
+                tableHtml += `
+                        </tbody>
+                    </table>
+                `;
+                
+                bookingsContainer.innerHTML = tableHtml;
+                
+                // Apply any active filters
+                applyFilters();
+            }
+            
+            // Function to display empty state
+            function displayEmptyState(message = 'No bookings found.') {
+                bookingsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times fa-3x"></i>
+                        <p>${message}</p>
+                    </div>
+                `;
+            }
+            
+            // Function to apply filters
+            function applyFilters() {
+                const status = statusFilter.value;
+                const dateRange = dateFilter.value;
+                
+                const rows = document.querySelectorAll('.booking-table tbody tr');
+                
+                rows.forEach(row => {
+                    let showRow = true;
+                    
+                    // Apply status filter
+                    if (status !== 'all' && row.dataset.status !== status) {
+                        showRow = false;
+                    }
+                    
+                    // Apply date filter
+                    if (dateRange !== 'all' && showRow) {
+                        const rowDate = new Date(row.dataset.date);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        
+                        switch(dateRange) {
+                            case 'today':
+                                if (rowDate.toDateString() !== today.toDateString()) {
+                                    showRow = false;
+                                }
+                                break;
+                            case 'week':
+                                const weekStart = new Date(today);
+                                weekStart.setDate(today.getDate() - today.getDay());
+                                if (rowDate < weekStart) {
+                                    showRow = false;
+                                }
+                                break;
+                            case 'month':
+                                const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                                if (rowDate < monthStart) {
+                                    showRow = false;
+                                }
+                                break;
+                        }
+                    }
+                    
+                    // Show/hide row based on filters
+                    row.style.display = showRow ? '' : 'none';
+                });
+                
+                // Check if any rows are visible
+                const visibleRows = document.querySelectorAll('.booking-table tbody tr[style=""]');
+                if (visibleRows.length === 0) {
+                    const noResults = document.createElement('tr');
+                    noResults.innerHTML = `<td colspan="7" style="text-align: center; padding: 20px;">No bookings match the selected filters.</td>`;
+                    document.querySelector('.booking-table tbody').appendChild(noResults);
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

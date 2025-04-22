@@ -208,6 +208,52 @@ app.post('/api/book', async (req, res) => {
     }
 });
 
+// === Admin API Endpoint to get bookings ===
+app.get('/api/admin/bookings', async (req, res) => {
+    try {
+        // Join with cars table to get car information
+        const query = `
+            SELECT 
+                b.id, 
+                b.car_id,
+                c.name as car_name,
+                b.pickup_location, 
+                b.dropoff_location, 
+                b.pickup_date, 
+                b.pickup_time, 
+                b.dropoff_date, 
+                b.dropoff_time, 
+                b.customer_name, 
+                b.customer_email, 
+                b.customer_phone, 
+                b.customer_age,
+                b.additional_requests,
+                b.status,
+                b.created_at,
+                b.updated_at
+            FROM 
+                bookings b
+            JOIN 
+                cars c ON b.car_id = c.id
+            ORDER BY 
+                b.created_at DESC
+        `;
+        
+        const result = await db.query(query);
+        
+        res.status(200).json({
+            success: true,
+            bookings: result.rows
+        });
+    } catch (error) {
+        console.error('Error fetching bookings:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch bookings'
+        });
+    }
+});
+
 // === Serve Static Files ===
 // Serve static files from the current directory
 app.use(express.static(__dirname));
