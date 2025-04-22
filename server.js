@@ -14,8 +14,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --- Storage ---
-// Determine storage location - use Render's persistent disk if available
-const DATA_DIR = process.env.RENDER ? '/data' : __dirname;
+// Determine storage location - use persistent storage if available
+const DATA_DIR = process.env.RAILWAY ? process.env.RAILWAY_VOLUME_MOUNT_PATH || '/data' : __dirname;
 const BOOKINGS_FILE = path.join(DATA_DIR, 'bookings.json');
 
 // Initialize bookings file if it doesn't exist
@@ -266,7 +266,7 @@ app.get('/api/debug/bookings', async (req, res) => {
         res.status(200).json({
             success: true,
             storage: {
-                type: process.env.RENDER ? 'persistent disk' : 'local filesystem',
+                type: process.env.RAILWAY ? 'persistent disk' : 'local filesystem',
                 path: BOOKINGS_FILE
             },
             hasBookingsTable: true,

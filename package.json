@@ -15,6 +15,9 @@
     "express": "^4.19.2",
     "nodemailer": "^6.10.1"
   },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
   "engines": {
     "node": ">=18.0.0"
   }
