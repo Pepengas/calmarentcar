@@ -1,0 +1,931 @@
+/* Fix for spacing issues at 100% zoom */
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Hero section fixes */
+.hero {
+  position: relative;
+  height: auto;
+  min-height: auto;
+  padding: 120px 0 240px;
+  margin-bottom: 0;
+}
+
+.hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+}
+
+.hero-content {
+  width: 100%;
+  text-align: center;
+  position: relative;
+  padding-top: 20px;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.hero p {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: #ffffff;
+  line-height: 1.4;
+}
+
+.booking-form {
+  background-color: rgba(255, 255, 255, 0.95);
+  max-width: 800px;
+  margin: 30px auto 0;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  color: #343a40;
+  margin-bottom: 0;
+  position: relative;
+}
+
+.cars-section {
+  position: relative;
+  z-index: 10;
+  margin-top: -60px;
+  padding-top: 100px;
+  background-color: #f8f9fa;
+  padding-bottom: 70px;
+}
+
+.section-header {
+  padding-top: 10px;
+  margin-bottom: 30px !important;
+}
+
+.section-header h2 {
+  margin-bottom: 10px;
+  font-size: 2.2rem;
+}
+
+.section-header p {
+  font-size: 1rem;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .hero {
+    padding: 100px 0 200px;
+  }
+  
+  .hero-content {
+    padding-top: 15px;
+  }
+  
+  .hero h1 {
+    font-size: 1.9rem;
+    padding: 0 10px;
+  }
+  
+  .booking-form {
+    padding: 20px 15px;
+    margin-top: 25px;
+  }
+  
+  .cars-section {
+    padding-top: 90px;
+    margin-top: -50px;
+  }
+}
+
+/* Medium screen adjustments */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .hero {
+    padding: 110px 0 220px;
+  }
+  
+  .hero h1 {
+    font-size: 2.2rem;
+  }
+  
+  .cars-section {
+    padding-top: 100px;
+    margin-top: -55px;
+  }
+}
+
+/* Form elements adjustment to ensure they fit better */
+.form-row {
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  margin-bottom: 5px;
+}
+
+.form-group select,
+.form-group input {
+  padding: 10px;
+  font-size: 0.95rem;
+}
+
+.btn {
+  padding: 10px 25px;
+  font-size: 1rem;
+}
+
+.booking-note {
+  margin-top: 10px;
+  font-size: 0.85rem;
+}
+
+/* Adjust form progress indicator to be more compact */
+.form-progress {
+  margin-bottom: 20px;
+}
+
+.booking-form h2 {
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+/* Partners Section Styles */
+.partners-section {
+  background-color: white;
+  padding: 40px 0;
+  text-align: center;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+
+.partners-header h3 {
+  font-size: 1.5rem;
+  color: #343a40;
+  margin-bottom: 30px;
+}
+
+.partners-logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 40px;
+}
+
+.partner-logo {
+  font-size: 2.5rem;
+  color: #adb5bd;
+  transition: color 0.3s, transform 0.3s;
+  opacity: 0.8;
+}
+
+.partner-logo:hover {
+  color: #343a40;
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+/* Mobile Responsiveness for Partners Section */
+@media (max-width: 768px) {
+  .partners-logos {
+    gap: 25px;
+  }
+  
+  .partner-logo {
+    font-size: 2rem;
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 767px) {
+    .tagline {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Tagline styling */
+.tagline {
+    font-style: italic;
+    font-size: 1.2rem;
+    color: #f8f9fa;
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    font-family: 'Georgia', serif;
+    line-height: 1.6;
+}
+
+/* Dark Mode Toggle */
+.dark-mode-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    margin-left: 15px;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #2196F3;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.toggle-icon {
+    margin-right: 5px;
+    font-size: 16px;
+}
+
+/* Dark Mode Styles */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #343a40;
+    --card-bg: #ffffff;
+    --border-color: #dee2e6;
+    --hero-overlay: rgba(0, 0, 0, 0.6);
+    --section-bg: #f8f9fa;
+    --footer-bg: #343a40;
+    --footer-text: #ffffff;
+    --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    --link-color: #007bff;
+    --link-hover: #0056b3;
+    --btn-primary-bg: #007bff;
+    --btn-primary-color: #ffffff;
+    --btn-outline-color: #343a40;
+    --btn-outline-border: #343a40;
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+    --input-text: #495057;
+    --form-label: #343a40;
+    --navbar-bg: rgba(255, 255, 255, 0.95);
+    --validation-error: #dc3545;
+}
+
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --border-color: #333;
+    --hero-overlay: rgba(0, 0, 0, 0.8);
+    --section-bg: #1a1a1a;
+    --footer-bg: #000000;
+    --footer-text: #f0f0f0;
+    --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    --link-color: #66b0ff;
+    --link-hover: #99caff;
+    --btn-primary-bg: #0062cc;
+    --btn-primary-color: #ffffff;
+    --btn-outline-color: #e0e0e0;
+    --btn-outline-border: #666;
+    --input-bg: #2c2c2c;
+    --input-border: #444;
+    --input-text: #e0e0e0;
+    --form-label: #cccccc;
+    --navbar-bg: rgba(18, 18, 18, 0.95);
+    --validation-error: #ff6b70;
+}
+
+[data-theme="dark"] body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+[data-theme="dark"] .hero-bg {
+    background-image: linear-gradient(var(--hero-overlay), var(--hero-overlay)), url('images/CalmaBackground.jpg') !important;
+}
+
+[data-theme="dark"] .cars-section,
+[data-theme="dark"] .about-section,
+[data-theme="dark"] .additional-info,
+[data-theme="dark"] .faq-section,
+[data-theme="dark"] .why-rent-section {
+    background-color: var(--section-bg);
+}
+
+[data-theme="dark"] .car-card,
+[data-theme="dark"] .info-card,
+[data-theme="dark"] .benefit-card,
+[data-theme="dark"] .faq-item {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    box-shadow: var(--card-shadow);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .booking-form {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    box-shadow: var(--card-shadow);
+}
+
+[data-theme="dark"] .partners-section {
+    background-color: var(--section-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .section-header h2,
+[data-theme="dark"] .section-header p,
+[data-theme="dark"] h3 {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--input-border);
+}
+
+[data-theme="dark"] input::placeholder {
+    color: #999;
+}
+
+[data-theme="dark"] label {
+    color: var(--form-label);
+}
+
+[data-theme="dark"] footer {
+    background-color: var(--footer-bg);
+    color: var(--footer-text);
+}
+
+[data-theme="dark"] a {
+    color: var(--link-color);
+}
+
+[data-theme="dark"] a:hover {
+    color: var(--link-hover);
+}
+
+[data-theme="dark"] .btn-primary {
+    background-color: var(--btn-primary-bg);
+    color: var(--btn-primary-color);
+    border-color: var(--btn-primary-bg);
+}
+
+[data-theme="dark"] .btn-outline {
+    color: var(--btn-outline-color);
+    border-color: var(--btn-outline-border);
+}
+
+[data-theme="dark"] .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 0;
+    position: relative;
+    width: 100%;
+    background-color: var(--navbar-bg);
+}
+
+[data-theme="dark"] .nav-links {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    position: relative;
+}
+
+[data-theme="dark"] .nav-links a {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .nav-links a.active {
+    color: var(--link-color);
+}
+
+[data-theme="dark"] .mobile-menu i {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .validation-message {
+    color: var(--validation-error);
+}
+
+[data-theme="dark"] .faq-toggle i {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .partner-logo {
+    color: #777;
+}
+
+[data-theme="dark"] .partner-logo:hover {
+    color: #bbb;
+}
+
+[data-theme="dark"] .about-features .feature-icon i,
+[data-theme="dark"] .info-card-icon i,
+[data-theme="dark"] .benefit-icon i,
+[data-theme="dark"] .contact-icon i {
+    color: var(--link-color);
+}
+
+/* Keep dark-mode toggle visible on dark backgrounds */
+[data-theme="dark"] .toggle-slider {
+    background-color: #444;
+}
+
+[data-theme="dark"] input:checked + .toggle-slider {
+    background-color: #4da3ff;
+}
+
+[data-theme="dark"] .toggle-slider:before {
+    background-color: #e0e0e0;
+}
+
+[data-theme="dark"] .toggle-icon {
+    color: #e0e0e0;
+}
+
+/* Preserve contrast for the form progress steps */
+[data-theme="dark"] .form-progress .step {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .form-progress .step.active {
+    background-color: var(--link-color);
+    color: white;
+}
+
+[data-theme="dark"] .form-progress .step-title {
+    color: #999;
+}
+
+[data-theme="dark"] .form-progress .step-title.active {
+    color: var(--text-color);
+}
+
+@media (max-width: 767px) {
+    .dark-mode-toggle {
+        margin-left: 10px;
+    }
+}
+
+/* Mobile menu dark mode fix */
+[data-theme="dark"] .nav-links {
+    background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .mobile-menu {
+    color: var(--text-color);
+}
+
+/* Fix for dropdown elements in dark mode */
+[data-theme="dark"] select option {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+}
+
+/* Fix for focus states in dark mode */
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus {
+    border-color: var(--link-color);
+    box-shadow: 0 0 0 0.2rem rgba(102, 176, 255, 0.25);
+    outline: none;
+}
+
+/* Apply dark mode to form validation errors */
+[data-theme="dark"] .validation-message {
+    color: var(--validation-error);
+}
+
+@media (max-width: 767px) {
+    .dark-mode-toggle {
+        margin-left: 10px;
+    }
+}
+
+/* Fix for full-width header in dark mode */
+[data-theme="dark"] header {
+    background-color: var(--bg-color);
+    width: 100%;
+    max-width: 100vw;
+    margin: 0;
+    padding: 0;
+}
+
+/* Improved logo handling for both modes */
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px;
+    padding: 0;
+    margin: 0;
+}
+
+.logo img {
+    max-height: 50px;
+    width: auto;
+    height: auto;
+    max-width: 160px;
+    object-fit: contain;
+    display: block;
+}
+
+/* Specific dark mode logo adjustments */
+[data-theme="dark"] .logo img {
+    max-height: 50px;
+    width: auto;
+    max-width: 160px;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    filter: none;
+}
+
+/* Make sure the dark mode applies to all container elements */
+[data-theme="dark"] .container {
+    background-color: inherit;
+}
+
+/* Full-width header styling */
+.site-header {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  background-color: #ffffff;
+}
+
+/* Default navbar styling */
+.navbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 0;
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* Dark mode additions */
+[data-theme="dark"] .site-header {
+  background-color: var(--bg-color);
+}
+
+[data-theme="dark"] html {
+  background-color: var(--bg-color);
+}
+
+/* Fix for mobile view */
+@media (max-width: 768px) {
+  .site-header, .navbar {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  [data-theme="dark"] .navbar,
+  .navbar {
+    padding: 10px 0;
+  }
+  
+  [data-theme="dark"] .logo,
+  .logo {
+    height: 40px;
+  }
+  
+  [data-theme="dark"] .logo img,
+  .logo img {
+    max-height: 40px;
+  }
+}
+
+[data-theme="dark"] .section-bg,
+[data-theme="dark"] .about-section,
+[data-theme="dark"] .cars-section,
+[data-theme="dark"] .additional-info,
+[data-theme="dark"] .faq-section,
+[data-theme="dark"] .why-rent-section,
+[data-theme="dark"] .contact-section,
+[data-theme="dark"] .partners-section,
+[data-theme="dark"] main > section {
+    background-color: var(--section-bg);
+}
+
+/* Fix for additional info highlight text visibility */
+[data-theme="dark"] .info-highlight {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .info-highlight p {
+    color: var(--text-color);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: 0.95;
+}
+
+/* Fix for contact map area */
+[data-theme="dark"] .contact-info-map {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .contact-info {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .map-container {
+    border: 1px solid var(--border-color);
+}
+
+/* Fix feature cards in about section */
+[data-theme="dark"] .feature,
+[data-theme="dark"] .about-features .feature {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+    box-shadow: var(--card-shadow);
+}
+
+[data-theme="dark"] .feature-text h3 {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .feature-text p {
+    color: var(--text-color);
+    opacity: 0.9;
+}
+
+/* Improve contact section contrast */
+[data-theme="dark"] .contact-text h3 {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .contact-text p,
+[data-theme="dark"] .contact-text a {
+    color: var(--link-color);
+}
+
+/* Social icons in contact section */
+[data-theme="dark"] .social-icons a {
+    background-color: var(--card-bg);
+    color: var(--link-color);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .social-icons a:hover {
+    background-color: var(--link-color);
+    color: var(--bg-color);
+}
+
+/* Fix for any remaining white backgrounds */
+[data-theme="dark"] .about-content,
+[data-theme="dark"] .contact-content,
+[data-theme="dark"] .faq-content,
+[data-theme="dark"] .info-content,
+[data-theme="dark"] .why-rent-content {
+    background-color: transparent;
+}
+
+/* Complete section fixes for dark mode */
+[data-theme="dark"] .about-section,
+[data-theme="dark"] .cars-section,
+[data-theme="dark"] .contact-section,
+[data-theme="dark"] .additional-info,
+[data-theme="dark"] .why-rent-section,
+[data-theme="dark"] .faq-section,
+[data-theme="dark"] footer {
+    background-color: var(--section-bg);
+}
+
+/* Fix for white space between sections */
+[data-theme="dark"] main,
+[data-theme="dark"] section {
+    background-color: var(--section-bg);
+}
+
+/* Contact map container fix for dark mode */
+[data-theme="dark"] .contact-map {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Fix for map iframe in dark mode */
+[data-theme="dark"] .map-container iframe {
+    filter: invert(0.9) hue-rotate(180deg) contrast(0.85);
+    border: none !important;
+    background-color: var(--card-bg);
+}
+
+/* Additional info section text visibility */
+[data-theme="dark"] .info-highlight {
+    background-color: rgba(102, 176, 255, 0.1);
+    padding: 25px;
+    color: var(--text-color);
+    font-weight: normal;
+    border-radius: 8px;
+}
+
+[data-theme="dark"] .info-highlight p {
+    color: var(--text-color);
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+
+/* Contact section card */
+[data-theme="dark"] .contact-item {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+[data-theme="dark"] .contact-icon {
+    background-color: rgba(102, 176, 255, 0.1);
+    color: var(--link-color);
+}
+
+/* Fixing additional container backgrounds */
+[data-theme="dark"] .container {
+    background-color: transparent;
+}
+
+/* Remove any default white backgrounds from section-header */
+[data-theme="dark"] .section-header {
+    background-color: transparent;
+}
+
+/* Nav container styles */
+.nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Make navigation more consistent between light and dark mode */
+.navbar {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 0;
+    width: 100%;
+    position: relative;
+}
+
+.logo {
+    flex: 0 0 auto;
+    margin-right: 20px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li a {
+    display: block;
+    padding: 8px 15px;
+    color: #343a40;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-links li a:hover,
+.nav-links li a.active {
+    color: #007bff;
+}
+
+/* Dark mode navigation specifics */
+[data-theme="dark"] .nav-container {
+    background-color: transparent;
+}
+
+[data-theme="dark"] .nav-links li a {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .nav-links li a:hover,
+[data-theme="dark"] .nav-links li a.active {
+    color: var(--link-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .navbar {
+        flex-wrap: wrap;
+    }
+    
+    .logo {
+        margin-right: 0;
+    }
+    
+    .nav-container {
+        order: 3;
+        width: 100%;
+        margin-top: 10px;
+        display: none;
+    }
+    
+    .nav-links {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .nav-links li {
+        width: 100%;
+    }
+    
+    .nav-links li a {
+        padding: 10px 0;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .dark-mode-toggle {
+        margin-right: 15px;
+    }
+    
+    /* Show navbar when active */
+    .nav-container.active {
+        display: block;
+    }
+}
+

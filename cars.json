@@ -1,0 +1,50 @@
+[
+  {
+    "id": "aygo",
+    "name": "Toyota Aygo",
+    "description": "Compact and fuel-efficient, perfect for city driving.",
+    "pricePerDay": 35,
+    "image": "images/CalmaAygo.jpg",
+    "features": ["Automatic", "4 Seats", "Air Conditioning", "Fuel Efficient"]
+  },
+  {
+    "id": "tiguan",
+    "name": "Volkswagen Tiguan",
+    "description": "Spacious SUV with advanced features for comfort.",
+    "pricePerDay": 75,
+    "image": "images/CalmaTiguan.jpg",
+    "features": ["Automatic", "5 Seats", "SUV", "Bluetooth"]
+  },
+  {
+    "id": "golf",
+    "name": "Volkswagen Golf",
+    "description": "Versatile hatchback with excellent handling.",
+    "pricePerDay": 55,
+    "image": "images/CalmaGolf.jpg",
+    "features": ["Automatic", "5 Seats", "Air Conditioning", "Cruise Control"]
+  },
+  {
+    "id": "i10",
+    "name": "Hyundai i10",
+    "description": "Economical and easy to drive mini car.",
+    "pricePerDay": 32,
+    "image": "images/Calmai10.jpg",
+    "features": ["Manual", "4 Seats", "Air Conditioning", "Compact"]
+  },
+  {
+    "id": "c3",
+    "name": "Citroen C3",
+    "description": "Stylish compact car with excellent comfort.",
+    "pricePerDay": 40,
+    "image": "images/CalmaCitroen.jpg",
+    "features": ["Manual", "5 Seats", "Air Conditioning", "Bluetooth"]
+  },
+  {
+    "id": "swift",
+    "name": "Suzuki Swift",
+    "description": "Sporty and nimble, ideal for exploring Crete.",
+    "pricePerDay": 38,
+    "image": "images/CalmaSuzuki.jpg",
+    "features": ["Manual", "5 Seats", "Air Conditioning", "Sporty"]
+  }
+] 
