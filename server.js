@@ -17,9 +17,60 @@ app.use(express.json());
 // Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: true }));
 
-// --- Database & Email Config (Placeholders/Commented Out) ---
-// const pool = new Pool({...
-// const transporter = nodemailer.createTransport({...
+// --- Simple file-based database functions ---
+const BOOKINGS_FILE = path.join(__dirname, 'bookings.json');
+
+// Initialize bookings file if it doesn't exist
+async function initBookingsDB() {
+    try {
+        await fs.access(BOOKINGS_FILE);
+        console.log('Bookings database file exists');
+    } catch (error) {
+        // File doesn't exist, create it with empty array
+        await fs.writeFile(BOOKINGS_FILE, JSON.stringify([], null, 2));
+        console.log('Created new bookings database file');
+    }
+}
+
+// Get all bookings
+async function getBookings() {
+    try {
+        const data = await fs.readFile(BOOKINGS_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Error reading bookings:', error);
+        return [];
+    }
+}
+
+// Save a booking
+async function saveBooking(booking) {
+    try {
+        const bookings = await getBookings();
+        
+        // Get the highest existing ID to ensure uniqueness
+        const highestId = bookings.reduce((max, b) => b.id > max ? b.id : max, 0);
+        
+        // Add the new booking with incremented ID and timestamps
+        const newBooking = {
+            ...booking,
+            id: highestId + 1,
+            status: 'confirmed',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+        
+        bookings.push(newBooking);
+        await fs.writeFile(BOOKINGS_FILE, JSON.stringify(bookings, null, 2));
+        return newBooking;
+    } catch (error) {
+        console.error('Error saving booking:', error);
+        throw error;
+    }
+}
+
+// Initialize the bookings database on startup
+initBookingsDB().catch(console.error);
 
 // === API Endpoint for CARS ===
 app.get('/api/cars', async (req, res) => {
@@ -84,15 +135,44 @@ app.post('/api/book', async (req, res) => {
     console.log('Validation passed.');
 
     try {
-        // --- 2. Store in Database (Placeholder) ---
-        console.log(`Simulating database store for: ${bookingData['customer-email']} for car ${bookingData['car-selection']}`); 
+        // Get the car details for the selected car
+        const carsFilePath = path.join(__dirname, 'cars.json');
+        const carsData = await fs.readFile(carsFilePath, 'utf8');
+        const cars = JSON.parse(carsData);
+        const selectedCar = cars.find(car => car.id === bookingData['car-selection']);
+        const carName = selectedCar ? selectedCar.name : 'Unknown Car';
+
+        // Transform the form data into our booking object format
+        const booking = {
+            car_id: bookingData['car-selection'],
+            car_name: carName,
+            pickup_location: bookingData['pickup-location'],
+            dropoff_location: bookingData['dropoff-location'],
+            pickup_date: new Date(bookingData['pickup-date']).toISOString(),
+            pickup_time: bookingData['pickup-time'],
+            dropoff_date: new Date(bookingData['dropoff-date']).toISOString(),
+            dropoff_time: bookingData['dropoff-time'],
+            customer_name: bookingData['customer-name'],
+            customer_email: bookingData['customer-email'],
+            customer_phone: bookingData['customer-phone'],
+            customer_age: parseInt(bookingData.age),
+            additional_requests: bookingData['additional-requests'] || ''
+        };
+
+        // Save the booking to our file database
+        const savedBooking = await saveBooking(booking);
+        console.log('Booking saved:', savedBooking);
 
         // --- 3. Send Confirmation Emails (Placeholder) ---
         console.log('Simulating sending emails.');
 
-        // --- 4. Send Success Response --- 
+        // --- 4. Send Success Response with booking ID --- 
         console.log('Booking processed successfully.');
-        res.status(200).json({ success: true, message: 'Booking request received successfully!' });
+        res.status(200).json({ 
+            success: true, 
+            message: 'Booking request received successfully!',
+            booking_id: savedBooking.id
+        });
 
     } catch (error) {
         console.error('Error processing booking:', error);
@@ -103,52 +183,15 @@ app.post('/api/book', async (req, res) => {
 // === API Endpoint for ADMIN BOOKINGS ===
 app.get('/api/admin/bookings', async (req, res) => {
     try {
-        // In a real application, this would fetch from a database
-        // For now, we'll return mock data
-        const mockBookings = [
-            {
-                id: 1,
-                car_id: "aygo",
-                car_name: "Toyota Aygo",
-                pickup_location: "Chania Airport",
-                dropoff_location: "Chania City Center",
-                pickup_date: "2025-04-22T00:00:00.000Z",
-                pickup_time: "10:00:00",
-                dropoff_date: "2025-04-23T00:00:00.000Z",
-                dropoff_time: "10:00:00",
-                customer_name: "Test User",
-                customer_email: "test@example.com",
-                customer_phone: "+30123456789",
-                customer_age: 25,
-                additional_requests: "This is a test booking",
-                status: "confirmed",
-                created_at: "2025-04-22T09:51:26.462Z",
-                updated_at: "2025-04-22T09:51:26.462Z"
-            },
-            {
-                id: 2,
-                car_id: "i10",
-                car_name: "Hyundai i10",
-                pickup_location: "Chania City Center",
-                dropoff_location: "Chania Airport",
-                pickup_date: "2025-05-12T00:00:00.000Z",
-                pickup_time: "14:00:00",
-                dropoff_date: "2025-05-15T00:00:00.000Z",
-                dropoff_time: "12:00:00",
-                customer_name: "Another User",
-                customer_email: "another@example.com",
-                customer_phone: "+30987654321",
-                customer_age: 30,
-                additional_requests: "I need a child seat",
-                status: "confirmed",
-                created_at: "2025-04-23T10:15:30.000Z",
-                updated_at: "2025-04-23T10:15:30.000Z"
-            }
-        ];
-
+        // Get bookings from our file database
+        const bookings = await getBookings();
+        
+        // Sort bookings by created_at date, most recent first
+        bookings.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
         res.status(200).json({ 
             success: true, 
-            bookings: mockBookings
+            bookings: bookings
         });
     } catch (error) {
         console.error('Error retrieving bookings:', error);
@@ -162,52 +205,15 @@ app.get('/api/admin/bookings', async (req, res) => {
 // === API Endpoint for DEBUG BOOKINGS (for testing) ===
 app.get('/api/debug/bookings', async (req, res) => {
     try {
-        // This would also fetch from a database in a real application
-        // We're adding this for debugging purposes
+        const bookings = await getBookings();
+        
         res.status(200).json({
             success: true,
             hasBookingsTable: true,
             hasCarsTable: true,
-            bookingsCount: 2,
-            carsCount: 6,
-            rawBookings: [
-                {
-                    id: 1,
-                    car_id: "aygo",
-                    pickup_location: "Chania Airport",
-                    dropoff_location: "Chania City Center",
-                    pickup_date: "2025-04-22T00:00:00.000Z",
-                    pickup_time: "10:00:00",
-                    dropoff_date: "2025-04-23T00:00:00.000Z",
-                    dropoff_time: "10:00:00",
-                    customer_name: "Test User",
-                    customer_email: "test@example.com",
-                    customer_phone: "+30123456789",
-                    customer_age: 25,
-                    additional_requests: "This is a test booking",
-                    status: "confirmed",
-                    created_at: "2025-04-22T09:51:26.462Z",
-                    updated_at: "2025-04-22T09:51:26.462Z"
-                },
-                {
-                    id: 2,
-                    car_id: "i10",
-                    pickup_location: "Chania City Center",
-                    dropoff_location: "Chania Airport",
-                    pickup_date: "2025-05-12T00:00:00.000Z",
-                    pickup_time: "14:00:00",
-                    dropoff_date: "2025-05-15T00:00:00.000Z",
-                    dropoff_time: "12:00:00",
-                    customer_name: "Another User",
-                    customer_email: "another@example.com",
-                    customer_phone: "+30987654321",
-                    customer_age: 30,
-                    additional_requests: "I need a child seat",
-                    status: "confirmed",
-                    created_at: "2025-04-23T10:15:30.000Z",
-                    updated_at: "2025-04-23T10:15:30.000Z"
-                }
-            ],
+            bookingsCount: bookings.length,
+            carsCount: 6, // Hard-coded for now
+            rawBookings: bookings,
             availableTables: ["cars", "bookings"]
         });
     } catch (error) {
