@@ -1,23 +1,21 @@
-FROM node:18-slim
+FROM node:18
 
+# Create app directory
 WORKDIR /app
 
-# Copy package files first for better caching
-COPY package.json ./
-
-# Use npm install instead of npm ci
-RUN npm install --no-package-lock
-
-# Copy the rest of the application
+# Copy application files
 COPY . .
 
-# Set environment variables
-ENV NODE_ENV=production
+# Install dependencies manually (avoid npm ci)
+RUN rm -f package-lock.json
+RUN npm install
+
+# Environment variables
 ENV PORT=3000
 ENV RAILWAY=true
 
-# Expose the port
+# Expose port
 EXPOSE 3000
 
-# Start the application
+# Start the app
 CMD ["node", "server.js"] 

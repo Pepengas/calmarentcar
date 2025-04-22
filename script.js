@@ -690,4 +690,51 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
         }
     }
+    
+    // === Date picker fix enhancement ===
+    // Get all date and time inputs
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    const timeInputs = document.querySelectorAll('input[type="time"]');
+    
+    // Add click event listeners to date inputs
+    dateInputs.forEach(input => {
+        input.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent default action
+            
+            // Try using the modern showPicker() method
+            if (typeof input.showPicker === 'function') {
+                try {
+                    input.showPicker();
+                } catch (error) {
+                    console.error("Error showing date picker:", error);
+                    // Fallback if showPicker fails (e.g., security restrictions)
+                    input.focus();
+                }
+            } else {
+                // Fallback for browsers that don't support showPicker()
+                input.focus();
+            }
+        });
+    });
+    
+    // Add click event listeners to time inputs
+    timeInputs.forEach(input => {
+        input.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent default action
+            
+            // Try using the modern showPicker() method
+            if (typeof input.showPicker === 'function') {
+                try {
+                    input.showPicker();
+                } catch (error) {
+                    console.error("Error showing time picker:", error);
+                    // Fallback if showPicker fails
+                    input.focus();
+                }
+            } else {
+                // Fallback for browsers that don't support showPicker()
+                input.focus();
+            }
+        });
+    });
 }); 
