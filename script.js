@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Function to fetch car data ---
     async function fetchCars() {
         try {
-            const response = await fetch('http://localhost:3000/api/cars'); // Ensure backend is running
+            const response = await fetch('https://calma-car-rental-0c39a21370e6.herokuapp.com/api/cars'); // Ensure backend is running
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                  nextBtn.textContent = 'Checking...';
                  nextBtn.disabled = true;
-                const response = await fetch(`http://localhost:3000/api/cars/availability?carId=${encodeURIComponent(carId)}&pickupDate=${encodeURIComponent(pickupDate)}&dropoffDate=${encodeURIComponent(dropoffDate)}`);
+                const response = await fetch(`https://calma-car-rental-0c39a21370e6.herokuapp.com/api/cars/availability?carId=${encodeURIComponent(carId)}&pickupDate=${encodeURIComponent(pickupDate)}&dropoffDate=${encodeURIComponent(dropoffDate)}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
@@ -544,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (submitButton) submitButton.disabled = true;
             
             // Send data to backend
-            fetch('http://localhost:3000/api/book', {
+            fetch('https://calma-car-rental-0c39a21370e6.herokuapp.com/api/book', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(bookingData),
