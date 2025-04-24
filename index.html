@@ -37,6 +37,10 @@
     
     <!-- Additional responsive styles -->
     <style>
+        /* Disable default CSS hero background, use hero-bg div instead */
+        .hero {
+            background: none !important;
+        }
         @media (max-width: 768px) {
             .hero {
                 padding-top: 60px !important;
@@ -55,6 +59,10 @@
             .form-nav {
                 margin-top: 8px !important;
             }
+        }
+        /* Offset sections for fixed header when using in-page anchor links */
+        section[id] {
+            scroll-margin-top: 90px;
         }
     </style>
 </head>
@@ -99,7 +107,7 @@
     <main>
         <!-- Hero Section -->
         <section class="hero" id="main-content" style="padding-top: 80px; padding-bottom: 220px;">
-            <div class="hero-bg" style="background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://calmarentcar-production.up.railway.app/images/CalmaBackground.jpg'); position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-size: cover; background-position: center;"></div>
+            <div class="hero-bg" style="background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('images/CalmaBackground.jpg');"></div>
             <div class="container">
                 <div class="hero-content" style="padding-top: 0;">
                     <h1 style="margin-bottom: 10px;">Premium Car Rental in Chania</h1>
@@ -258,7 +266,7 @@
                     <!-- Car 1 -->
                     <div class="car-card">
                         <div class="car-image">
-                            <img src="https://calmarentcar-production.up.railway.app/images/CalmaAygo.jpg" alt="Toyota Aygo" loading="lazy" width="300" height="200">
+                            <img src="images/CalmaAygo.jpg" alt="Toyota Aygo" loading="lazy" width="300" height="200">
                         </div>
                         <div class="car-details">
                             <h3>Toyota Aygo</h3>
@@ -274,7 +282,7 @@
                     <!-- Car 2 -->
                     <div class="car-card">
                         <div class="car-image">
-                            <img src="https://calmarentcar-production.up.railway.app/images/CalmaTiguan.jpg" alt="Volkswagen Tiguan" loading="lazy" width="300" height="200">
+                            <img src="images/CalmaTiguan.jpg" alt="Volkswagen Tiguan" loading="lazy" width="300" height="200">
                         </div>
                         <div class="car-details">
                             <h3>Volkswagen Tiguan</h3>
@@ -290,7 +298,7 @@
                     <!-- Car 3 -->
                     <div class="car-card">
                         <div class="car-image">
-                            <img src="https://calmarentcar-production.up.railway.app/images/CalmaGolf.jpg" alt="Volkswagen Golf" loading="lazy" width="300" height="200">
+                            <img src="images/CalmaGolf.jpg" alt="Volkswagen Golf" loading="lazy" width="300" height="200">
                         </div>
                         <div class="car-details">
                             <h3>Volkswagen Golf</h3>
@@ -306,7 +314,7 @@
                     <!-- Car 4 -->
                     <div class="car-card">
                         <div class="car-image">
-                            <img src="https://calmarentcar-production.up.railway.app/images/Calmai10.jpg" alt="Hyundai i10" loading="lazy" width="300" height="200">
+                            <img src="images/Calmai10.jpg" alt="Hyundai i10" loading="lazy" width="300" height="200">
                         </div>
                         <div class="car-details">
                             <h3>Hyundai i10</h3>
@@ -322,7 +330,7 @@
                     <!-- Car 5 -->
                     <div class="car-card">
                         <div class="car-image">
-                            <img src="https://calmarentcar-production.up.railway.app/images/CalmaCitroen.jpg" alt="Citroen C3" loading="lazy" width="300" height="200">
+                            <img src="images/CalmaCitroen.jpg" alt="Citroen C3" loading="lazy" width="300" height="200">
                         </div>
                         <div class="car-details">
                             <h3>Citroen C3</h3>
@@ -338,7 +346,7 @@
                     <!-- Car 6 -->
                     <div class="car-card">
                         <div class="car-image">
-                            <img src="https://calmarentcar-production.up.railway.app/images/CalmaSuzuki.jpg" alt="Suzuki Swift" loading="lazy" width="300" height="200">
+                            <img src="images/CalmaSuzuki.jpg" alt="Suzuki Swift" loading="lazy" width="300" height="200">
                         </div>
                         <div class="car-details">
                             <h3>Suzuki Swift</h3>
