@@ -2,6 +2,14 @@
 
 This document outlines the performance optimizations implemented for the Calma Car Rental website.
 
+## Deployment
+
+The website is deployed on Railway.com. To deploy:
+
+1. Push changes to the GitHub repository
+2. Railway automatically detects changes and deploys the updated version
+3. Use the build command `npm run build` to update minified files before pushing
+
 ## Recent Optimizations
 
 ### 1. Code Consolidation and Cleanup
@@ -9,6 +17,7 @@ This document outlines the performance optimizations implemented for the Calma C
 - **Consolidated CSS**: Combined styles from multiple CSS files into a single minified file
 - **Removed Unused Files**: Cleaned up development tools and temporary files
 - **Fixed Redundant Code**: Eliminated duplicate functions and overlapping styles
+- **Removed Heroku Dependencies**: Removed all Heroku-specific configurations and moved to Railway
 
 ### 2. Performance Improvements
 - **Fixed Navbar**: Implemented a fixed header with smooth scroll effect and visual enhancements

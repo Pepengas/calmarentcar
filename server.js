@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // --- Storage ---
 // Determine storage location - use environment variable if available
-const DATA_DIR = process.env.DATA_DIR || (process.env.RAILWAY ? '/app/data' : __dirname);
+const DATA_DIR = process.env.DATA_DIR || '/app/data';
 const BOOKINGS_FILE = path.join(DATA_DIR, 'bookings.json');
 
 // Initialize bookings file if it doesn't exist
