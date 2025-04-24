@@ -187,9 +187,9 @@ app.post('/api/book', async (req, res) => {
             return res.status(400).json({ success: false, message: `Missing required field: ${field}` });
         }
     }
-    if (parseInt(bookingData.age) < 21) {
-         console.error(`Validation Error: Age ${bookingData.age} is less than 21`);
-         return res.status(400).json({ success: false, message: 'Minimum age requirement is 21.' });
+    if (parseInt(bookingData.age) < 25) {
+        console.error(`Validation Error: Age ${bookingData.age} is less than 25`);
+        return res.status(400).json({ success: false, message: 'Minimum age requirement is 25.' });
     }
     // Date validation
     if (new Date(bookingData['dropoff-date']) < new Date(bookingData['pickup-date'])) {
