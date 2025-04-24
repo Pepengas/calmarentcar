@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Function to fetch car data ---
     async function fetchCars() {
         try {
-            const response = await fetch('https://calma-car-rental-0c39a21370e6.herokuapp.com/api/cars'); // Ensure backend is running
+            const response = await fetch('https://calmarentcar-production.up.railway.app/api/cars'); // Ensure backend is running
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                  nextBtn.textContent = 'Checking...';
                  nextBtn.disabled = true;
-                const response = await fetch(`https://calma-car-rental-0c39a21370e6.herokuapp.com/api/cars/availability?carId=${encodeURIComponent(carId)}&pickupDate=${encodeURIComponent(pickupDate)}&dropoffDate=${encodeURIComponent(dropoffDate)}`);
+                const response = await fetch(`https://calmarentcar-production.up.railway.app/api/cars/availability?carId=${encodeURIComponent(carId)}&pickupDate=${encodeURIComponent(pickupDate)}&dropoffDate=${encodeURIComponent(dropoffDate)}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
@@ -544,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (submitButton) submitButton.disabled = true;
             
             // Send data to backend
-            fetch('https://calma-car-rental-0c39a21370e6.herokuapp.com/api/book', {
+            fetch('https://calmarentcar-production.up.railway.app/api/book', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(bookingData),
@@ -733,19 +733,68 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // After successful booking submission, show success message
     function showBookingSuccess(data) {
+        // Get form data for the message
+        const emailInput = document.getElementById('customer-email');
+        const carSelect = document.getElementById('car-selection');
+        const pickupDateInput = document.getElementById('pickup-date');
+        const dropoffDateInput = document.getElementById('dropoff-date');
+        
+        const email = emailInput ? emailInput.value : 'your email';
+        const selectedCarOption = carSelect ? carSelect.options[carSelect.selectedIndex] : null;
+        const carName = selectedCarOption ? selectedCarOption.text.split(' - ')[0] : 'selected vehicle';
+        const pickupDate = pickupDateInput ? formatDisplayDate(pickupDateInput.value) : '';
+        const dropoffDate = dropoffDateInput ? formatDisplayDate(dropoffDateInput.value) : '';
+        
+        // Generate a booking reference
+        const bookingRef = generateBookingReference();
+        
+        // Create the success message with more structure and details
         const bookingForm = document.getElementById('booking-form');
-        const selectedCarName = getCarName(bookingData['car-selection']);
         const successMessage = `
             <div class="booking-success">
                 <div class="success-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <h2>Booking Request Received!</h2>
-                <p class="booking-confirmation-message">Thank you! We've received your request for the ${selectedCarName} and will contact you shortly via ${bookingData['customer-email']} to confirm.</p>
+                <h2>Booking Request Successful!</h2>
+                <div class="booking-confirmation-message">
+                    <p>Thank you for your booking request. We've received your request for the <strong>${carName}</strong>.</p>
+                    <p>Your booking reference: <strong>${bookingRef}</strong></p>
+                    <p>Vehicle: <strong>${carName}</strong></p>
+                    ${pickupDate ? `<p>Pick-up date: <strong>${pickupDate}</strong></p>` : ''}
+                    ${dropoffDate ? `<p>Drop-off date: <strong>${dropoffDate}</strong></p>` : ''}
+                    <p>We've sent a confirmation email to <strong>${email}</strong> with all the details of your booking.</p>
+                    <p>If you have any questions, please contact our customer service.</p>
+                </div>
+                <button class="btn btn-primary" onclick="window.location.reload()">Make Another Booking</button>
             </div>
         `;
         
+        // Update the form with the success message
         bookingForm.innerHTML = successMessage;
-        showNotification(data.message || 'Booking request submitted!', 'success');
+        
+        // Scroll to top to ensure the user sees the confirmation
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // Helper function to format dates more nicely
+    function formatDisplayDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    }
+    
+    // Generate a booking reference number
+    function generateBookingReference() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 8; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
     }
 }); 
