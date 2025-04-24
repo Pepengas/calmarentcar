@@ -34,6 +34,8 @@
     
     <!-- Only load the minified CSS file -->
     <link rel="stylesheet" href="dist/styles.min.css">
+    <!-- Override styles from backup to fix hero and fleet layout -->
+    <link rel="stylesheet" href="oldbackup/fix.css">
     
     <!-- Additional responsive styles -->
     <style>
@@ -774,7 +776,7 @@
     }
     </script>
 
-    <!-- JavaScript - Using optimized minified file -->
-    <script src="dist/script.min.js" defer></script>
+    <!-- Use backup script to preserve static fleet images -->
+    <script src="oldbackup/script.js" defer></script>
 </body>
 </html> 
