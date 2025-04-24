@@ -3,12 +3,16 @@ FROM node:18
 # Create app directory
 WORKDIR /app
 
+# Copy package files first for better layer caching
+COPY package*.json ./
+RUN npm install
+
 # Copy application files
 COPY . .
 
-# Install dependencies manually (avoid npm ci)
-RUN rm -f package-lock.json
-RUN npm install
+# Ensure images directory exists and has proper permissions
+RUN mkdir -p /app/images
+RUN chmod -R 755 /app/images
 
 # Environment variables
 ENV PORT=3000

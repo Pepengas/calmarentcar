@@ -295,6 +295,9 @@ app.get('/api/debug/bookings', async (req, res) => {
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 // === Serve Static Files ===
+// Explicitly serve images directory
+app.use('/images', express.static(path.join(__dirname, 'images')));
+// Serve other static files
 app.use(express.static(__dirname));
 
 // Root route
