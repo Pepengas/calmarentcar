@@ -189,6 +189,24 @@
         section[id] {
             scroll-margin-top: 90px;
         }
+        
+        /* Logo link styles */
+        .logo a {
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        
+        .logo a:hover {
+            transform: scale(1.05);
+        }
+        
+        .logo a:active {
+            transform: scale(0.98);
+        }
+        
+        .logo img {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -200,7 +218,9 @@
         <div class="container">
             <nav class="navbar">
                 <div class="logo">
-                    <img src="images/CalmaLogoTrans.png" alt="Calma Car Rental Logo" width="160" height="50">
+                    <a href="index.html" title="Go to homepage">
+                        <img src="images/CalmaLogoTrans.png" alt="Calma Car Rental Logo" width="160" height="50">
+                    </a>
                 </div>
                 
                 <div class="nav-container">
