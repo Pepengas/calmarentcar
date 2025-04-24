@@ -54,6 +54,13 @@
             background-position: center;
         }
         
+        /* Force car cards to be visible without animations */
+        .car-card {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            visibility: visible !important;
+        }
+        
         @media (max-width: 768px) {
             .hero {
                 padding-top: 60px !important;
@@ -277,7 +284,7 @@
                 
                 <div class="cars-grid">
                     <!-- Car 1 -->
-                    <div class="car-card">
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaAygo.jpg" alt="Toyota Aygo" loading="lazy" width="300" height="200">
                         </div>
@@ -293,7 +300,7 @@
                     </div>
                     
                     <!-- Car 2 -->
-                    <div class="car-card">
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaTiguan.jpg" alt="Volkswagen Tiguan" loading="lazy" width="300" height="200">
                         </div>
@@ -309,7 +316,7 @@
                     </div>
                     
                     <!-- Car 3 -->
-                    <div class="car-card">
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaGolf.jpg" alt="Volkswagen Golf" loading="lazy" width="300" height="200">
                         </div>
@@ -325,7 +332,7 @@
                     </div>
                     
                     <!-- Car 4 -->
-                    <div class="car-card">
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/Calmai10.jpg" alt="Hyundai i10" loading="lazy" width="300" height="200">
                         </div>
@@ -341,7 +348,7 @@
                     </div>
                     
                     <!-- Car 5 -->
-                    <div class="car-card">
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaCitroen.jpg" alt="Citroen C3" loading="lazy" width="300" height="200">
                         </div>
@@ -357,7 +364,7 @@
                     </div>
                     
                     <!-- Car 6 -->
-                    <div class="car-card">
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaSuzuki.jpg" alt="Suzuki Swift" loading="lazy" width="300" height="200">
                         </div>
