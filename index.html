@@ -61,6 +61,111 @@
             visibility: visible !important;
         }
         
+        /* Enhanced Partner Logos */
+        .partners-section {
+            padding: 50px 0;
+            background-color: #f8f9fa;
+        }
+        
+        .partners-header h3 {
+            margin-bottom: 40px;
+            text-align: center;
+            font-size: 2rem;
+            color: #343a40;
+            position: relative;
+        }
+        
+        .partners-header h3:after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 3px;
+            background-color: #0066cc;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .partners-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 50px;
+            padding: 0 20px;
+        }
+        
+        .partner-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s, filter 0.3s;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: 140px;
+            height: 140px;
+            justify-content: center;
+        }
+        
+        .partner-logo i {
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .partner-logo .fa-cc-visa {
+            color: #1a1f71;
+        }
+        
+        .partner-logo .fa-cc-mastercard {
+            color: #eb001b;
+        }
+        
+        .partner-logo .fa-cc-paypal {
+            color: #003087;
+        }
+        
+        .partner-logo .fa-google {
+            color: #4285F4;
+        }
+        
+        .partner-logo .fa-tripadvisor {
+            color: #00af87;
+        }
+        
+        .partner-name {
+            font-weight: 500;
+            margin-top: 8px;
+            font-size: 1rem;
+            color: #333;
+        }
+        
+        .partner-logo:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .partners-logos {
+                gap: 20px;
+            }
+            
+            .partner-logo {
+                width: 120px;
+                height: 120px;
+                padding: 15px;
+            }
+            
+            .partner-logo i {
+                font-size: 2.5rem !important;
+            }
+            
+            .partner-name {
+                font-size: 0.9rem;
+            }
+        }
+        
         @media (max-width: 768px) {
             .hero {
                 padding-top: 60px !important;
@@ -693,19 +798,24 @@
                 </div>
                 <div class="partners-logos">
                     <div class="partner-logo">
-                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-visa fa-3x"></i>
+                        <span class="partner-name">Visa</span>
                     </div>
                     <div class="partner-logo">
-                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fab fa-cc-mastercard fa-3x"></i>
+                        <span class="partner-name">Mastercard</span>
                     </div>
                     <div class="partner-logo">
-                        <i class="fab fa-cc-paypal"></i>
+                        <i class="fab fa-cc-paypal fa-3x"></i>
+                        <span class="partner-name">PayPal</span>
                     </div>
                     <div class="partner-logo">
-                        <i class="fab fa-google"></i>
+                        <i class="fab fa-google fa-3x"></i>
+                        <span class="partner-name">Google</span>
                     </div>
                     <div class="partner-logo">
-                        <i class="fab fa-tripadvisor"></i>
+                        <i class="fab fa-tripadvisor fa-3x"></i>
+                        <span class="partner-name">TripAdvisor</span>
                     </div>
                 </div>
             </div>
