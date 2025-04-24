@@ -16,14 +16,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
+    "@types/react": "^18.2.55",
+    "@types/react-dom": "^18.2.19",
     "@types/recharts": "^1.8.29",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "nodemailer": "^6.9.9",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-query": "^3.39.3",
     "recharts": "^2.15.3"
   },
