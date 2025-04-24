@@ -58,6 +58,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const card = document.createElement('div');
             card.className = 'car-card';
             
+            // Make sure car image URL is absolute
+            const imageUrl = car.image.startsWith('http') ? 
+                car.image : 
+                `https://calmarentcar-production.up.railway.app/${car.image}`;
+            
             let featuresHtml = '';
             if (car.features && car.features.length > 0) {
                 featuresHtml = `<ul class="car-features"><li>${car.features.join('</li><li>')}</li></ul>`;
@@ -65,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             card.innerHTML = `
                 <div class="car-image">
-                    <img src="${car.image}" alt="${car.name}" loading="lazy" width="300" height="200">
+                    <img src="${imageUrl}" alt="${car.name}" loading="lazy" width="300" height="200">
                 </div>
                 <div class="car-details">
                     <h3>${car.name}</h3>

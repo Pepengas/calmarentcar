@@ -113,12 +113,13 @@ header {
     padding-top: 160px; /* Adjust based on header height plus desired spacing */
     padding-bottom: 50px;
     min-height: 100vh;
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('images/CalmaBackground.jpg');
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://calmarentcar-production.up.railway.app/images/CalmaBackground.jpg');
     background-size: cover;
     background-position: center;
     display: flex;
     align-items: flex-start;
     color: var(--light-color);
+    position: relative;
 }
 
 .hero-content {
@@ -1786,34 +1787,88 @@ textarea:focus {
     }
 }
 
-/* Booking success container */
+/* Booking Success Styles */
 .booking-success {
-    background-color: #f8f9fa;
-    border-radius: 8px;
+    background-color: #f0f9ff;
     padding: 30px;
+    margin: 30px auto;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     text-align: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    margin: 20px auto;
-}
-
-.booking-success .success-icon {
-    color: #28a745;
-    font-size: 48px;
-    margin-bottom: 20px;
+    max-width: 700px;
+    animation: fadeIn 0.8s ease-out;
 }
 
 .booking-success h2 {
-    color: #28a745;
-    margin-bottom: 15px;
+    color: #0066cc;
+    font-size: 2rem;
+    margin-bottom: 20px;
+    font-weight: 700;
 }
 
-/* Booking confirmation message */
-.booking-confirmation-message,
-#booking-success-message {
-    color: #333333;
-    font-size: 16px;
-    line-height: 1.5;
-    margin: 15px 0;
-    text-align: center;
-    font-weight: 400;
+.success-icon {
+    font-size: 80px;
+    color: #4CAF50;
+    margin-bottom: 15px;
+    animation: pulse 2s infinite;
+}
+
+.booking-confirmation-message {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    text-align: left;
+    color: #222222;
+    line-height: 1.8;
+    border-left: 5px solid #4CAF50;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.booking-confirmation-message p {
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.booking-confirmation-message strong {
+    font-weight: 700;
+    color: #0052a3;
+}
+
+.booking-success button {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.booking-success button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    background-color: #0052a3;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Print Styles */
+@media print {
+    .booking-success {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    .booking-confirmation-message {
+        box-shadow: none;
+        border: 1px solid #eee;
+    }
 } 
