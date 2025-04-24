@@ -294,10 +294,77 @@ app.get('/api/debug/bookings', async (req, res) => {
 // === Prevent 404 for missing favicon ===
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
+// Debug endpoint to check server environment
+app.get('/debug/server', (req, res) => {
+  res.json({
+    environment: {
+      nodeEnv: process.env.NODE_ENV,
+      railway: process.env.RAILWAY,
+      port: process.env.PORT,
+      workingDirectory: process.cwd(),
+      platform: process.platform,
+      dirname: __dirname
+    },
+    versions: {
+      node: process.version,
+      dependencies: {
+        express: require('express/package.json').version,
+        cors: require('cors/package.json').version
+      }
+    }
+  });
+});
+
+// Debug endpoint to check image paths
+app.get('/debug/images', (req, res) => {
+  const imagesPath = path.join(__dirname, 'images');
+  const publicImagesPath = path.join(__dirname, 'public/images');
+  
+  Promise.all([
+    fs.readdir(imagesPath).catch(err => ({ error: err.message })),
+    fs.readdir(publicImagesPath).catch(err => ({ error: err.message }))
+  ])
+  .then(([imagesFiles, publicImagesFiles]) => {
+    res.json({ 
+      success: true, 
+      images: {
+        path: imagesPath,
+        absolutePath: path.resolve(imagesPath),
+        files: Array.isArray(imagesFiles) ? imagesFiles : [],
+        error: imagesFiles.error
+      },
+      publicImages: {
+        path: publicImagesPath,
+        absolutePath: path.resolve(publicImagesPath),
+        files: Array.isArray(publicImagesFiles) ? publicImagesFiles : [],
+        error: publicImagesFiles.error
+      }
+    });
+  })
+  .catch(err => {
+    res.json({ 
+      success: false, 
+      error: err.message
+    });
+  });
+});
+
 // === Serve Static Files ===
-// Explicitly serve images directory
-app.use('/images', express.static(path.join(__dirname, 'images')));
-// Serve other static files
+// Serve from public directory first (highest priority)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Next serve from images directory explicitly
+app.use('/images', express.static(path.join(__dirname, 'images'), {
+  maxAge: '1d',
+  setHeaders: (res, filePath) => {
+    console.log(`Serving image: ${filePath}`);
+    if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || filePath.endsWith('.png')) {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  }
+}));
+
+// Finally serve from root directory
 app.use(express.static(__dirname));
 
 // Root route
