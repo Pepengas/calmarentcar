@@ -453,8 +453,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     break;
                 case 'age':
                     const age = parseInt(value);
-                    if (isNaN(age) || age < 21 || age > 90) { // Added upper bound
-                        errorMessage = 'Age must be between 21 and 90.';
+                    if (isNaN(age) || age < 25 || age > 90) { // Added upper bound
+                        errorMessage = 'Age must be between 25 and 90.';
                         isValid = false;
                     }
                     break;
