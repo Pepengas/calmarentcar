@@ -476,6 +476,112 @@
                 transform: rotate(360deg);
             }
         }
+        
+        /* Additional styles for dynamic pages */
+        .settings-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .settings-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        .settings-group input,
+        .settings-group select,
+        .settings-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--gray-300);
+            transition: var(--transition);
+        }
+        
+        .settings-group input:focus,
+        .settings-group select:focus,
+        .settings-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .setting-help {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            margin-top: 0.5rem;
+        }
+        
+        .btn-sm {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.75rem;
+        }
+        
+        .account-info {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 2rem;
+        }
+        
+        .account-avatar {
+            text-align: center;
+        }
+        
+        .account-avatar img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .password-requirements {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background-color: var(--gray-100);
+            border-radius: var(--border-radius);
+        }
+        
+        .password-requirements ul {
+            margin-top: 0.5rem;
+            margin-left: 1.5rem;
+        }
+        
+        .logout-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 70vh;
+        }
+        
+        .logout-box {
+            text-align: center;
+            background-color: white;
+            padding: 3rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            max-width: 500px;
+        }
+        
+        .logout-icon {
+            font-size: 4rem;
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+        }
+        
+        .logout-actions {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -490,25 +596,25 @@
             <div class="nav-title">Management</div>
             <ul class="nav-items">
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" data-page="dashboard">
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link active">
+                    <a href="#" class="nav-link active" data-page="bookings">
                         <i class="fas fa-calendar-alt"></i>
                         <span>Bookings</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" data-page="cars">
                         <i class="fas fa-car-side"></i>
                         <span>Cars</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" data-page="customers">
                         <i class="fas fa-users"></i>
                         <span>Customers</span>
                     </a>
@@ -518,19 +624,19 @@
             <div class="nav-title">Settings</div>
             <ul class="nav-items">
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" data-page="general">
                         <i class="fas fa-cog"></i>
                         <span>General</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" data-page="account">
                         <i class="fas fa-user"></i>
                         <span>Account</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" data-page="logout">
                         <i class="fas fa-sign-out-alt"></i>
                         <span>Logout</span>
                     </a>
@@ -621,6 +727,9 @@
     </div>
 
     <script>
+        // This script has been replaced by admin.js
+        // The code remains for reference but will not be executed
+        /*
         document.addEventListener('DOMContentLoaded', function() {
             // Determine API base URL based on hostname
             const apiBase = window.location.hostname.includes('localhost') 
@@ -856,7 +965,7 @@
                     </div>
                 `;
             }
-
+            
             // Function to display error state
             function displayErrorState(errorMessage) {
                 bookingsContainer.innerHTML = `
@@ -885,6 +994,8 @@
             // Add event listener to the refresh button
             refreshBtn.addEventListener('click', loadBookings);
         });
+        */
     </script>
+    <script src="admin.js"></script>
 </body>
 </html> 
