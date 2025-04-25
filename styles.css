@@ -196,41 +196,60 @@ header {
 }
 
 .form-group {
-    flex: 1;
-    min-width: 200px;
+    margin-bottom: 15px;
     position: relative;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     font-weight: 600;
-    color: #444;
-    transition: color var(--transition-speed);
+    font-size: 0.95rem;
+    color: #3c4043;
 }
 
+.form-group input,
 .form-group select,
-.form-group input {
+.form-group textarea {
     width: 100%;
-    padding: 14px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    padding: 12px;
+    border: 1px solid #cfd8dc;
+    border-radius: 4px;
     font-size: 1rem;
-    background-color: #f9f9f9;
-    transition: border-color var(--transition-speed), box-shadow var(--transition-speed), transform 0.2s;
-}
-
-/* Enhanced focus states */
-.form-group.input-focused label {
-    color: var(--primary-color);
-}
-
-.form-group select:focus,
-.form-group input:focus {
+    transition: all 0.3s;
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
-    transform: scale(1.01);
+}
+
+/* Loading state for date inputs */
+.form-group input[type="date"].loading {
+    background-image: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
+    background-size: 200% 100%;
+    animation: loading-pulse 1.5s infinite;
+    cursor: wait;
+}
+
+@keyframes loading-pulse {
+    0% { background-position: 0% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Styling for unavailable dates */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+}
+
+/* Notification for unavailable dates */
+.notification-info {
+    background-color: #e7f5ff;
+    border-left: 4px solid #0066cc;
+    color: #0066cc;
+}
+
+/* Date selection styling for disabled dates (will be handled in JS) */
+.disabled-date {
+    color: #ccc;
+    cursor: not-allowed;
+    background-color: #f5f5f5;
 }
 
 .btn {

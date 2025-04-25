@@ -174,6 +174,38 @@ app.get('/api/cars/availability', async (req, res) => {
     }
 });
 
+// === API: Car Schedule (Get existing bookings for a car) ===
+app.get('/api/cars/:carId/schedule', async (req, res) => {
+    const { carId } = req.params;
+    
+    if (!carId) {
+        return res.status(400).json({ success: false, message: 'Missing car ID' });
+    }
+    
+    try {
+        // Get all bookings for this car
+        const allBookings = bookingsStorage.getAllBookings();
+        const carBookings = allBookings.filter(
+            booking => booking.car_id === carId && booking.status === 'confirmed'
+        );
+        
+        // Return the schedule
+        res.status(200).json({ 
+            success: true, 
+            bookings: carBookings.map(booking => ({
+                id: booking.id,
+                pickup_date: booking.pickup_date,
+                pickup_time: booking.pickup_time,
+                dropoff_date: booking.dropoff_date,
+                dropoff_time: booking.dropoff_time
+            }))
+        });
+    } catch (error) {
+        console.error(`Error fetching schedule for car ${carId}:`, error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve car schedule' });
+    }
+});
+
 // === API: Book Car ===
 app.post('/api/book', async (req, res) => {
     console.log('Booking request received:', req.body);

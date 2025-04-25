@@ -247,6 +247,135 @@ document.addEventListener('DOMContentLoaded', function() {
             option.textContent = `${car.name} - From €${car.pricePerDay}/day`;
             carSelectionDropdown.appendChild(option);
         });
+
+        // Add event listener to fetch booking schedule when a car is selected
+        carSelectionDropdown.addEventListener('change', fetchCarAvailabilitySchedule);
+    }
+    
+    // --- Function to fetch car availability schedule ---
+    async function fetchCarAvailabilitySchedule() {
+        const carId = carSelectionDropdown.value;
+        if (!carId) return;
+        
+        // Show loading indicator on date inputs
+        if (pickupDateInput) pickupDateInput.classList.add('loading');
+        if (dropoffDateInput) dropoffDateInput.classList.add('loading');
+        
+        try {
+            const response = await fetch(`https://calmarentcar-production.up.railway.app/api/cars/${carId}/schedule`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.bookings) {
+                // Process bookings to get unavailable dates
+                const unavailableDateRanges = data.bookings.map(booking => ({
+                    start: new Date(booking.pickup_date),
+                    end: new Date(booking.dropoff_date)
+                }));
+                
+                // Apply to date inputs
+                applyUnavailableDates(unavailableDateRanges);
+                
+                // Show notification
+                if (unavailableDateRanges.length > 0) {
+                    showNotification(`This car has ${unavailableDateRanges.length} existing booking(s). Unavailable dates have been disabled.`, 'info', 5000);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch car schedule:', error);
+            showNotification('Could not load car availability schedule.', 'error');
+        } finally {
+            // Remove loading indicator
+            if (pickupDateInput) pickupDateInput.classList.remove('loading');
+            if (dropoffDateInput) dropoffDateInput.classList.remove('loading');
+        }
+    }
+    
+    // --- Function to apply unavailable dates to date pickers ---
+    function applyUnavailableDates(unavailableDateRanges) {
+        if (!pickupDateInput || !dropoffDateInput) return;
+        
+        // Reset date inputs
+        pickupDateInput.min = getTodayString();
+        dropoffDateInput.min = getTodayString();
+        
+        // Clear any previous disabled dates by cloning and replacing the inputs
+        const newPickupDateInput = pickupDateInput.cloneNode(true);
+        const newDropoffDateInput = dropoffDateInput.cloneNode(true);
+        
+        pickupDateInput.parentNode.replaceChild(newPickupDateInput, pickupDateInput);
+        dropoffDateInput.parentNode.replaceChild(newDropoffDateInput, dropoffDateInput);
+        
+        // Update references
+        pickupDateInput = document.getElementById('pickup-date');
+        dropoffDateInput = document.getElementById('dropoff-date');
+        
+        // Re-add event listeners
+        pickupDateInput.addEventListener('change', checkAvailability);
+        dropoffDateInput.addEventListener('change', checkAvailability);
+        
+        // Add validation event listeners
+        pickupDateInput.addEventListener('input', validateDateInput);
+        dropoffDateInput.addEventListener('input', validateDateInput);
+        
+        // Create a flat list of all unavailable dates
+        const unavailableDates = [];
+        
+        unavailableDateRanges.forEach(range => {
+            const currentDate = new Date(range.start);
+            
+            // Add each date in the range to our flat list
+            while (currentDate <= range.end) {
+                unavailableDates.push(new Date(currentDate).toISOString().split('T')[0]);
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        });
+        
+        // Apply the date validation function
+        function validateDateInput(e) {
+            const selectedDate = e.target.value;
+            
+            if (unavailableDates.includes(selectedDate)) {
+                showNotification('This date is not available for the selected car.', 'error');
+                e.target.value = ''; // Clear the selection
+                
+                // Focus the next available date
+                setTimeout(() => {
+                    const nextAvailableDate = findNextAvailableDate(selectedDate, unavailableDates);
+                    showNotification(`Next available date is ${formatDisplayDate(nextAvailableDate)}.`, 'info');
+                }, 100);
+            }
+        }
+    }
+    
+    // --- Helper function to find next available date ---
+    function findNextAvailableDate(currentDateStr, unavailableDates) {
+        const currentDate = new Date(currentDateStr);
+        const nextDate = new Date(currentDate);
+        
+        // Try the next 30 days
+        for (let i = 1; i <= 30; i++) {
+            nextDate.setDate(currentDate.getDate() + i);
+            const dateStr = nextDate.toISOString().split('T')[0];
+            
+            if (!unavailableDates.includes(dateStr)) {
+                return dateStr;
+            }
+        }
+        
+        // If no date found in the next 30 days, return a date 30 days from now
+        const fallbackDate = new Date();
+        fallbackDate.setDate(fallbackDate.getDate() + 30);
+        return fallbackDate.toISOString().split('T')[0];
+    }
+    
+    // --- Helper function to get today's date string ---
+    function getTodayString() {
+        const today = new Date();
+        return today.toISOString().split('T')[0];
     }
     
     // --- Function to handle "Book Now" clicks from the car grid ---
@@ -902,9 +1031,18 @@ document.addEventListener('DOMContentLoaded', function() {
         closeButton.onclick = () => closeNotification(notification);
         notification.appendChild(closeButton);
         
-        // Add special icon for warnings about rental times
+        // Add special icon based on notification type
         if (type === 'warning') {
             notification.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            notification.appendChild(closeButton);
+        } else if (type === 'error') {
+            notification.innerHTML = `<i class="fas fa-times-circle"></i> ${message}`;
+            notification.appendChild(closeButton);
+        } else if (type === 'info') {
+            notification.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+            notification.appendChild(closeButton);
+        } else if (type === 'success') {
+            notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
             notification.appendChild(closeButton);
         }
         
