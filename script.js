@@ -27,6 +27,145 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = document.getElementById('to-step-1');
     let currentStep = 1;
     
+    // --- Rental Time Logic Utility ---
+    const rentalTimeLogic = {
+        /**
+         * Calculates the total rental days based on pickup and return dates/times
+         * @param {Date|string} pickupDateTime - Pickup date and time
+         * @param {Date|string} returnDateTime - Return date and time
+         * @returns {number} - Total rental days
+         */
+        calculateRentalDays: function(pickupDateTime, returnDateTime) {
+            // Convert string dates to Date objects if needed
+            const pickupDate = pickupDateTime instanceof Date ? pickupDateTime : new Date(pickupDateTime);
+            const returnDate = returnDateTime instanceof Date ? returnDateTime : new Date(returnDateTime);
+            
+            // Get only the date part (without time) for both pickup and return
+            const pickupDateOnly = new Date(pickupDate.getFullYear(), pickupDate.getMonth(), pickupDate.getDate());
+            const returnDateOnly = new Date(returnDate.getFullYear(), returnDate.getMonth(), returnDate.getDate());
+            
+            // Calculate the difference in days between the dates
+            const diffTime = returnDateOnly.getTime() - pickupDateOnly.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Base rental days is the difference in days
+            let rentalDays = diffDays;
+            
+            // Check for return after 22:00 (10 PM) - add an extra day
+            const returnHour = returnDate.getHours();
+            const returnMinutes = returnDate.getMinutes();
+            
+            if (returnHour >= 22 || (returnHour === 21 && returnMinutes >= 59)) {
+                rentalDays += 1;
+            }
+            
+            // Return the calculated rental days
+            return rentalDays;
+        },
+        
+        /**
+         * Validates if the pickup time is within allowed range (07:00-08:00)
+         * @param {Date|string} pickupDateTime - Pickup date and time
+         * @returns {boolean} - True if pickup time is valid
+         */
+        isValidPickupTime: function(pickupDateTime) {
+            const pickupDate = pickupDateTime instanceof Date ? pickupDateTime : new Date(pickupDateTime);
+            const hour = pickupDate.getHours();
+            
+            // Pickup must be between 7:00 and 8:59 AM
+            return hour >= 7 && hour < 9;
+        },
+        
+        /**
+         * Validates if the return time is within allowed range (before 21:00)
+         * @param {Date|string} returnDateTime - Return date and time
+         * @returns {boolean} - True if return time is valid
+         */
+        isValidReturnTime: function(returnDateTime) {
+            const returnDate = returnDateTime instanceof Date ? returnDateTime : new Date(returnDateTime);
+            const hour = returnDate.getHours();
+            
+            // Return must be before 21:00 (9 PM)
+            return hour < 21;
+        },
+        
+        /**
+         * Gets standard pickup time (07:00 AM) for a given date
+         * @param {Date|string} date - The date for pickup
+         * @returns {Date} - Date with standard pickup time
+         */
+        getStandardPickupTime: function(date) {
+            const standardDate = date instanceof Date ? new Date(date) : new Date(date);
+            standardDate.setHours(7, 0, 0, 0); // Set to 07:00 AM
+            return standardDate;
+        },
+        
+        /**
+         * Gets standard return time (20:00 PM) for a given date
+         * @param {Date|string} date - The date for return
+         * @returns {Date} - Date with standard return time
+         */
+        getStandardReturnTime: function(date) {
+            const standardDate = date instanceof Date ? new Date(date) : new Date(date);
+            standardDate.setHours(20, 0, 0, 0); // Set to 08:00 PM
+            return standardDate;
+        },
+        
+        /**
+         * Validates booking times and ensures they follow rental rules
+         * @param {Object} bookingData - Booking data with dates and times
+         * @returns {Object} - Validation result with isValid and errors
+         */
+        validateBookingTimes: function(pickupDate, pickupTime, dropoffDate, dropoffTime) {
+            let errors = [];
+            let result = {
+                isValid: true,
+                errors: [],
+                rentalDays: 0,
+                lateReturnMessage: null
+            };
+            
+            try {
+                // Create full date-time objects by combining date and time
+                const pickupDateTime = new Date(`${pickupDate}T${pickupTime}`);
+                const returnDateTime = new Date(`${dropoffDate}T${dropoffTime}`);
+                
+                // Validate pickup time
+                if (!this.isValidPickupTime(pickupDateTime)) {
+                    errors.push('Pickup time must be between 07:00-08:00 AM');
+                }
+                
+                // Validate return time
+                if (!this.isValidReturnTime(returnDateTime)) {
+                    errors.push('Return time must be before 21:00 (9 PM)');
+                }
+                
+                // Validate that pickup is before return
+                if (pickupDateTime >= returnDateTime) {
+                    errors.push('Pickup date/time must be before return date/time');
+                }
+                
+                // Calculate and store the number of rental days
+                if (errors.length === 0) {
+                    result.rentalDays = this.calculateRentalDays(pickupDateTime, returnDateTime);
+                    
+                    // Explain late return charge if applicable
+                    const returnHour = returnDateTime.getHours();
+                    if (returnHour >= 22 || (returnHour === 21 && returnHour >= 59)) {
+                        result.lateReturnMessage = 'Note: Late return (after 22:00) adds an extra day charge';
+                    }
+                }
+            } catch (e) {
+                errors.push('Invalid date/time format');
+            }
+            
+            result.isValid = errors.length === 0;
+            result.errors = errors;
+            
+            return result;
+        }
+    };
+    
     // --- Function to fetch car data ---
     async function fetchCars() {
         try {
@@ -138,13 +277,43 @@ document.addEventListener('DOMContentLoaded', function() {
         const carId = carSelectionDropdown.value;
         const pickupDate = pickupDateInput.value;
         const dropoffDate = dropoffDateInput.value;
+        const pickupTimeInput = document.getElementById('pickup-time');
+        const dropoffTimeInput = document.getElementById('dropoff-time');
         
-        if (carId && pickupDate && dropoffDate) {
+        if (!pickupTimeInput || !dropoffTimeInput) return;
+        
+        const pickupTime = pickupTimeInput.value;
+        const dropoffTime = dropoffTimeInput.value;
+        
+        if (carId && pickupDate && dropoffDate && pickupTime && dropoffTime) {
              if (new Date(dropoffDate) < new Date(pickupDate)) {
                  showNotification('Drop-off date cannot be earlier than pickup date.', 'error');
                  nextBtn.disabled = true;
                  return;
              }
+             
+             // Validate rental time rules
+             const timeValidation = rentalTimeLogic.validateBookingTimes(
+                 pickupDate, pickupTime, dropoffDate, dropoffTime
+             );
+             
+             if (!timeValidation.isValid) {
+                 showNotification(timeValidation.errors[0], 'error');
+                 nextBtn.disabled = true;
+                 return;
+             }
+             
+             // If we have a late return notice, show it to the user
+             if (timeValidation.lateReturnMessage) {
+                 showNotification(timeValidation.lateReturnMessage, 'warning', 5000);
+             }
+             
+             // Display rental duration in days
+             const rentalDaysField = document.getElementById('rental-days');
+             if (rentalDaysField) {
+                 rentalDaysField.textContent = timeValidation.rentalDays;
+             }
+             
             try {
                  nextBtn.textContent = 'Checking...';
                  nextBtn.disabled = true;
@@ -190,6 +359,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (carSelectionDropdown) carSelectionDropdown.addEventListener('change', checkAvailability);
     if (pickupDateInput) pickupDateInput.addEventListener('change', checkAvailability);
     if (dropoffDateInput) dropoffDateInput.addEventListener('change', checkAvailability);
+    
+    // Add event listeners for pickup and dropoff time
+    const pickupTimeInput = document.getElementById('pickup-time');
+    const dropoffTimeInput = document.getElementById('dropoff-time');
+    if (pickupTimeInput) pickupTimeInput.addEventListener('change', checkAvailability);
+    if (dropoffTimeInput) dropoffTimeInput.addEventListener('change', checkAvailability);
     
     // Step navigation
     if (nextBtn) {
@@ -436,6 +611,30 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                     break;
+                case 'pickup-time':
+                    // Pickup time must be between 7-8 AM (07:00-08:00)
+                    const pickupTimeValue = value;
+                    const [pickupHour] = pickupTimeValue.split(':').map(Number);
+                    if (pickupHour < 7 || pickupHour >= 9) {
+                        errorMessage = 'Pickup time must be between 7:00-8:00 AM.';
+                        isValid = false;
+                    }
+                    break;
+                case 'dropoff-time':
+                    // Return time must be before 9 PM (21:00)
+                    const dropoffTimeValue = value;
+                    const [dropoffHour] = dropoffTimeValue.split(':').map(Number);
+                    if (dropoffHour >= 21) {
+                        errorMessage = 'Return time must be before 9:00 PM (21:00).';
+                        isValid = false;
+                    }
+                    
+                    // Notify about extra day charge if return after 10 PM (22:00)
+                    if (dropoffHour >= 22) {
+                        // Just add a warning message but don't invalidate the field
+                        formGroup.classList.add('warning');
+                    }
+                    break;
                 case 'customer-email':
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailRegex.test(value)) {
@@ -535,10 +734,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // Get pickup and dropoff dates/times for rental days calculation
+            const pickupDate = document.getElementById('pickup-date')?.value;
+            const pickupTime = document.getElementById('pickup-time')?.value;
+            const dropoffDate = document.getElementById('dropoff-date')?.value;
+            const dropoffTime = document.getElementById('dropoff-time')?.value;
+            
+            // Calculate rental days for submission
+            let rentalDaysValue = 1; // Default to 1 day
+            if (pickupDate && pickupTime && dropoffDate && dropoffTime) {
+                const timeValidation = rentalTimeLogic.validateBookingTimes(
+                    pickupDate, pickupTime, dropoffDate, dropoffTime
+                );
+                
+                if (!timeValidation.isValid) {
+                    showNotification(timeValidation.errors[0], 'error');
+                    return;
+                }
+                
+                rentalDaysValue = timeValidation.rentalDays;
+                
+                // Show warning about late return if applicable
+                if (timeValidation.lateReturnMessage) {
+                    showNotification(timeValidation.lateReturnMessage, 'warning', 5000);
+                }
+            }
+            
             // Prepare data for backend
             const formData = new FormData(bookingForm);
             const bookingData = {};
             formData.forEach((value, key) => { bookingData[key] = value; });
+            
+            // Add rental days to booking data
+            bookingData.rentalDays = rentalDaysValue;
             
             // Show loading indicator
             const loadingIndicator = document.createElement('div');
@@ -667,6 +895,12 @@ document.addEventListener('DOMContentLoaded', function() {
         closeButton.onclick = () => closeNotification(notification);
         notification.appendChild(closeButton);
         
+        // Add special icon for warnings about rental times
+        if (type === 'warning') {
+            notification.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            notification.appendChild(closeButton);
+        }
+        
         document.body.appendChild(notification);
         
         // Auto close
@@ -736,7 +970,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // After successful booking submission, show success message
+    // Function to show booking success
     function showBookingSuccess(data) {
         // Get form data for the message
         const emailInput = document.getElementById('customer-email');
@@ -753,6 +987,25 @@ document.addEventListener('DOMContentLoaded', function() {
         // Generate a booking reference
         const bookingRef = generateBookingReference();
         
+        // Calculate and show rental days
+        let rentalDaysText = '';
+        const pickupTime = document.getElementById('pickup-time')?.value;
+        const dropoffTime = document.getElementById('dropoff-time')?.value;
+        
+        if (pickupDateInput?.value && pickupTime && dropoffDateInput?.value && dropoffTime) {
+            const timeValidation = rentalTimeLogic.validateBookingTimes(
+                pickupDateInput.value, pickupTime, dropoffDateInput.value, dropoffTime
+            );
+            
+            if (timeValidation.isValid) {
+                rentalDaysText = `<p>Rental duration: <strong>${timeValidation.rentalDays} day(s)</strong></p>`;
+                
+                if (timeValidation.lateReturnMessage) {
+                    rentalDaysText += `<p class="late-return-notice"><i class="fas fa-info-circle"></i> ${timeValidation.lateReturnMessage}</p>`;
+                }
+            }
+        }
+        
         // Create the success message with more structure and details
         const bookingForm = document.getElementById('booking-form');
         const successMessage = `
@@ -765,8 +1018,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p>Thank you for your booking request. We've received your request for the <strong>${carName}</strong>.</p>
                     <p>Your booking reference: <strong>${bookingRef}</strong></p>
                     <p>Vehicle: <strong>${carName}</strong></p>
-                    ${pickupDate ? `<p>Pick-up date: <strong>${pickupDate}</strong></p>` : ''}
-                    ${dropoffDate ? `<p>Drop-off date: <strong>${dropoffDate}</strong></p>` : ''}
+                    ${pickupDate ? `<p>Pick-up date: <strong>${pickupDate}</strong> at ${pickupTime || 'N/A'}</p>` : ''}
+                    ${dropoffDate ? `<p>Drop-off date: <strong>${dropoffDate}</strong> at ${dropoffTime || 'N/A'}</p>` : ''}
+                    ${rentalDaysText}
                     <p>We've sent a confirmation email to <strong>${email}</strong> with all the details of your booking.</p>
                     <p>If you have any questions, please contact our customer service.</p>
                 </div>
@@ -779,6 +1033,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Scroll to top to ensure the user sees the confirmation
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // Display rental time rules in the FAQ or a modal
+    function showRentalTimeRules() {
+        return `
+            <div class="rental-rules">
+                <h3>Rental Time Rules</h3>
+                <ul class="rental-rules-list">
+                    <li><i class="fas fa-clock"></i> Pickup time: Between 07:00-08:00 AM</li>
+                    <li><i class="fas fa-clock"></i> Return time: By 20:00-21:00 (8-9 PM)</li>
+                    <li><i class="fas fa-exclamation-triangle"></i> Late return (after 22:00/10 PM) counts as an extra day</li>
+                    <li><i class="fas fa-calendar-day"></i> Only full days are charged</li>
+                </ul>
+            </div>
+        `;
     }
     
     // Helper function to format dates more nicely
