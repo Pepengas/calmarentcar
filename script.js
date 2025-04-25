@@ -303,6 +303,13 @@ document.addEventListener('DOMContentLoaded', function() {
                  return;
              }
              
+             // Update rental days display
+             const rentalDaysDisplay = document.getElementById('rental-days-display');
+             if (rentalDaysDisplay) {
+                 rentalDaysDisplay.textContent = `Total Rental Duration: ${timeValidation.rentalDays} day(s)`;
+                 rentalDaysDisplay.style.color = timeValidation.lateReturnMessage ? '#ff6600' : '#0066cc';
+             }
+             
              // If we have a late return notice, show it to the user
              if (timeValidation.lateReturnMessage) {
                  showNotification(timeValidation.lateReturnMessage, 'warning', 5000);
