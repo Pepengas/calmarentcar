@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation - Calma Car Rental Chania</title>
+    <meta name="description" content="Your booking with Calma Car Rental has been confirmed. View your booking details here.">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/booking.css">
+    
+    <!-- Preloading Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html" aria-label="Calma Car Rental Home">
+                        <img src="images/CalmaLogo.png" alt="Calma Car Rental Logo" width="120" height="40">
+                    </a>
+                </div>
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="index.html#cars">Our Cars</a></li>
+                        <li><a href="index.html#locations">Locations</a></li>
+                        <li><a href="index.html#about">About Us</a></li>
+                        <li><a href="index.html#faq">FAQ</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </nav>
+                <div class="header-actions">
+                    <button class="mobile-menu" aria-expanded="false" aria-label="Toggle mobile menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Confirmation Section -->
+        <section class="confirmation-section" style="padding-top: 120px; padding-bottom: 80px;">
+            <div class="container">
+                <div class="confirmation-header" style="text-align: center; margin-bottom: 40px;">
+                    <div class="success-icon" style="margin: 0 auto 20px; width: 80px; height: 80px; background-color: #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <h1>Booking Confirmed!</h1>
+                    <p>Thank you for choosing Calma Car Rental. Your booking has been successfully completed.</p>
+                    <p>We've sent a confirmation email with all details to your email address.</p>
+                    <p class="booking-reference" style="font-size: 1.2rem; font-weight: 600; margin-top: 20px;">
+                        Booking Reference: <span id="booking-reference-number">Loading...</span>
+                    </p>
+                </div>
+                
+                <!-- Booking Details -->
+                <div class="confirmation-details" style="background: #fff; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.1); padding: 30px; max-width: 800px; margin: 0 auto;">
+                    <h2 style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">Booking Details</h2>
+                    
+                    <div class="details-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                        <div class="details-column">
+                            <h3>Trip Information</h3>
+                            <ul class="details-list" style="list-style: none; padding: 0;">
+                                <li style="margin-bottom: 10px;">
+                                    <strong>Pick-up Location:</strong> 
+                                    <span id="conf-pickup-location">Loading...</span>
+                                </li>
+                                <li style="margin-bottom: 10px;">
+                                    <strong>Pick-up Date & Time:</strong> 
+                                    <span id="conf-pickup-datetime">Loading...</span>
+                                </li>
+                                <li style="margin-bottom: 10px;">
+                                    <strong>Drop-off Location:</strong> 
+                                    <span id="conf-dropoff-location">Loading...</span>
+                                </li>
+                                <li style="margin-bottom: 10px;">
+                                    <strong>Drop-off Date & Time:</strong> 
+                                    <span id="conf-dropoff-datetime">Loading...</span>
+                                </li>
+                                <li style="margin-bottom: 10px;">
+                                    <strong>Rental Duration:</strong> 
+                                    <span id="conf-duration">Loading...</span>
+                                </li>
+                            </ul>
+                            
+                            <h3 style="margin-top: 30px;">Personal Information</h3>
+                            <ul class="details-list" style="list-style: none; padding: 0;">
+                                <li style="margin-bottom: 10px;">
+                                    <strong>Name:</strong> 
+                                    <span id="conf-customer-name">Loading...</span>
+                                </li>
+                                <li style="margin-bottom: 10px;">
+                                    <strong>Email:</strong> 
+                                    <span id="conf-customer-email">Loading...</span>
+                                </li>
+                                <li style="margin-bottom: 10px;">
+                                    <strong>Phone:</strong> 
+                                    <span id="conf-customer-phone">Loading...</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="details-column">
+                            <h3>Vehicle Information</h3>
+                            <div id="conf-car-details" style="margin-bottom: 20px;">
+                                <div class="loading-car">Loading car details...</div>
+                            </div>
+                            
+                            <h3 style="margin-top: 30px;">Payment Summary</h3>
+                            <ul class="details-list" style="list-style: none; padding: 0;">
+                                <li style="margin-bottom: 10px;">
+                                    <strong>Daily Rate:</strong> 
+                                    <span id="conf-daily-rate">Loading...</span>
+                                </li>
+                                <li style="margin-bottom: 10px;">
+                                    <strong>Number of Days:</strong> 
+                                    <span id="conf-days">Loading...</span>
+                                </li>
+                                <li style="margin-bottom: 10px;">
+                                    <strong>Subtotal:</strong> 
+                                    <span id="conf-subtotal">Loading...</span>
+                                </li>
+                                <li style="margin-bottom: 10px; display: none;" id="conf-special-requests-item">
+                                    <strong>Special Requests:</strong> 
+                                    <span id="conf-special-requests-cost">€0</span>
+                                </li>
+                                <li style="margin-bottom: 10px; font-size: 1.2rem; font-weight: 600; color: #4a6fa1;">
+                                    <strong>Total Amount:</strong> 
+                                    <span id="conf-total">Loading...</span>
+                                </li>
+                                <li style="margin-top: 20px; color: #4CAF50;">
+                                    <strong>Payment Status:</strong> 
+                                    <span>To be paid at pick-up</span>
+                                </li>
+                            </ul>
+                            
+                            <!-- Special Requests Information -->
+                            <div id="conf-special-requests-section" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: none;">
+                                <h4>Special Requests</h4>
+                                <ul id="conf-special-requests-list" style="padding-left: 20px;">
+                                    <!-- Special requests will be added here dynamically -->
+                                </ul>
+                                <p id="conf-other-requests-text" style="margin-top: 10px; display: none;"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="additional-info" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+                        <h3>What's Next?</h3>
+                        <ol style="padding-left: 20px;">
+                            <li style="margin-bottom: 10px;">Please arrive at the pick-up location at least 15 minutes before your scheduled time.</li>
+                            <li style="margin-bottom: 10px;">Don't forget to bring your driver's license, ID/passport, and the credit card used for the booking.</li>
+                            <li style="margin-bottom: 10px;">Our representative will be waiting to assist you and handle the paperwork.</li>
+                            <li style="margin-bottom: 10px;">The vehicle will be inspected together before handover.</li>
+                        </ol>
+                        
+                        <div class="actions" style="margin-top: 30px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                            <a href="index.html" class="btn btn-secondary" style="min-width: 150px;">Back to Home</a>
+                            <button id="print-button" class="btn btn-primary" style="min-width: 150px;">Print Confirmation</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/CalmaLogo.png" alt="Calma Car Rental Logo" width="120" height="40">
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Quick Links</h3>
+                        <ul>
+                            <li><a href="index.html">Home</a></li>
+                            <li><a href="index.html#cars">Our Cars</a></li>
+                            <li><a href="index.html#locations">Locations</a></li>
+                            <li><a href="index.html#about">About Us</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Support</h3>
+                        <ul>
+                            <li><a href="index.html#faq">FAQ</a></li>
+                            <li><a href="index.html#contact">Contact Us</a></li>
+                            <li><a href="#">Terms & Conditions</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Contact</h3>
+                        <p>123 Main Street, Chania</p>
+                        <p>Crete, Greece</p>
+                        <p>Phone: +30 123 456 7890</p>
+                        <p>Email: info@calmacarrental.com</p>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 Calma Car Rental. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notification-container"></div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we have a booking reference in session storage
+            const bookingReference = sessionStorage.getItem('bookingReference');
+            
+            if (!bookingReference) {
+                // If no booking reference, show an error and redirect to home
+                showNotification('No booking information found. Redirecting to home page.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000);
+                return;
+            }
+            
+            // Display booking reference
+            document.getElementById('booking-reference-number').textContent = bookingReference;
+            
+            // Load booking details from session storage
+            loadBookingDetails();
+            
+            // Add functionality to print button
+            document.getElementById('print-button').addEventListener('click', function() {
+                window.print();
+            });
+        });
+        
+        function loadBookingDetails() {
+            // For demonstration, we'll use the session storage data
+            // In a real application, you might fetch the booking details from the server using the reference number
+            
+            try {
+                // Get booking data from session storage (this would typically come from the server in production)
+                // For this demo, we'll simulate booking data
+                const bookingData = getSimulatedBookingData();
+                
+                // Update confirmation page with booking details
+                document.getElementById('conf-pickup-location').textContent = bookingData.pickupLocation;
+                document.getElementById('conf-pickup-datetime').textContent = `${bookingData.pickupDate} at ${bookingData.pickupTime}`;
+                document.getElementById('conf-dropoff-location').textContent = bookingData.dropoffLocation;
+                document.getElementById('conf-dropoff-datetime').textContent = `${bookingData.dropoffDate} at ${bookingData.dropoffTime}`;
+                document.getElementById('conf-duration').textContent = `${bookingData.rentalDays} day${bookingData.rentalDays > 1 ? 's' : ''}`;
+                
+                document.getElementById('conf-customer-name').textContent = `${bookingData.firstName} ${bookingData.lastName}`;
+                document.getElementById('conf-customer-email').textContent = bookingData.email;
+                document.getElementById('conf-customer-phone').textContent = bookingData.phone;
+                
+                // Car details
+                const carDetailsElem = document.getElementById('conf-car-details');
+                carDetailsElem.innerHTML = `
+                    <div class="car-details-card">
+                        <img src="${bookingData.car.image}" alt="${bookingData.car.name}" style="width: 100%; border-radius: 6px; margin-bottom: 12px;">
+                        <h4>${bookingData.car.name}</h4>
+                        <p>${bookingData.car.features}</p>
+                    </div>
+                `;
+                
+                // Price details
+                document.getElementById('conf-daily-rate').textContent = `€${bookingData.car.price}`;
+                document.getElementById('conf-days').textContent = bookingData.rentalDays;
+                document.getElementById('conf-subtotal').textContent = `€${bookingData.subtotal}`;
+                document.getElementById('conf-total').textContent = `€${bookingData.total}`;
+                
+                // Special requests if any
+                if (bookingData.specialRequests || bookingData.otherRequests) {
+                    displaySpecialRequests(bookingData);
+                }
+                
+            } catch (error) {
+                console.error('Error loading booking details:', error);
+                showNotification('Could not load booking details. Please contact customer service.', 'error');
+            }
+        }
+        
+        function getSimulatedBookingData() {
+            // This function simulates booking data for demonstration purposes
+            // In a real application, this data would come from the server
+            
+            // Get current date and add a few days for pickup
+            const today = new Date();
+            const pickupDate = new Date(today);
+            pickupDate.setDate(pickupDate.getDate() + 3);
+            
+            // Add rental duration for dropoff
+            const rentalDays = 5;
+            const dropoffDate = new Date(pickupDate);
+            dropoffDate.setDate(dropoffDate.getDate() + rentalDays);
+            
+            // Format dates
+            const formatDate = (date) => {
+                const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            };
+            
+            // Get special requests from session storage if available
+            const specialRequests = sessionStorage.getItem('specialRequests') ? JSON.parse(sessionStorage.getItem('specialRequests')) : null;
+            const otherRequests = sessionStorage.getItem('otherRequests');
+            
+            // Car price and special requests cost
+            const carPrice = 35;
+            const specialRequestsCost = sessionStorage.getItem('specialRequestsCost') ? parseFloat(sessionStorage.getItem('specialRequestsCost')) : 0;
+            const subtotal = carPrice * rentalDays;
+            const total = subtotal + specialRequestsCost;
+            
+            return {
+                bookingReference: sessionStorage.getItem('bookingReference') || 'CALMA-23458',
+                pickupLocation: 'Chania International Airport',
+                pickupDate: formatDate(pickupDate),
+                pickupTime: '10:00',
+                dropoffLocation: 'Chania International Airport',
+                dropoffDate: formatDate(dropoffDate),
+                dropoffTime: '10:00',
+                rentalDays: rentalDays,
+                
+                firstName: 'John',
+                lastName: 'Doe',
+                email: 'john.doe@example.com',
+                phone: '+30 123 456 7890',
+                
+                car: {
+                    name: 'Peugeot 208 or similar',
+                    image: 'images/cars/economy.jpg',
+                    features: 'Economy · 5 seats · Manual · A/C',
+                    price: carPrice
+                },
+                
+                subtotal: subtotal,
+                specialRequestsCost: specialRequestsCost,
+                total: total,
+                
+                specialRequests: specialRequests,
+                otherRequests: otherRequests
+            };
+        }
+        
+        function displaySpecialRequests(bookingData) {
+            if (!bookingData.specialRequests && !bookingData.otherRequests) return;
+            
+            // Get special requests elements
+            const specialRequestsSection = document.getElementById('conf-special-requests-section');
+            const specialRequestsList = document.getElementById('conf-special-requests-list');
+            const otherRequestsText = document.getElementById('conf-other-requests-text');
+            
+            // Show special requests cost in price breakdown if needed
+            if (bookingData.specialRequestsCost && bookingData.specialRequestsCost > 0) {
+                document.getElementById('conf-special-requests-cost').textContent = `€${bookingData.specialRequestsCost}`;
+                document.getElementById('conf-special-requests-item').style.display = 'block';
+            }
+            
+            // Display special request items if any
+            if (bookingData.specialRequests && bookingData.specialRequests.length > 0) {
+                // Define display names for special requests
+                const requestNames = {
+                    'gps': 'GPS Navigation System',
+                    'baby-seat': 'Baby/Child Seat',
+                    'additional-driver': 'Additional Driver',
+                    'full-insurance': 'Full Insurance Coverage'
+                };
+                
+                // Clear previous items
+                specialRequestsList.innerHTML = '';
+                
+                // Add each special request to the list
+                bookingData.specialRequests.forEach(request => {
+                    if (requestNames[request]) {
+                        const li = document.createElement('li');
+                        li.textContent = requestNames[request];
+                        specialRequestsList.appendChild(li);
+                    }
+                });
+                
+                // Show section if we added any items
+                if (specialRequestsList.children.length > 0) {
+                    specialRequestsSection.style.display = 'block';
+                }
+            }
+            
+            // Add other requests text if present
+            if (bookingData.otherRequests) {
+                otherRequestsText.textContent = `Additional notes: ${bookingData.otherRequests}`;
+                otherRequestsText.style.display = 'block';
+                specialRequestsSection.style.display = 'block';
+            }
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notificationContainer = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            notificationContainer.appendChild(notification);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('hide');
+                setTimeout(() => {
+                    notificationContainer.removeChild(notification);
+                }, 300);
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Information - Calma Car Rental Chania</title>
+    <meta name="description" content="Complete your booking with Calma Car Rental by providing your personal information.">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/booking.css">
+    
+    <!-- Preloading Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html" aria-label="Calma Car Rental Home">
+                        <img src="images/CalmaLogo.png" alt="Calma Car Rental Logo" width="120" height="40">
+                    </a>
+                </div>
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="index.html#cars">Our Cars</a></li>
+                        <li><a href="index.html#locations">Locations</a></li>
+                        <li><a href="index.html#about">About Us</a></li>
+                        <li><a href="index.html#faq">FAQ</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </nav>
+                <div class="header-actions">
+                    <button class="mobile-menu" aria-expanded="false" aria-label="Toggle mobile menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Personal Information Section -->
+        <section class="personal-info-section" style="padding-top: 120px; padding-bottom: 80px;">
+            <div class="container">
+                <div class="section-header">
+                    <h1>Personal Information</h1>
+                    <p>Step 3: Complete your booking details</p>
+                </div>
+                
+                <!-- Form Progress Indicator -->
+                <div class="form-progress" style="margin-bottom: 40px;">
+                    <div class="progress-steps">
+                        <div class="step completed" data-step="1">1</div>
+                        <div class="step completed" data-step="2">2</div>
+                        <div class="step active" data-step="3">3</div>
+                    </div>
+                    <div class="step-titles">
+                        <div class="step-title">Trip Details</div>
+                        <div class="step-title">Choose Car</div>
+                        <div class="step-title active">Personal Information</div>
+                    </div>
+                </div>
+                
+                <!-- Booking Summary -->
+                <div class="booking-summary" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                    <h3>Booking Summary</h3>
+                    <div class="summary-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div class="summary-column">
+                            <h4>Trip Details</h4>
+                            <p><strong>Pick-up:</strong> <span id="summary-pickup-location">Loading...</span></p>
+                            <p><strong>Pick-up Date:</strong> <span id="summary-pickup-date">Loading...</span></p>
+                            <p><strong>Drop-off:</strong> <span id="summary-dropoff-location">Loading...</span></p>
+                            <p><strong>Drop-off Date:</strong> <span id="summary-dropoff-date">Loading...</span></p>
+                        </div>
+                        <div class="summary-column">
+                            <h4>Selected Car</h4>
+                            <div id="selected-car-details">
+                                <div class="loading-car">Loading car details...</div>
+                            </div>
+                        </div>
+                        <div class="summary-column">
+                            <h4>Price Breakdown</h4>
+                            <div id="price-breakdown">
+                                <p><strong>Daily Rate:</strong> <span id="daily-rate">Loading...</span></p>
+                                <p><strong>Rental Days:</strong> <span id="rental-days">Loading...</span></p>
+                                <p><strong>Subtotal:</strong> <span id="subtotal">Loading...</span></p>
+                                <p id="special-requests-cost-item" style="display: none;"><strong>Special Requests:</strong> <span id="special-requests-cost">€0</span></p>
+                                <p><strong>Total:</strong> <span id="total-price">Loading...</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Special Requests Summary (will be shown only if any special requests were selected) -->
+                    <div id="special-requests-summary" style="margin-top: 20px; display: none;">
+                        <h4>Special Requests</h4>
+                        <ul id="special-requests-list" style="padding-left: 20px;">
+                            <!-- Special requests will be added here dynamically -->
+                        </ul>
+                        <p id="other-requests-text" style="margin-top: 10px; display: none;"></p>
+                    </div>
+                </div>
+
+                <!-- Personal Information Form -->
+                <form id="personal-info-form" class="booking-form">
+                    <div class="form-card">
+                        <div class="card-header">
+                            <h2>Step 3: Personal Information</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="first-name">First Name *</label>
+                                <input type="text" id="first-name" name="first-name" required>
+                                <div class="validation-message"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="last-name">Last Name *</label>
+                                <input type="text" id="last-name" name="last-name" required>
+                                <div class="validation-message"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email *</label>
+                                <input type="email" id="email" name="email" required>
+                                <div class="validation-message"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone Number *</label>
+                                <input type="tel" id="phone" name="phone" placeholder="+30" required>
+                                <div class="validation-message"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="birth-date">Date of Birth *</label>
+                                <input type="date" id="birth-date" name="birth-date" required>
+                                <div class="validation-message"></div>
+                                <small>You must be at least 21 years old to rent a car.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="flight-number">Flight Number (if applicable)</label>
+                                <input type="text" id="flight-number" name="flight-number">
+                                <div class="validation-message"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="special-requests">Special Requests</label>
+                                <textarea id="special-requests" name="special-requests" rows="3"></textarea>
+                                <div class="validation-message"></div>
+                            </div>
+                            <div class="form-group checkbox-group">
+                                <input type="checkbox" id="terms-accept" name="terms-accept" required>
+                                <label for="terms-accept">I accept the <a href="#" target="_blank">Terms & Conditions</a> *</label>
+                                <div class="validation-message"></div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="button" id="back-button" class="btn btn-secondary">Back</button>
+                            <button type="submit" id="submit-button" class="btn btn-primary">Complete Booking</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/CalmaLogo.png" alt="Calma Car Rental Logo" width="120" height="40">
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Quick Links</h3>
+                        <ul>
+                            <li><a href="index.html">Home</a></li>
+                            <li><a href="index.html#cars">Our Cars</a></li>
+                            <li><a href="index.html#locations">Locations</a></li>
+                            <li><a href="index.html#about">About Us</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Support</h3>
+                        <ul>
+                            <li><a href="index.html#faq">FAQ</a></li>
+                            <li><a href="index.html#contact">Contact Us</a></li>
+                            <li><a href="#">Terms & Conditions</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Contact</h3>
+                        <p>123 Main Street, Chania</p>
+                        <p>Crete, Greece</p>
+                        <p>Phone: +30 123 456 7890</p>
+                        <p>Email: info@calmacarrental.com</p>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 Calma Car Rental. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notification-container"></div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    <script>
+        // Personal info page specific script
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get trip details and car selection from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const pickupLocation = urlParams.get('pickup-location');
+            const dropoffLocation = urlParams.get('dropoff-location');
+            const pickupDate = urlParams.get('pickup-date');
+            const pickupTime = urlParams.get('pickup-time');
+            const dropoffDate = urlParams.get('dropoff-date');
+            const dropoffTime = urlParams.get('dropoff-time');
+            const carId = urlParams.get('car-selection');
+            
+            // Check if we have all required information
+            if (!pickupLocation || !pickupDate || !dropoffDate || !carId) {
+                showNotification('Missing booking information. Please start again.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000);
+                return;
+            }
+            
+            // Update summary with trip details
+            document.getElementById('summary-pickup-location').textContent = getLocationName(pickupLocation);
+            document.getElementById('summary-dropoff-location').textContent = getLocationName(dropoffLocation || pickupLocation);
+            document.getElementById('summary-pickup-date').textContent = formatDisplayDate(pickupDate) + ' ' + formatTime(pickupTime);
+            document.getElementById('summary-dropoff-date').textContent = formatDisplayDate(dropoffDate) + ' ' + formatTime(dropoffTime);
+            
+            // Load car details and calculate pricing
+            loadCarDetails(carId, pickupDate, dropoffDate);
+            
+            // Set up form submission
+            const form = document.getElementById('personal-info-form');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (validateForm()) {
+                    submitBooking();
+                }
+            });
+            
+            // Set up back button
+            document.getElementById('back-button').addEventListener('click', function() {
+                history.back();
+            });
+        });
+        
+        function getLocationName(locationCode) {
+            const locations = {
+                'airport': 'Chania International Airport',
+                'port': 'Chania Port',
+                'city': 'Chania City Center',
+                'hotel': 'Hotel/Villa in Chania'
+            };
+            return locations[locationCode] || locationCode;
+        }
+        
+        function formatTime(timeString) {
+            if (!timeString) return '';
+            try {
+                const [hours, minutes] = timeString.split(':');
+                return `${hours}:${minutes}`;
+            } catch(e) {
+                return timeString;
+            }
+        }
+        
+        async function loadCarDetails(carId, pickupDate, dropoffDate) {
+            // Check if we have all required information
+            if (!carId || !pickupDate || !dropoffDate) {
+                showNotification('Missing car or date information', 'error');
+                return;
+            }
+            
+            // Get special requests if any
+            const specialRequests = urlParams.get('special-requests');
+            const otherRequests = urlParams.get('other-requests');
+            
+            // Process and display special requests if present
+            if (specialRequests || otherRequests) {
+                displaySpecialRequests(specialRequests, otherRequests, pickupDate, dropoffDate);
+            }
+            
+            // Show loading state
+            const carDetailsElem = document.getElementById('selected-car-details');
+            carDetailsElem.innerHTML = '<div class="loading-car">Loading car details...</div>';
+            
+            // Fetch car details from API
+            fetch('https://calmarentcar-production.up.railway.app/api/car-details', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    carId: carId,
+                    pickupDate: pickupDate,
+                    dropoffDate: dropoffDate
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.car) {
+                    // Display car details
+                    displayCarDetails(data.car, pickupDate, dropoffDate);
+                } else {
+                    showNotification('Could not load car details. Please try again.', 'error');
+                    carDetailsElem.innerHTML = `
+                        <div class="error-message">
+                            <p>Error loading car details. <a href="choose-car.html?${urlParams.toString()}">Go back to car selection</a></p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching car details:', error);
+                showNotification('Error loading car details. Please try again.', 'error');
+                carDetailsElem.innerHTML = `
+                    <div class="error-message">
+                        <p>Error loading car details. <a href="choose-car.html?${urlParams.toString()}">Go back to car selection</a></p>
+                    </div>
+                `;
+            });
+        }
+        
+        function displaySpecialRequests(specialRequests, otherRequests, pickupDate, dropoffDate) {
+            // Calculate rental days
+            const startDate = new Date(pickupDate);
+            const endDate = new Date(dropoffDate);
+            const rentalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) || 1;
+            
+            // Initialize total special requests cost
+            let specialRequestsCost = 0;
+            
+            // Get the special requests summary elements
+            const specialRequestsSection = document.getElementById('special-requests-summary');
+            const specialRequestsList = document.getElementById('special-requests-list');
+            const otherRequestsText = document.getElementById('other-requests-text');
+            
+            // Clear previous content
+            specialRequestsList.innerHTML = '';
+            
+            // If there are special requests, process and display them
+            if (specialRequests) {
+                const requests = specialRequests.split(',');
+                
+                // Define price mapping
+                const requestPrices = {
+                    'gps': 5,
+                    'baby-seat': 3,
+                    'additional-driver': 7,
+                    'full-insurance': 10
+                };
+                
+                // Define display names
+                const requestNames = {
+                    'gps': 'GPS Navigation System',
+                    'baby-seat': 'Baby/Child Seat',
+                    'additional-driver': 'Additional Driver',
+                    'full-insurance': 'Full Insurance Coverage'
+                };
+                
+                // Create list items for each request
+                requests.forEach(request => {
+                    if (requestNames[request]) {
+                        const price = requestPrices[request] || 0;
+                        const totalPrice = price * rentalDays;
+                        specialRequestsCost += totalPrice;
+                        
+                        const li = document.createElement('li');
+                        li.textContent = `${requestNames[request]} (+€${price}/day, total: €${totalPrice})`;
+                        specialRequestsList.appendChild(li);
+                    }
+                });
+                
+                // Show the section if we added any requests
+                if (specialRequestsList.children.length > 0) {
+                    specialRequestsSection.style.display = 'block';
+                }
+            }
+            
+            // Add other requests if present
+            if (otherRequests) {
+                otherRequestsText.textContent = `Additional notes: ${otherRequests}`;
+                otherRequestsText.style.display = 'block';
+                specialRequestsSection.style.display = 'block';
+            }
+            
+            // Update the price breakdown to include special requests cost
+            if (specialRequestsCost > 0) {
+                document.getElementById('special-requests-cost').textContent = `€${specialRequestsCost}`;
+                document.getElementById('special-requests-cost-item').style.display = 'block';
+                
+                // We need to update the total price here and in the displayCarDetails function
+                // Store the special requests cost as a data attribute for later use
+                document.getElementById('special-requests-cost-item').setAttribute('data-cost', specialRequestsCost);
+            }
+        }
+        
+        function displayCarDetails(car, pickupDate, dropoffDate) {
+            // Calculate rental days
+            const startDate = new Date(pickupDate);
+            const endDate = new Date(dropoffDate);
+            const rentalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) || 1;
+            
+            // Get car subtotal
+            const subtotal = car.price * rentalDays;
+            
+            // Get special requests cost if any
+            const specialRequestsCostElem = document.getElementById('special-requests-cost-item');
+            const specialRequestsCost = specialRequestsCostElem.style.display !== 'none' 
+                ? parseFloat(specialRequestsCostElem.getAttribute('data-cost') || 0) 
+                : 0;
+            
+            // Calculate total with special requests
+            const total = subtotal + specialRequestsCost;
+            
+            // Update car details
+            document.getElementById('selected-car-details').innerHTML = `
+                <div class="car-card" style="max-width: 100%; box-shadow: none; border: 1px solid #eee; border-radius: 8px; padding: 15px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <img src="${car.image}" alt="${car.name}" style="width: 120px; height: 80px; object-fit: cover; border-radius: 4px; margin-right: 15px;">
+                        <div>
+                            <h5 style="margin: 0 0 5px 0; font-size: 1.1rem;">${car.name}</h5>
+                            <div style="font-size: 0.9rem; color: #666;">
+                                <span>${car.seats} seats</span> • 
+                                <span>${car.transmission}</span> • 
+                                <span>${car.aircon ? 'A/C' : 'No A/C'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="margin: 0; font-size: 0.9rem;">${car.description}</p>
+                    <a href="choose-car.html?${new URLSearchParams(window.location.search).toString()}" class="btn btn-sm btn-outline" style="margin-top: 10px; font-size: 0.8rem; padding: 6px 12px;">Change Car</a>
+                </div>
+            `;
+            
+            // Update price breakdown
+            document.getElementById('daily-rate').textContent = `€${car.price}`;
+            document.getElementById('rental-days').textContent = `${rentalDays} day${rentalDays !== 1 ? 's' : ''}`;
+            document.getElementById('subtotal').textContent = `€${subtotal}`;
+            document.getElementById('total-price').textContent = `€${total}`;
+            
+            // Store car details for later use
+            sessionStorage.setItem('selectedCar', JSON.stringify(car));
+            sessionStorage.setItem('rentalDays', rentalDays);
+            sessionStorage.setItem('subtotal', subtotal);
+            sessionStorage.setItem('total', total);
+        }
+        
+        function validateForm() {
+            let isValid = true;
+            
+            // Reset all validation messages
+            document.querySelectorAll('.validation-message').forEach(el => {
+                el.textContent = '';
+                el.classList.remove('error');
+            });
+            
+            // Validate first name
+            const firstName = document.getElementById('first-name');
+            if (!firstName.value.trim()) {
+                showFieldError(firstName, 'First name is required');
+                isValid = false;
+            }
+            
+            // Validate last name
+            const lastName = document.getElementById('last-name');
+            if (!lastName.value.trim()) {
+                showFieldError(lastName, 'Last name is required');
+                isValid = false;
+            }
+            
+            // Validate email
+            const email = document.getElementById('email');
+            if (!email.value.trim()) {
+                showFieldError(email, 'Email is required');
+                isValid = false;
+            } else if (!isValidEmail(email.value.trim())) {
+                showFieldError(email, 'Please enter a valid email address');
+                isValid = false;
+            }
+            
+            // Validate phone
+            const phone = document.getElementById('phone');
+            if (!phone.value.trim()) {
+                showFieldError(phone, 'Phone number is required');
+                isValid = false;
+            }
+            
+            // Validate date of birth
+            const birthDate = document.getElementById('birth-date');
+            if (!birthDate.value) {
+                showFieldError(birthDate, 'Date of birth is required');
+                isValid = false;
+            } else {
+                // Check if driver is at least 21 years old
+                const dob = new Date(birthDate.value);
+                const today = new Date();
+                const age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+                
+                if (age < 21) {
+                    showFieldError(birthDate, 'You must be at least 21 years old to rent a car');
+                    isValid = false;
+                }
+            }
+            
+            // Validate terms acceptance
+            const termsAccept = document.getElementById('terms-accept');
+            if (!termsAccept.checked) {
+                showFieldError(termsAccept, 'You must accept the terms and conditions');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        function showFieldError(field, message) {
+            const validationMessage = field.nextElementSibling;
+            if (validationMessage && validationMessage.classList.contains('validation-message')) {
+                validationMessage.textContent = message;
+                validationMessage.classList.add('error');
+            }
+            field.classList.add('error');
+        }
+        
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notificationContainer = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            notificationContainer.appendChild(notification);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('hide');
+                setTimeout(() => {
+                    notificationContainer.removeChild(notification);
+                }, 300);
+            }, 5000);
+        }
+        
+        function submitBooking() {
+            // Get form values
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submit-button');
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            
+            // Get special requests data from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const specialRequestsParam = urlParams.get('special-requests');
+            const otherRequestsParam = urlParams.get('other-requests');
+            
+            // Get special requests cost from the DOM
+            const specialRequestsCostElem = document.getElementById('special-requests-cost-item');
+            const specialRequestsCost = specialRequestsCostElem.style.display !== 'none' 
+                ? parseFloat(specialRequestsCostElem.getAttribute('data-cost') || 0) 
+                : 0;
+            
+            // In a real application, you would send an API request to create the booking
+            // For this demo, we'll simulate the API call with a timeout
+            setTimeout(() => {
+                try {
+                    // Generate a booking reference number (in a real app, this would come from the server)
+                    const bookingRef = 'CALMA-' + Math.floor(100000 + Math.random() * 900000);
+                    
+                    // Save booking data to session storage (in a real app, this might be saved to a database)
+                    sessionStorage.setItem('bookingReference', bookingRef);
+                    sessionStorage.setItem('customerName', `${firstName} ${lastName}`);
+                    sessionStorage.setItem('customerEmail', email);
+                    sessionStorage.setItem('customerPhone', phone);
+                    
+                    // Store special requests data if present
+                    if (specialRequestsParam) {
+                        sessionStorage.setItem('specialRequests', JSON.stringify(specialRequestsParam.split(',')));
+                    }
+                    
+                    if (otherRequestsParam) {
+                        sessionStorage.setItem('otherRequests', otherRequestsParam);
+                    }
+                    
+                    if (specialRequestsCost > 0) {
+                        sessionStorage.setItem('specialRequestsCost', specialRequestsCost);
+                    }
+                    
+                    // Redirect to confirmation page
+                    window.location.href = 'booking-confirmation.html';
+                } catch (error) {
+                    console.error('Error submitting booking:', error);
+                    showNotification('An error occurred while processing your booking. Please try again.', 'error');
+                    
+                    // Reset button
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalBtnText;
+                }
+            }, 1500); // Simulate a delay for API call
+        }
+        
+        function formatDisplayDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+    </script>
+</body>
+</html> 
