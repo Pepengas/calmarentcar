@@ -1,5 +1,7 @@
 # Calma Car Rental - Website Optimization
 
+Latest deployment: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+
 This document outlines the performance optimizations implemented for the Calma Car Rental website.
 
 ## Deployment
