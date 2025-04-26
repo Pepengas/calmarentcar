@@ -1,28 +1,28 @@
-FROM node:18
+FROM node:18-alpine
 
-# Create app directory
 WORKDIR /app
 
-# Create and set up both image directories
-RUN mkdir -p /app/images /app/public/images
-COPY images/* /app/images/
-COPY images/* /app/public/images/
-RUN chmod -R 755 /app/images /app/public/images
-
-# Copy package files for better layer caching
+# Copy package.json and package-lock.json
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
 
-# Copy remaining application files
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
 COPY . .
 
-# Environment variables
-ENV PORT=3000
-ENV RAILWAY=true
-ENV NODE_ENV=production
+# Build static assets
+RUN npm install --no-save esbuild clean-css-cli terser && \
+    npm run build
 
 # Expose port
 EXPOSE 3000
 
-# Start the app
+# Set environment variable
+ENV NODE_ENV=production
+
+# Create persistent data directory
+RUN mkdir -p /app/data
+
+# Start the server
 CMD ["node", "server.js"] 
