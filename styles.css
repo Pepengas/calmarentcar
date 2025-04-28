@@ -882,42 +882,88 @@ footer {
 
 @media (max-width: 768px) {
     .hero {
-        padding-top: 120px; /* Adjust for mobile */
-        padding-bottom: 30px;
-        min-height: auto; /* Allow hero to be shorter on mobile */
+        padding-top: 100px !important;
+        padding-bottom: 120px !important;
+        min-height: auto !important;
     }
     
     .hero-content {
-        padding-top: 30px;
-    }
-    
-    .hero h1 {
-        font-size: 2.2rem;
-        margin-bottom: 20px;
-        padding: 0 10px;
-    }
-    
-    .hero p {
-        font-size: 1rem;
-        padding: 0 15px;
+        padding-top: 20px !important;
+        width: 100% !important;
     }
     
     .booking-form {
-        margin-top: 50px;
-        padding: 25px 20px;
+        margin: 15px auto !important;
+        padding: 20px !important;
+        width: 94% !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+        box-sizing: border-box !important;
     }
     
     .form-row {
-        flex-direction: column;
-        gap: 20px;
+        flex-direction: column !important;
+        margin-bottom: 15px !important;
     }
     
     .form-group {
-        min-width: 100%;
+        width: 100% !important;
+        margin-bottom: 15px !important;
     }
     
+    .form-group select,
+    .form-group input {
+        width: 100% !important;
+        font-size: 16px !important; /* Prevents iOS zoom on input */
+        height: 44px !important; /* Better touch targets */
+        -webkit-appearance: none !important; /* Fix iOS styling */
+        border-radius: 6px !important;
+    }
+    
+    .form-nav {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+    
+    .form-nav button {
+        width: 100% !important;
+        padding: 14px 5px !important;
+    }
+    
+    /* Fix select dropdown arrows on iOS */
+    select {
+        background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 8px center !important;
+        padding-right: 30px !important;
+    }
+    
+    /* Fix date and time inputs on iOS */
+    input[type="date"],
+    input[type="time"] {
+        min-height: 44px !important;
+        line-height: 44px !important;
+    }
+    
+    /* Fix for button font size */
+    .btn {
+        font-size: 16px !important;
+        padding: 12px 20px !important;
+    }
+    
+    /* Center align progress steps for better mobile view */
+    .progress-steps {
+        margin: 0 auto 20px !important;
+        max-width: 280px !important;
+    }
+    
+    /* Make car cards stack nicely */
     .cars-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+    
+    .car-card {
+        padding: 15px !important;
     }
 
     .notification {
@@ -1870,5 +1916,32 @@ textarea:focus {
     .booking-confirmation-message {
         box-shadow: none;
         border: 1px solid #eee;
+    }
+}
+
+/* Specific iOS device optimizations */
+@supports (-webkit-touch-callout: none) {
+    /* iOS specific styles */
+    input, select, textarea {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+    }
+    
+    .booking-form {
+        -webkit-backdrop-filter: blur(10px) !important; /* Better blur effect on iOS */
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    /* Fix iOS input styles */
+    input[type="date"],
+    input[type="time"] {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        padding: 0 10px !important;
+    }
+    
+    /* Fix for iOS select dropdowns */
+    select {
+        text-indent: 1px !important;
+        text-overflow: '' !important;
     }
 } 

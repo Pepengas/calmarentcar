@@ -428,4 +428,182 @@ body.dark-mode .confirmation-message {
         width: 60px;
         font-size: 0.75rem;
     }
+}
+
+/* Additional mobile booking enhancements */
+
+/* Common mobile styles */
+@media (max-width: 768px) {
+    /* Make form fields better on mobile */
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .form-group label {
+        font-size: 15px;
+        margin-bottom: 6px;
+    }
+    
+    /* Better input styles */
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea {
+        -webkit-appearance: none;
+        appearance: none;
+        font-size: 16px !important; /* Prevents iOS zoom */
+        height: 44px;
+        border-radius: 6px;
+        padding: 0 12px;
+        box-sizing: border-box;
+        width: 100%;
+        background-color: white;
+        box-shadow: none;
+    }
+    
+    textarea {
+        height: auto;
+        min-height: 100px;
+        padding: 12px;
+    }
+    
+    /* Trip summary responsive styles */
+    .trip-summary {
+        margin-bottom: 20px;
+    }
+    
+    .trip-details-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Special requests responsive styles */
+    .special-requests {
+        padding: 15px !important;
+    }
+    
+    .special-request-item {
+        display: flex;
+        align-items: center;
+    }
+    
+    .special-request-item input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+    }
+    
+    /* Cars grid responsive */
+    .cars-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .car-card {
+        display: flex;
+        flex-direction: column;
+        padding: 12px;
+    }
+    
+    .car-image img {
+        width: 100%;
+        height: auto;
+        border-radius: 6px;
+    }
+    
+    .car-details {
+        padding: 12px 0;
+    }
+    
+    .car-details h3 {
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+    
+    .car-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .car-features span {
+        font-size: 13px;
+        padding: 4px 8px;
+        background: #f5f5f5;
+        border-radius: 4px;
+    }
+    
+    .car-pricing {
+        margin-bottom: 16px;
+    }
+    
+    .price {
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    /* Form navigation buttons */
+    .form-nav {
+        margin-top: 20px;
+    }
+    
+    .form-nav button {
+        height: 44px;
+        font-size: 16px;
+    }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+    /* Better fixed elements on iOS */
+    header {
+        position: fixed;
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+    
+    /* Better tap targets */
+    .nav-links a,
+    .mobile-menu,
+    button,
+    .btn,
+    input[type="checkbox"],
+    input[type="radio"] {
+        cursor: pointer;
+        touch-action: manipulation;
+    }
+    
+    /* Fix iOS form elements */
+    input[type="date"],
+    input[type="time"] {
+        text-align: left;
+    }
+    
+    /* Fix for button appearance */
+    button, .btn {
+        -webkit-appearance: none;
+        border-radius: 6px;
+    }
+    
+    /* Fix for select appearance */
+    select {
+        background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        padding-right: 30px !important;
+    }
+    
+    /* Fix for Safari border radius issues */
+    .car-card,
+    .booking-form,
+    .special-requests,
+    .trip-summary {
+        overflow: hidden;
+        z-index: 1;
+    }
 } 

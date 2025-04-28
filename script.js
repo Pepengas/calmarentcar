@@ -27,6 +27,50 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = document.getElementById('to-step-1');
     let currentStep = 1;
     
+    // Add iOS detection for better device-specific handling
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // Apply iOS-specific tweaks
+    if (isIOS) {
+        document.documentElement.classList.add('ios-device');
+        
+        // Fix iOS date inputs
+        document.querySelectorAll('input[type="date"]').forEach(input => {
+            // Add placeholder for iOS
+            input.setAttribute('placeholder', 'YYYY-MM-DD');
+            
+            // Force custom iOS handling if needed
+            input.addEventListener('focus', function(e) {
+                if (isIOS) {
+                    // Ensure calendar opens properly
+                    e.preventDefault();
+                    this.click();
+                }
+            });
+        });
+        
+        // Fix iOS time inputs
+        document.querySelectorAll('input[type="time"]').forEach(input => {
+            // Add placeholder for iOS
+            input.setAttribute('placeholder', 'HH:MM');
+            
+            // Force custom iOS handling if needed
+            input.addEventListener('focus', function(e) {
+                if (isIOS) {
+                    // Ensure time picker opens properly
+                    e.preventDefault();
+                    this.click();
+                }
+            });
+        });
+        
+        // Better scrolling on iOS
+        document.addEventListener('touchmove', function(e) {
+            // Allow default scrolling
+        }, { passive: true });
+    }
+    
     // --- Function to fetch car data ---
     async function fetchCars() {
         try {
