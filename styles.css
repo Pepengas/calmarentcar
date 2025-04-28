@@ -113,7 +113,7 @@ header {
     padding-top: 160px; /* Adjust based on header height plus desired spacing */
     padding-bottom: 50px;
     min-height: 100vh;
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://calmarentcar-production.up.railway.app/images/CalmaBackground.jpg');
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://calmarental.com/images/CalmaBackground.jpg');
     background-size: cover;
     background-position: center;
     display: flex;

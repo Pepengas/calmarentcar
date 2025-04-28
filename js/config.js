@@ -4,7 +4,7 @@
 
 // Base URLs for different environments
 const ENV = {
-    production: 'https://calmarentcar-production.up.railway.app',
+    production: 'https://calmarental.com',
     development: 'http://localhost:3000'
 };
 

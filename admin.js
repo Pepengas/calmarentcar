@@ -448,7 +448,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <div class="form-row">
                                         <div class="settings-group">
                                             <label for="email">Email Address</label>
-                                            <input type="email" id="email" value="admin@calmacarrental.com">
+                                            <input type="email" id="email" value="admin@calmarental.com">
                                         </div>
                                         
                                         <div class="settings-group">
@@ -601,11 +601,11 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         // API base URL
-        const apiBase = window.location.hostname.includes('localhost') 
-            ? 'http://localhost:3000' 
-            : 'https://calmarentcar-production.up.railway.app';
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000'
+            : 'https://calmarental.com';
         
-        fetch(`${apiBase}/api/admin/bookings`)
+        fetch(`${API_BASE_URL}/api/admin/bookings`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Failed to load bookings: ${response.status}`);

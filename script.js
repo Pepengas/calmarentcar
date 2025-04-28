@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Function to fetch car data ---
     async function fetchCars() {
         try {
-            const response = await fetch('https://calmarentcar-production.up.railway.app/api/cars'); // Ensure backend is running
+            const response = await fetch('https://calmarental.com/api/cars'); // Ensure backend is running
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Make sure car image URL is absolute
             const imageUrl = car.image.startsWith('http') ? 
                 car.image : 
-                `https://calmarentcar-production.up.railway.app/${car.image}`;
+                `https://calmarental.com/${car.image}`;
             
             let featuresHtml = '';
             if (car.features && car.features.length > 0) {
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                  nextBtn.textContent = 'Checking...';
                  nextBtn.disabled = true;
-                const response = await fetch(`https://calmarentcar-production.up.railway.app/api/cars/availability?carId=${encodeURIComponent(carId)}&pickupDate=${encodeURIComponent(pickupDate)}&dropoffDate=${encodeURIComponent(dropoffDate)}`);
+                const response = await fetch(`https://calmarental.com/api/cars/availability?carId=${encodeURIComponent(carId)}&pickupDate=${encodeURIComponent(pickupDate)}&dropoffDate=${encodeURIComponent(dropoffDate)}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
@@ -549,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (submitButton) submitButton.disabled = true;
             
             // Send data to backend
-            fetch('https://calmarentcar-production.up.railway.app/api/book', {
+            fetch('https://calmarental.com/api/book', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(bookingData),
