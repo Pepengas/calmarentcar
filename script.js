@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const formSteps = document.querySelectorAll('.form-step');
     const steps = document.querySelectorAll('.step');
     const stepTitles = document.querySelectorAll('.step-title');
-    const nextBtn = document.getElementById('to-step-2');
+    const nextBtn = document.getElementById('search-cars-btn');
     const prevBtn = document.getElementById('to-step-1');
     let currentStep = 1;
     
