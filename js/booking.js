@@ -15,9 +15,16 @@ export const Booking = {
     bookingForm: null,
     
     init() {
+        console.log('Booking module initialized');
+        
         // Initialize booking form elements
         this.bookingForm = document.getElementById('booking-form');
-        if (!this.bookingForm) return;
+        if (!this.bookingForm) {
+            console.warn('Booking form not found');
+            // Continue anyway for multi-page setup
+        } else {
+            console.log('Found booking form, initializing form elements');
+        }
         
         this.formSteps = document.querySelectorAll('.form-step');
         this.steps = document.querySelectorAll('.step');
@@ -31,7 +38,8 @@ export const Booking = {
         this.setupAvailabilityCheck();
         this.setupFormSubmission();
         
-        // Initialize multi-page booking process
+        // Initialize multi-page booking process if on index page
+        console.log('Current page:', this.getCurrentPage());
         this.initMultiPageBooking();
     },
     
@@ -214,90 +222,97 @@ export const Booking = {
     },
     
     validateField(field) {
-        if (!field) return true;
+        if (!field) {
+            console.warn('Cannot validate: field is null or undefined');
+            return false;
+        }
         
+        const fieldName = field.name;
+        const value = field.value.trim();
+        
+        // Try to find the form group container
         const formGroup = field.closest('.form-group');
-        if (!formGroup) return true;
-        
-        const errorElement = formGroup.querySelector('.error-message');
-        let isValid = true;
-        let errorMessage = '';
-        
-        // Clear previous validation
-        formGroup.classList.remove('error', 'success');
-        if (errorElement) errorElement.textContent = '';
-        
-        // Skip validation for non-required empty fields
-        if (!field.hasAttribute('required') && field.value.trim() === '') {
+        if (!formGroup) {
+            console.warn(`Field ${fieldName} has no form-group parent`);
+            // Basic validation without UI feedback
+            if (field.required && value === '') {
+                return false;
+            }
             return true;
         }
         
-        // Required field validation
-        if (field.hasAttribute('required') && field.value.trim() === '') {
-            isValid = false;
+        const errorElement = formGroup.querySelector('.validation-message');
+        if (!errorElement) {
+            console.warn(`Field ${fieldName} has no validation-message element`);
+            // Basic validation without UI feedback
+            if (field.required && value === '') {
+                return false;
+            }
+            return true;
+        }
+        
+        // Reset previous validation state
+        formGroup.classList.remove('error', 'success');
+        errorElement.textContent = '';
+        errorElement.style.display = 'none'; // Hide error message initially
+        
+        let isValid = true;
+        let errorMessage = '';
+        
+        // Check required fields
+        if (field.hasAttribute('required') && value === '') {
             errorMessage = 'This field is required';
-        } else {
-            // Type-specific validation
-            switch (field.type) {
-                case 'email':
-                    // Basic email validation
-                    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailPattern.test(field.value)) {
-                        isValid = false;
-                        errorMessage = 'Please enter a valid email address';
-                    }
-                    break;
-                    
-                case 'tel':
-                    // Phone number validation - allow digits, spaces, and some special chars
-                    const phonePattern = /^[+]?[\s./0-9()-]+$/;
-                    if (!phonePattern.test(field.value)) {
-                        isValid = false;
-                        errorMessage = 'Please enter a valid phone number';
-                    }
-                    break;
-                    
-                case 'number':
-                    // Number range validation
-                    if (field.id === 'age' && parseInt(field.value) < 25) {
-                        isValid = false;
-                        errorMessage = 'You must be at least 25 years old to rent a car';
-                    }
-                    break;
-                    
-                case 'date':
-                    // Date validation
-                    const selectedDate = new Date(field.value);
+            isValid = false;
+        }
+        
+        // Field-specific validations (only if not empty or required check passed)
+        if (isValid && value !== '') { 
+            switch(fieldName) {
+                case 'pickup-date':
+                case 'dropoff-date':
+                    const dateValue = new Date(value);
                     const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    
-                    if (selectedDate < today) {
+                    today.setHours(0, 0, 0, 0); // Compare dates only
+                    if (dateValue < today) {
+                        errorMessage = 'Date cannot be in the past.';
                         isValid = false;
-                        errorMessage = 'Date cannot be in the past';
                     }
-                    
-                    // Pickup and dropoff date validation
-                    if (field.id === 'dropoff-date') {
-                        const pickupDateInput = document.getElementById('pickup-date');
-                        if (pickupDateInput && pickupDateInput.value) {
-                            const pickupDate = new Date(pickupDateInput.value);
-                            if (selectedDate < pickupDate) {
-                                isValid = false;
-                                errorMessage = 'Drop-off date cannot be earlier than pickup date';
-                            }
+                    // Dropoff vs Pickup check
+                    if (fieldName === 'dropoff-date') {
+                        const pickupValue = document.getElementById('pickup-date')?.value;
+                        if (pickupValue && new Date(value) < new Date(pickupValue)) {
+                            errorMessage = 'Drop-off date cannot be before pickup date.';
+                            isValid = false;
                         }
                     }
                     break;
+                case 'email':
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(value)) {
+                        errorMessage = 'Please enter a valid email address.';
+                        isValid = false;
+                    }
+                    break;
+                case 'phone':
+                    // Basic phone validation (e.g., allows +, numbers, spaces, min length)
+                    const phoneRegex = /^[+\d\s]{8,}$/;
+                    if (!phoneRegex.test(value)) {
+                        errorMessage = 'Please enter a valid phone number.';
+                        isValid = false;
+                    }
+                    break;
+                case 'age':
+                    const age = parseInt(value);
+                    if (isNaN(age) || age < 25 || age > 90) { // Added upper bound
+                        errorMessage = 'Age must be between 25 and 90.';
+                        isValid = false;
+                    }
+                    break;
+                // Add other specific validations if needed (e.g., time format)
             }
         }
         
-        // Custom field validation
-        if (field.id === 'customer-name' && field.value.trim().length < 3) {
-            isValid = false;
-            errorMessage = 'Name must be at least 3 characters';
-        }
-        
-        // Set validation state
+        // Show error or success state
         if (!isValid) {
             this.showError(formGroup, errorElement, errorMessage);
         } else {
@@ -312,6 +327,7 @@ export const Booking = {
         formGroup.classList.remove('success');
         if (errorElement) {
             errorElement.textContent = message;
+            errorElement.style.display = 'block';
         }
     },
     
@@ -458,6 +474,7 @@ export const Booking = {
         if (currentPage === 'index') {
             const bookButton = document.getElementById('search-cars-btn');
             if (bookButton) {
+                console.log('Found search-cars-btn button, adding event listener');
                 bookButton.addEventListener('click', (e) => {
                     // Get form data from step 1
                     if (!this.validateStep1()) {
@@ -482,6 +499,39 @@ export const Booking = {
                         window.location.href = `choose-car.html?${queryParams.toString()}`;
                     }
                 });
+            } else {
+                console.warn('Search cars button not found with ID search-cars-btn');
+                // As a fallback, try to find by class name
+                const altButton = document.querySelector('.next-step');
+                if (altButton) {
+                    console.log('Found next-step button, adding event listener');
+                    altButton.addEventListener('click', (e) => {
+                        // Get form data from step 1
+                        if (!this.validateStep1()) {
+                            e.preventDefault();
+                            return;
+                        }
+                        
+                        // Redirect to choose-car.html with query parameters
+                        const form = document.getElementById('booking-form');
+                        if (form) {
+                            e.preventDefault();
+                            const formData = new FormData(form);
+                            const queryParams = new URLSearchParams();
+                            
+                            // Add all form fields to the URL
+                            for (const [key, value] of formData.entries()) {
+                                if (key && value) {
+                                    queryParams.append(key, value);
+                                }
+                            }
+                            
+                            window.location.href = `choose-car.html?${queryParams.toString()}`;
+                        }
+                    });
+                } else {
+                    console.error('No search cars button found by ID or class');
+                }
             }
         }
         
@@ -510,10 +560,47 @@ export const Booking = {
     
     // Validate step 1 of the booking form
     validateStep1() {
-        const step1Fields = document.querySelectorAll('#step-1 input[required], #step-1 select[required]');
+        console.log('Validating step 1 fields');
+        const form = document.getElementById('booking-form');
+        if (!form) {
+            console.error('Cannot validate: booking form not found');
+            return false;
+        }
+        
+        const step1Fields = form.querySelectorAll('#step-1 input[required], #step-1 select[required]');
+        if (step1Fields.length === 0) {
+            console.warn('No required fields found in step 1');
+            
+            // As a fallback, try to validate all required fields in the form
+            const allRequiredFields = form.querySelectorAll('input[required], select[required]');
+            if (allRequiredFields.length === 0) {
+                console.warn('No required fields found in the form');
+                return true; // Assume valid if no required fields
+            }
+            
+            let isFormValid = true;
+            allRequiredFields.forEach(field => {
+                console.log('Validating field:', field.name);
+                if (!this.validateField(field)) {
+                    isFormValid = false;
+                }
+            });
+            
+            if (!isFormValid) {
+                const firstInvalidField = form.querySelector('.form-group.error input, .form-group.error select');
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                }
+                showNotification('Please complete all required fields.', 'error');
+            }
+            
+            return isFormValid;
+        }
+        
         let isStep1Valid = true;
         
         step1Fields.forEach(field => {
+            console.log('Validating field:', field.name);
             if (!this.validateField(field)) {
                 isStep1Valid = false;
             }
