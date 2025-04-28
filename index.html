@@ -211,6 +211,8 @@
             display: block;
         }
     </style>
+    <link rel="stylesheet" href="css/booking-widget.css">
+    <link rel="stylesheet" href="css/time-picker.css">
 </head>
 <body>
     <!-- Accessibility skip link -->
@@ -309,29 +311,44 @@
                                 <!-- Pick-up Date -->
                                 <div class="form-group">
                                     <label for="pickup-date">Pick-up Date <span class="required">*</span></label>
-                                    <input type="date" id="pickup-date" name="pickup-date" required aria-required="true" pattern="\d{4}-\d{2}-\d{2}" min="2023-01-01" max="2025-12-31">
+                                    <input type="text" id="pickup-date" name="pickup-date" required aria-required="true" 
+                                           placeholder="mm/dd/yyyy" readonly
+                                           style="cursor: pointer; background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23555555%22%3E%3Cpath d=%22M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; padding-right: 35px;">
                                     <div class="validation-message" id="pickup-date-error"></div>
                                 </div>
                                 
                                 <!-- Pick-up Time -->
                                 <div class="form-group">
                                     <label for="pickup-time">Pick-up Time <span class="required">*</span></label>
-                                    <input type="time" id="pickup-time" name="pickup-time" required aria-required="true" step="900" min="09:00" max="21:00">
+                                    <input type="text" id="pickup-time" name="pickup-time" 
+                                           required aria-required="true" 
+                                           value="09:00" readonly
+                                           style="cursor: pointer; background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23555555%22%3E%3Cpath d=%22M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; padding-right: 35px;">
                                     <div class="validation-message" id="pickup-time-error"></div>
                                 </div>
                                 
                                 <!-- Drop-off Date -->
                                 <div class="form-group">
                                     <label for="dropoff-date">Drop-off Date <span class="required">*</span></label>
-                                    <input type="date" id="dropoff-date" name="dropoff-date" required aria-required="true" pattern="\d{4}-\d{2}-\d{2}" min="2023-01-01" max="2025-12-31">
+                                    <input type="text" id="dropoff-date" name="dropoff-date" required aria-required="true" 
+                                           placeholder="mm/dd/yyyy" readonly
+                                           style="cursor: pointer; background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23555555%22%3E%3Cpath d=%22M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; padding-right: 35px;">
                                     <div class="validation-message" id="dropoff-date-error"></div>
                                 </div>
                                 
                                 <!-- Drop-off Time -->
                                 <div class="form-group">
                                     <label for="dropoff-time">Drop-off Time <span class="required">*</span></label>
-                                    <input type="time" id="dropoff-time" name="dropoff-time" required aria-required="true" step="900" min="09:00" max="21:00">
+                                    <input type="text" id="dropoff-time" name="dropoff-time" 
+                                           required aria-required="true" 
+                                           value="17:00" readonly
+                                           style="cursor: pointer; background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23555555%22%3E%3Cpath d=%22M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; padding-right: 35px;">
                                     <div class="validation-message" id="dropoff-time-error"></div>
+                                </div>
+                                
+                                <!-- Late surcharge message - updated for 8PM -->
+                                <div class="late-surcharge" style="display: none; margin-top: 5px; font-size: 0.85rem; color: #dc3545; background-color: #f8d7da; padding: 5px 10px; border-radius: 4px;">
+                                    <i class="fas fa-exclamation-circle"></i> A late return surcharge of €10 applies for drop-offs after 8:00 PM.
                                 </div>
                                 
                                 <!-- Form Navigation -->
@@ -918,10 +935,95 @@
     <div class="notification-container" id="notification-container"></div>
 
     <!-- Scripts -->
-    <!-- Replace the old script with module imports -->
+    <script src="js/centered-calendar.js"></script>
+    <script src="js/simple-time-picker.js"></script>
     <script type="module" src="js/main.js"></script>
-    <script src="fix-cards.js"></script>
-    
-    <!-- Remove or comment any inline script tags that duplicate functionality now in modules -->
+    <script src="js/fix-cards.js"></script>
+
+    <!-- Initialize time pickers with proper limits -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Initializing time pickers with time limits');
+      
+      // Create pickup time picker (24-hour time with 15-min intervals)
+      var pickupPicker = new SimpleTimePicker({
+        inputId: 'pickup-time',
+        minHour: 0,  // 12am (midnight)
+        maxHour: 23, // 11pm
+        interval: 15, // 15-minute intervals
+        initialValue: '09:00',
+        onSelect: function(data) {
+          console.log('Pickup time selected:', data.timeString);
+        }
+      });
+      
+      // Create dropoff time picker (24-hour time with 15-min intervals)
+      var dropoffPicker = new SimpleTimePicker({
+        inputId: 'dropoff-time',
+        minHour: 0,  // 12am (midnight)
+        maxHour: 23, // 11pm
+        interval: 15, // 15-minute intervals
+        initialValue: '17:00',
+        onSelect: function(data) {
+          console.log('Dropoff time selected:', data.timeString);
+          // Check for late surcharge (after 8pm)
+          if (data.hour >= 20) {
+            var surchargeElement = document.querySelector('.late-surcharge');
+            if (surchargeElement) {
+              surchargeElement.style.display = 'block';
+            }
+          } else {
+            var surchargeElement = document.querySelector('.late-surcharge');
+            if (surchargeElement) {
+              surchargeElement.style.display = 'none';
+            }
+          }
+        }
+      });
+      
+      // Initialize date pickers with CenteredCalendar
+      console.log('Initializing centered calendars for date fields');
+      
+      // Get today's date and format it
+      const today = new Date();
+      const nextYear = new Date();
+      nextYear.setFullYear(today.getFullYear() + 1);
+      
+      // Initialize pickup date picker
+      var pickupCalendar = new CenteredCalendar({
+        inputId: 'pickup-date',
+        minDate: today,
+        maxDate: nextYear,
+        onSelect: function(data) {
+          console.log('Pickup date selected:', data.formattedDate);
+          
+          // Set minimum date for dropoff calendar
+          let nextDay = new Date(data.date);
+          nextDay.setDate(nextDay.getDate() + 1);
+          
+          // Update dropoff calendar if it exists
+          if (dropoffCalendar) {
+            dropoffCalendar.minDate = nextDay;
+            
+            // If current dropoff date is before new pickup date + 1 day, update it
+            if (dropoffCalendar.selectedDate < nextDay) {
+              document.getElementById('dropoff-date').value = dropoffCalendar.formatDate(nextDay);
+              dropoffCalendar.selectedDate = new Date(nextDay);
+            }
+          }
+        }
+      });
+      
+      // Initialize dropoff date picker
+      var dropoffCalendar = new CenteredCalendar({
+        inputId: 'dropoff-date',
+        minDate: today,
+        maxDate: nextYear,
+        onSelect: function(data) {
+          console.log('Dropoff date selected:', data.formattedDate);
+        }
+      });
+    });
+    </script>
 </body>
 </html> 
