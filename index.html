@@ -914,10 +914,14 @@
     }
     </script>
 
-    <!-- Use original JavaScript file directly -->
-    <script src="dist/script.min.js" defer></script>
+    <!-- Notification Container -->
+    <div class="notification-container" id="notification-container"></div>
+
+    <!-- Scripts -->
+    <!-- Replace the old script with module imports -->
+    <script type="module" src="js/main.js"></script>
+    <script src="fix-cards.js"></script>
     
-    <!-- Fix for car card visibility -->
-    <script src="fix-cards.js" defer></script>
+    <!-- Remove or comment any inline script tags that duplicate functionality now in modules -->
 </body>
 </html> 
