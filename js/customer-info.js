@@ -381,15 +381,11 @@ const CustomerInfo = {
         // Store booking in localStorage for retrieval in account/bookings page
         this.storeBooking(bookingData, bookingReference);
         
-        // Update confirmation view with booking reference
-        this.elements.bookingReference.textContent = bookingReference;
-        
         // Hide loading overlay
         this.elements.loadingOverlay.style.display = 'none';
         
-        // Show confirmation view, hide form view
-        this.elements.customerInfoView.style.display = 'none';
-        this.elements.confirmationView.style.display = 'block';
+        // Redirect to confirmation page
+        window.location.href = `booking-confirmation.html?booking-ref=${bookingReference}`;
     },
     
     /**
