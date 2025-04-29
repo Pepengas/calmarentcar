@@ -213,8 +213,98 @@
     </style>
     <link rel="stylesheet" href="css/booking-widget.css">
     <link rel="stylesheet" href="css/time-picker.css">
+    
+    <!-- Load date and time picker scripts in head -->
+    <script src="js/centered-calendar.js"></script>
+    <script src="js/simple-time-picker.js"></script>
 </head>
 <body>
+    <!-- Initialize date and time pickers immediately after body -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Initializing time pickers with time limits');
+      
+      // Create pickup time picker (24-hour time with 15-min intervals)
+      var pickupPicker = new SimpleTimePicker({
+        inputId: 'pickup-time',
+        minHour: 0,  // 12am (midnight)
+        maxHour: 23, // 11pm
+        interval: 15, // 15-minute intervals
+        initialValue: '09:00',
+        onSelect: function(data) {
+          console.log('Pickup time selected:', data.timeString);
+        }
+      });
+      
+      // Create dropoff time picker (24-hour time with 15-min intervals)
+      var dropoffPicker = new SimpleTimePicker({
+        inputId: 'dropoff-time',
+        minHour: 0,  // 12am (midnight)
+        maxHour: 23, // 11pm
+        interval: 15, // 15-minute intervals
+        initialValue: '17:00',
+        onSelect: function(data) {
+          console.log('Dropoff time selected:', data.timeString);
+          // Check for late surcharge (after 8pm)
+          if (data.hour >= 20) {
+            var surchargeElement = document.querySelector('.late-surcharge');
+            if (surchargeElement) {
+              surchargeElement.style.display = 'block';
+            }
+          } else {
+            var surchargeElement = document.querySelector('.late-surcharge');
+            if (surchargeElement) {
+              surchargeElement.style.display = 'none';
+            }
+          }
+        }
+      });
+      
+      // Initialize date pickers with CenteredCalendar
+      console.log('Initializing centered calendars for date fields');
+      
+      // Get today's date and format it
+      const today = new Date();
+      const nextYear = new Date();
+      nextYear.setFullYear(today.getFullYear() + 1);
+      
+      // Initialize pickup date picker
+      var pickupCalendar = new CenteredCalendar({
+        inputId: 'pickup-date',
+        minDate: today,
+        maxDate: nextYear,
+        onSelect: function(data) {
+          console.log('Pickup date selected:', data.formattedDate);
+          
+          // Set minimum date for dropoff calendar
+          let nextDay = new Date(data.date);
+          nextDay.setDate(nextDay.getDate() + 1);
+          
+          // Update dropoff calendar if it exists
+          if (dropoffCalendar) {
+            dropoffCalendar.minDate = nextDay;
+            
+            // If current dropoff date is before new pickup date + 1 day, update it
+            if (dropoffCalendar.selectedDate < nextDay) {
+              document.getElementById('dropoff-date').value = dropoffCalendar.formatDate(nextDay);
+              dropoffCalendar.selectedDate = new Date(nextDay);
+            }
+          }
+        }
+      });
+      
+      // Initialize dropoff date picker
+      var dropoffCalendar = new CenteredCalendar({
+        inputId: 'dropoff-date',
+        minDate: today,
+        maxDate: nextYear,
+        onSelect: function(data) {
+          console.log('Dropoff date selected:', data.formattedDate);
+        }
+      });
+    });
+    </script>
+
     <!-- Accessibility skip link -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
@@ -935,95 +1025,7 @@
     <div class="notification-container" id="notification-container"></div>
 
     <!-- Scripts -->
-    <script src="js/centered-calendar.js"></script>
-    <script src="js/simple-time-picker.js"></script>
     <script type="module" src="js/main.js"></script>
-    <script src="js/fix-cards.js"></script>
-
-    <!-- Initialize time pickers with proper limits -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('Initializing time pickers with time limits');
-      
-      // Create pickup time picker (24-hour time with 15-min intervals)
-      var pickupPicker = new SimpleTimePicker({
-        inputId: 'pickup-time',
-        minHour: 0,  // 12am (midnight)
-        maxHour: 23, // 11pm
-        interval: 15, // 15-minute intervals
-        initialValue: '09:00',
-        onSelect: function(data) {
-          console.log('Pickup time selected:', data.timeString);
-        }
-      });
-      
-      // Create dropoff time picker (24-hour time with 15-min intervals)
-      var dropoffPicker = new SimpleTimePicker({
-        inputId: 'dropoff-time',
-        minHour: 0,  // 12am (midnight)
-        maxHour: 23, // 11pm
-        interval: 15, // 15-minute intervals
-        initialValue: '17:00',
-        onSelect: function(data) {
-          console.log('Dropoff time selected:', data.timeString);
-          // Check for late surcharge (after 8pm)
-          if (data.hour >= 20) {
-            var surchargeElement = document.querySelector('.late-surcharge');
-            if (surchargeElement) {
-              surchargeElement.style.display = 'block';
-            }
-          } else {
-            var surchargeElement = document.querySelector('.late-surcharge');
-            if (surchargeElement) {
-              surchargeElement.style.display = 'none';
-            }
-          }
-        }
-      });
-      
-      // Initialize date pickers with CenteredCalendar
-      console.log('Initializing centered calendars for date fields');
-      
-      // Get today's date and format it
-      const today = new Date();
-      const nextYear = new Date();
-      nextYear.setFullYear(today.getFullYear() + 1);
-      
-      // Initialize pickup date picker
-      var pickupCalendar = new CenteredCalendar({
-        inputId: 'pickup-date',
-        minDate: today,
-        maxDate: nextYear,
-        onSelect: function(data) {
-          console.log('Pickup date selected:', data.formattedDate);
-          
-          // Set minimum date for dropoff calendar
-          let nextDay = new Date(data.date);
-          nextDay.setDate(nextDay.getDate() + 1);
-          
-          // Update dropoff calendar if it exists
-          if (dropoffCalendar) {
-            dropoffCalendar.minDate = nextDay;
-            
-            // If current dropoff date is before new pickup date + 1 day, update it
-            if (dropoffCalendar.selectedDate < nextDay) {
-              document.getElementById('dropoff-date').value = dropoffCalendar.formatDate(nextDay);
-              dropoffCalendar.selectedDate = new Date(nextDay);
-            }
-          }
-        }
-      });
-      
-      // Initialize dropoff date picker
-      var dropoffCalendar = new CenteredCalendar({
-        inputId: 'dropoff-date',
-        minDate: today,
-        maxDate: nextYear,
-        onSelect: function(data) {
-          console.log('Dropoff date selected:', data.formattedDate);
-        }
-      });
-    });
-    </script>
+    <script src="js/fix-cars.js"></script>
 </body>
 </html> 
