@@ -225,5 +225,103 @@
     <!-- Scripts -->
     <script type="module" src="js/main.js"></script>
     <script src="fix-cards.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Populate booking reference
+            const bookingId = urlParams.get('booking-id') || 'Not available';
+            document.getElementById('booking-reference-number').textContent = bookingId;
+            
+            // Populate customer information
+            const firstName = urlParams.get('first-name') || '';
+            const lastName = urlParams.get('last-name') || '';
+            const customerName = `${firstName} ${lastName}`.trim();
+            const customerEmail = urlParams.get('email') || 'Not available';
+            const customerPhone = urlParams.get('phone') || 'Not available';
+            
+            document.getElementById('conf-customer-name').textContent = customerName || 'Not available';
+            document.getElementById('conf-customer-email').textContent = customerEmail;
+            document.getElementById('conf-customer-phone').textContent = customerPhone;
+            
+            // Get booking details from URL parameters
+            const pickupLocation = urlParams.get('pickup-location');
+            const dropoffLocation = urlParams.get('dropoff-location');
+            const pickupDate = urlParams.get('pickup-date');
+            const pickupTime = urlParams.get('pickup-time');
+            const dropoffDate = urlParams.get('dropoff-date');
+            const dropoffTime = urlParams.get('dropoff-time');
+            const duration = parseInt(urlParams.get('duration') || '1');
+            const carName = urlParams.get('car-name');
+            const carPrice = parseFloat(urlParams.get('car-price') || '0');
+            
+            // Format and display booking details
+            document.getElementById('conf-pickup-location').textContent = formatLocation(pickupLocation);
+            document.getElementById('conf-pickup-datetime').textContent = `${formatDate(pickupDate)} at ${pickupTime}`;
+            document.getElementById('conf-dropoff-location').textContent = formatLocation(dropoffLocation);
+            document.getElementById('conf-dropoff-datetime').textContent = `${formatDate(dropoffDate)} at ${dropoffTime}`;
+            document.getElementById('conf-duration').textContent = `${duration} ${duration === 1 ? 'day' : 'days'}`;
+            
+            // Display car details
+            const carDetailsElement = document.getElementById('conf-car-details');
+            if (carDetailsElement) {
+                const totalPrice = carPrice * duration;
+                carDetailsElement.innerHTML = `
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div style="flex: 0 0 80px; height: 60px; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
+                            <i style="font-size: 24px; color: #4a6fa1;">🚗</i>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 5px 0;">${carName || 'Selected Vehicle'}</h4>
+                            <p style="margin: 0; color: #666;">€${carPrice.toFixed(2)} per day</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Update payment information
+            document.getElementById('conf-daily-rate').textContent = `€${carPrice.toFixed(2)}`;
+            document.getElementById('conf-days').textContent = duration;
+            
+            const subtotal = carPrice * duration;
+            document.getElementById('conf-subtotal').textContent = `€${subtotal.toFixed(2)}`;
+            document.getElementById('conf-total').textContent = `€${subtotal.toFixed(2)}`;
+            
+            // Handle print button
+            document.getElementById('print-button').addEventListener('click', function() {
+                window.print();
+            });
+            
+            // Helper function to format location names
+            function formatLocation(locationCode) {
+                const locations = {
+                    'airport': 'Chania Airport',
+                    'port': 'Chania Port',
+                    'city': 'Chania City Center',
+                    'hotel': 'Your Hotel/Villa'
+                };
+                
+                return locations[locationCode] || locationCode || 'Not specified';
+            }
+            
+            // Helper function to format dates
+            function formatDate(dateStr) {
+                if (!dateStr) return 'Not specified';
+                
+                const parts = dateStr.split('/');
+                if (parts.length !== 3) return dateStr;
+                
+                const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                'July', 'August', 'September', 'October', 'November', 'December'];
+                
+                const month = parseInt(parts[0]) - 1;
+                const day = parseInt(parts[1]);
+                const year = parseInt(parts[2]);
+                
+                return `${months[month]} ${day}, ${year}`;
+            }
+        });
+    </script>
 </body>
 </html> 

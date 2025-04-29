@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Your Vehicle - Calma Car Rental</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      color: #333;
+      line-height: 1.5;
+      background-color: #fff;
+    }
+    
+    /* Header exactly matching screenshot */
+    header {
+      border-bottom: 1px solid #eee;
+      padding: 1rem 0;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-weight: 600;
+    }
+    
+    .logo a {
+      color: #333;
+      text-decoration: none;
+    }
+    
+    .nav-menu {
+      display: flex;
+      list-style: none;
+    }
+    
+    .nav-menu li {
+      margin-left: 1.5rem;
+    }
+    
+    .nav-menu a {
+      color: #333;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    
+    /* Main content */
+    .content {
+      padding: 2.5rem 0;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: #0066cc;
+      text-decoration: none;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+    
+    .back-link::before {
+      content: "←";
+      margin-right: 0.5rem;
+    }
+    
+    /* Booking summary */
+    #booking-summary {
+      background-color: #f8f9fa;
+      border-left: 4px solid #0066cc;
+      padding: 1.5rem;
+      border-radius: 4px;
+      margin-bottom: 2rem;
+    }
+    
+    .summary-title {
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    
+    .summary-label {
+      font-weight: 600;
+    }
+    
+    /* Cars grid */
+    .cars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    
+    .car-card {
+      border: 1px solid #eee;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    .car-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .car-image {
+      height: 200px;
+      position: relative;
+    }
+    
+    .car-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .car-category {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      background-color: #0066cc;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    .car-details {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    
+    .car-details h3 {
+      margin-bottom: 0.3rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .car-group {
+      color: #666;
+      font-size: 0.8rem;
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .car-details p {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    
+    /* Car specifications */
+    .car-specs {
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+    
+    .spec-item {
+      display: flex;
+      align-items: center;
+    }
+    
+    .spec-item i {
+      color: #0066cc;
+      margin-right: 0.35rem;
+      font-size: 0.9rem;
+      width: 16px;
+      text-align: center;
+    }
+    
+    .car-pricing {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #eee;
+      padding-top: 1rem;
+      margin-top: auto;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+    
+    .price {
+      font-weight: 600;
+    }
+    
+    .total-price {
+      color: #0066cc;
+      font-weight: 600;
+    }
+    
+    .select-car-btn {
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 0.7rem 0;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-top: auto;
+    }
+    
+    .mt-auto {
+      margin-top: auto;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 3rem 0;
+      color: #666;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 992px) {
+      .cars-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .cars-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .car-specs {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header that exactly matches the screenshot -->
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <a href="index.html">Calma Car Rental</a>
+        </div>
+        <nav>
+          <ul class="nav-menu">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="#">Our Fleet</a></li>
+            <li><a href="#">Book Now</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="container content">
+    <h1>Select Your Vehicle</h1>
+    
+    <a href="index.html" class="back-link">Back to search</a>
+    
+    <!-- Booking Summary -->
+    <div id="booking-summary">
+      <div class="summary-title">Your Trip Details</div>
+      <!-- Summary content will be populated by JavaScript -->
+    </div>
+    
+    <!-- Available Cars Container -->
+    <div id="available-cars">
+      <div class="loading">
+        <p>Loading available vehicles...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <script src="js/fix-cars.js"></script>
+</body>
+</html> 
