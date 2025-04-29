@@ -59,6 +59,7 @@ const CustomerInfo = {
     cacheElements: function() {
         // Form and form elements
         this.elements.customerForm = document.getElementById('customer-form');
+        this.elements.completeBookingBtn = document.getElementById('complete-booking-btn');
         this.elements.customerInfoView = document.getElementById('customer-info-view');
         this.elements.confirmationView = document.getElementById('confirmation-view');
         this.elements.loadingOverlay = document.getElementById('loading-overlay');
@@ -105,11 +106,37 @@ const CustomerInfo = {
      */
     bindEvents: function() {
         // Form submission
-        this.elements.customerForm.addEventListener('submit', this.handleFormSubmit.bind(this));
+        if (this.elements.customerForm) {
+            this.elements.customerForm.addEventListener('submit', this.handleFormSubmit.bind(this));
+            console.log('Form submit event listener added to:', this.elements.customerForm);
+        } else {
+            console.error('Customer form element not found');
+        }
+        
+        // Alternative direct button click handler
+        if (this.elements.completeBookingBtn) {
+            this.elements.completeBookingBtn.addEventListener('click', (e) => {
+                console.log('Complete booking button clicked');
+                // The form submit will handle this, but as a fallback:
+                if (this.elements.customerForm) {
+                    // Only call handleFormSubmit directly if this isn't triggered by a form submit
+                    if (e.target.getAttribute('data-processing') !== 'true') {
+                        e.target.setAttribute('data-processing', 'true');
+                        this.handleFormSubmit(e);
+                    }
+                }
+            });
+        }
         
         // Terms and conditions modal
-        this.elements.termsLink.addEventListener('click', this.openTermsModal.bind(this));
-        this.elements.closeModal.addEventListener('click', this.closeTermsModal.bind(this));
+        if (this.elements.termsLink) {
+            this.elements.termsLink.addEventListener('click', this.openTermsModal.bind(this));
+        }
+        
+        if (this.elements.closeModal) {
+            this.elements.closeModal.addEventListener('click', this.closeTermsModal.bind(this));
+        }
+        
         window.addEventListener('click', (e) => {
             if (e.target === this.elements.termsModal) {
                 this.closeTermsModal();
@@ -117,13 +144,26 @@ const CustomerInfo = {
         });
         
         // Additional options change event
-        this.elements.additionalDriver.addEventListener('change', this.updateTotalPrice.bind(this));
-        this.elements.fullInsurance.addEventListener('change', this.updateTotalPrice.bind(this));
-        this.elements.gpsNavigation.addEventListener('change', this.updateTotalPrice.bind(this));
-        this.elements.childSeat.addEventListener('change', this.updateTotalPrice.bind(this));
+        if (this.elements.additionalDriver) {
+            this.elements.additionalDriver.addEventListener('change', this.updateTotalPrice.bind(this));
+        }
+        
+        if (this.elements.fullInsurance) {
+            this.elements.fullInsurance.addEventListener('change', this.updateTotalPrice.bind(this));
+        }
+        
+        if (this.elements.gpsNavigation) {
+            this.elements.gpsNavigation.addEventListener('change', this.updateTotalPrice.bind(this));
+        }
+        
+        if (this.elements.childSeat) {
+            this.elements.childSeat.addEventListener('change', this.updateTotalPrice.bind(this));
+        }
         
         // View bookings button
-        this.elements.viewBookingsBtn.addEventListener('click', this.redirectToMyBookings.bind(this));
+        if (this.elements.viewBookingsBtn) {
+            this.elements.viewBookingsBtn.addEventListener('click', this.redirectToMyBookings.bind(this));
+        }
     },
     
     /**
@@ -225,17 +265,43 @@ const CustomerInfo = {
      */
     handleFormSubmit: function(e) {
         e.preventDefault();
+        console.log('Form submission handler called');
+        
+        // Prevent double submissions
+        if (this.elements.completeBookingBtn) {
+            if (this.elements.completeBookingBtn.getAttribute('data-processing') === 'true') {
+                console.log('Form already being processed, ignoring duplicate submission');
+                return;
+            }
+            
+            // Set processing state
+            this.elements.completeBookingBtn.setAttribute('data-processing', 'true');
+            this.elements.completeBookingBtn.disabled = true;
+            this.elements.completeBookingBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        }
         
         // Validate form
         if (!this.validateForm()) {
+            console.log('Form validation failed');
+            // Reset button state if validation fails
+            if (this.elements.completeBookingBtn) {
+                this.elements.completeBookingBtn.removeAttribute('data-processing');
+                this.elements.completeBookingBtn.disabled = false;
+                this.elements.completeBookingBtn.innerHTML = 'Complete Booking';
+            }
             return;
         }
         
+        console.log('Form validation successful, proceeding with submission');
+        
         // Show loading overlay
-        this.elements.loadingOverlay.style.display = 'flex';
+        if (this.elements.loadingOverlay) {
+            this.elements.loadingOverlay.style.display = 'flex';
+        }
         
         // Collect form data
         const formData = this.collectFormData();
+        console.log('Collected form data:', formData);
         
         // Combine with booking data
         const completeBookingData = {
@@ -243,6 +309,8 @@ const CustomerInfo = {
             customer: formData,
             dateSubmitted: new Date().toISOString()
         };
+        
+        console.log('Complete booking data:', completeBookingData);
         
         // Simulate API call
         setTimeout(() => {
