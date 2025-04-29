@@ -250,6 +250,8 @@
           <div class="button-container">
             <a href="car-selection.html" class="btn btn-secondary">Back to Car Selection</a>
             <button type="submit" id="complete-booking-btn" class="btn btn-primary" data-action="submit-booking">Complete Booking</button>
+            <!-- Fallback link that doesn't rely on JavaScript -->
+            <a href="booking-confirmation.html" id="fallback-booking-btn" class="btn btn-primary" style="margin-top: 10px; display: none;">Complete Booking (Fallback)</a>
           </div>
         </form>
       </div>
@@ -390,5 +392,118 @@
   
   <script src="js/common.js"></script>
   <script src="js/customer-info.js"></script>
+  <script src="js/booking-form-handler.js"></script>
+  <script>
+    // Additional inline script for logging and troubleshooting
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Inline script loaded');
+      
+      // Show fallback button after a timeout period
+      setTimeout(function() {
+        const fallbackBtn = document.getElementById('fallback-booking-btn');
+        if (fallbackBtn) {
+          fallbackBtn.style.display = 'block';
+          console.log('Fallback button displayed');
+        }
+      }, 5000); // Show after 5 seconds as a last resort
+      
+      // Direct button click handler for redundancy
+      const submitBtn = document.getElementById('complete-booking-btn');
+      if (submitBtn) {
+        console.log('Submit button found by inline script');
+        submitBtn.addEventListener('click', function(e) {
+          console.log('Button clicked from inline handler');
+          // This is a last resort backup
+          const form = document.getElementById('customer-form');
+          if (form && !form.classList.contains('processing')) {
+            console.log('Attempting form submission from inline handler');
+            form.classList.add('processing');
+            
+            // Do a quick validation
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+              if (!field.value.trim()) {
+                isValid = false;
+                console.log('Field validation failed:', field.id);
+              }
+            });
+            
+            if (isValid) {
+              console.log('Form validation passed in inline handler');
+              // Show loading overlay
+              const overlay = document.getElementById('loading-overlay');
+              if (overlay) overlay.style.display = 'flex';
+              
+              // Disable button
+              submitBtn.disabled = true;
+              submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+              
+              // Gather data from form
+              const firstName = document.getElementById('firstName').value;
+              const lastName = document.getElementById('lastName').value;
+              const email = document.getElementById('email').value;
+              const phone = document.getElementById('phone').value;
+              
+              // Generate a booking reference
+              const bookingRef = 'CR-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+              
+              // Get sessionStorage data
+              let bookingData = {};
+              try {
+                bookingData = JSON.parse(sessionStorage.getItem('bookingData') || '{}');
+              } catch(e) {
+                console.error('Error parsing booking data:', e);
+              }
+              
+              // Store booking
+              const newBooking = {
+                ...bookingData,
+                customer: { firstName, lastName, email, phone },
+                bookingReference: bookingRef,
+                status: 'confirmed',
+                timestamp: new Date().toISOString()
+              };
+              
+              try {
+                // Store in localStorage
+                let bookings = JSON.parse(localStorage.getItem('userBookings') || '[]');
+                bookings.push(newBooking);
+                localStorage.setItem('userBookings', JSON.stringify(bookings));
+                
+                // Also store for admin
+                let adminBookings = JSON.parse(localStorage.getItem('adminBookings') || '[]');
+                adminBookings.push({...newBooking, status: 'new'});
+                localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
+                
+                console.log('Booking stored from inline script, redirecting...');
+                
+                // Redirect to confirmation page after a delay
+                setTimeout(function() {
+                  window.location.href = `booking-confirmation.html?booking-ref=${bookingRef}`;
+                }, 1500);
+              } catch(e) {
+                console.error('Error saving booking:', e);
+                alert('An error occurred. Please try again.');
+                
+                // Reset state
+                overlay.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Complete Booking';
+                form.classList.remove('processing');
+              }
+            } else {
+              console.log('Form validation failed in inline handler');
+              alert('Please fill in all required fields.');
+              form.classList.remove('processing');
+            }
+          }
+        });
+      } else {
+        console.error('Submit button not found by inline script!');
+      }
+    });
+  </script>
 </body>
 </html> 
