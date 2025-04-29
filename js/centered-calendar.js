@@ -4,6 +4,8 @@
  */
 
 window.CenteredCalendar = function(options) {
+  console.log('CenteredCalendar constructor called with options:', options);
+  
   // Options
   this.inputId = options.inputId || '';
   this.minDate = options.minDate ? new Date(options.minDate) : new Date();
@@ -531,17 +533,21 @@ window.CenteredCalendar.prototype.handleKeyDown = function(e) {
 
 // Helper method to add months to a date
 window.CenteredCalendar.prototype.addMonths = function(date, months) {
-  var result = new Date(date);
+  const result = new Date(date);
   result.setMonth(result.getMonth() + months);
   return result;
 };
 
 // Format date as MM/DD/YYYY
 window.CenteredCalendar.prototype.formatDate = function(date) {
+  if (!date) return '';
+  
+  // Format as MM/DD/YYYY
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${month}/${day}/${year}`;
+  
+  return `${month < 10 ? '0' + month : month}/${day < 10 ? '0' + day : day}/${year}`;
 };
 
 // Format month and year
