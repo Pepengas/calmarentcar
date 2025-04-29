@@ -483,4 +483,40 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 300);
     }, 5000);
   }
+
+  function addBookingToAdmin(bookingData) {
+    // Generate a unique booking reference
+    const bookingReference = 'BK' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    
+    // Add timestamp and reference to the booking data
+    const adminBookingData = {
+        ...bookingData,
+        bookingReference,
+        timestamp: Date.now(),
+        status: 'PENDING'
+    };
+    
+    // Get existing bookings or initialize empty array
+    const existingBookings = JSON.parse(localStorage.getItem('adminBookings')) || [];
+    
+    // Add new booking
+    existingBookings.push(adminBookingData);
+    
+    // Save back to localStorage
+    localStorage.setItem('adminBookings', JSON.stringify(existingBookings));
+    
+    return bookingReference;
+  }
+
+  function bookCar() {
+    // ... existing code ...
+    
+    // After collecting all booking data and before showing notification
+    const bookingReference = addBookingToAdmin(bookingData);
+    
+    // Show success notification with booking reference
+    showNotification('success', `Car booked successfully! Your booking reference is ${bookingReference}.`);
+    
+    // ... existing code ...
+  }
 }); 
