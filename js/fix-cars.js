@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Function to generate HTML for available cars
   function getAvailableCarsHTML(duration) {
-    // Car data based on cars.json structure
+    // Car data with detailed specifications
     const cars = [
       {
         id: "aygo",
@@ -253,23 +253,59 @@ document.addEventListener('DOMContentLoaded', function() {
         description: "Compact and fuel-efficient, perfect for city driving.",
         pricePerDay: 35,
         image: "https://calmarental.com/images/CalmaAygo.jpg",
-        features: ["Automatic", "4 Seats", "Air Conditioning", "Fuel Efficient"]
+        category: "Small",
+        group: "A1",
+        specs: {
+          engine: "1000cc",
+          passengers: 4,
+          doors: 5,
+          gearbox: "Manual",
+          airCondition: true,
+          abs: true,
+          airbag: true,
+          fuel: "Gasoline",
+          entertainment: "Radio/Bluetooth/USB"
+        }
       },
       {
         id: "tiguan",
-        name: "Volkswagen Tiguan",
+        name: "Volkswagen Tiguan R-Line",
         description: "Spacious SUV with advanced features for comfort.",
         pricePerDay: 75,
         image: "https://calmarental.com/images/CalmaTiguan.jpg",
-        features: ["Automatic", "5 Seats", "SUV", "Bluetooth"]
+        category: "SUV",
+        group: "SUV",
+        specs: {
+          engine: "1600cc",
+          passengers: 5,
+          doors: 5,
+          gearbox: "Manual",
+          airCondition: true,
+          abs: true,
+          airbag: true,
+          fuel: "Gasoline",
+          entertainment: "Radio/Bluetooth/USB"
+        }
       },
       {
         id: "golf",
-        name: "Volkswagen Golf",
+        name: "Volkswagen Golf TDI",
         description: "Versatile hatchback with excellent handling.",
         pricePerDay: 55,
         image: "https://calmarental.com/images/CalmaGolf.jpg",
-        features: ["Automatic", "5 Seats", "Air Conditioning", "Cruise Control"]
+        category: "Compact",
+        group: "C1",
+        specs: {
+          engine: "1600cc",
+          passengers: 5,
+          doors: 5,
+          gearbox: "Manual",
+          airCondition: true,
+          abs: true,
+          airbag: true,
+          fuel: "Diesel",
+          entertainment: "Radio/Bluetooth/USB"
+        }
       },
       {
         id: "i10",
@@ -277,7 +313,19 @@ document.addEventListener('DOMContentLoaded', function() {
         description: "Economical and easy to drive mini car.",
         pricePerDay: 32,
         image: "https://calmarental.com/images/Calmai10.jpg",
-        features: ["Manual", "4 Seats", "Air Conditioning", "Compact"]
+        category: "Small",
+        group: "A1",
+        specs: {
+          engine: "1000cc",
+          passengers: 4,
+          doors: 5,
+          gearbox: "Manual",
+          airCondition: true,
+          abs: true,
+          airbag: true,
+          fuel: "Gasoline",
+          entertainment: "Radio/CD/USB"
+        }
       },
       {
         id: "c3",
@@ -285,15 +333,39 @@ document.addEventListener('DOMContentLoaded', function() {
         description: "Stylish compact car with excellent comfort.",
         pricePerDay: 40,
         image: "https://calmarental.com/images/CalmaCitroen.jpg",
-        features: ["Manual", "5 Seats", "Air Conditioning", "Bluetooth"]
+        category: "Economy",
+        group: "B",
+        specs: {
+          engine: "1400cc",
+          passengers: 5,
+          doors: 5,
+          gearbox: "Manual",
+          airCondition: true,
+          abs: true,
+          airbag: true,
+          fuel: "Diesel",
+          entertainment: "Radio/Bluetooth/USB"
+        }
       },
       {
-        id: "swift",
-        name: "Suzuki Swift",
-        description: "Sporty and nimble, ideal for exploring Crete.",
+        id: "celerio",
+        name: "Suzuki Celerio",
+        description: "Economical and reliable compact car.",
         pricePerDay: 38,
         image: "https://calmarental.com/images/CalmaSuzuki.jpg",
-        features: ["Manual", "5 Seats", "Air Conditioning", "Sporty"]
+        category: "Small",
+        group: "A1",
+        specs: {
+          engine: "1000cc",
+          passengers: 4,
+          doors: 5,
+          gearbox: "Manual",
+          airCondition: true,
+          abs: true,
+          airbag: true,
+          fuel: "Gasoline",
+          entertainment: "Radio/Bluetooth/USB"
+        }
       }
     ];
 
@@ -304,69 +376,62 @@ document.addEventListener('DOMContentLoaded', function() {
       // Calculate total price
       const totalPrice = car.pricePerDay * duration;
 
-      // Map features to icon representations
-      const featureIcons = car.features.map(feature => {
-        let icon, text;
-        
-        if (feature.includes("Automatic")) {
-          icon = "fa-cogs";
-          text = "Automatic";
-        } else if (feature.includes("Manual")) {
-          icon = "fa-cogs";
-          text = "Manual";
-        } else if (feature.includes("Seats")) {
-          icon = "fa-users";
-          text = feature;
-        } else if (feature.includes("Air Conditioning")) {
-          icon = "fa-snowflake";
-          text = "Air Conditioning";
-        } else if (feature.includes("Fuel")) {
-          icon = "fa-gas-pump";
-          text = "Fuel Efficient";
-        } else if (feature.includes("SUV")) {
-          icon = "fa-car-side";
-          text = "SUV";
-        } else if (feature.includes("Bluetooth")) {
-          icon = "fa-bluetooth-b";
-          text = "Bluetooth";
-        } else if (feature.includes("Cruise Control")) {
-          icon = "fa-tachometer-alt";
-          text = "Cruise Control";
-        } else if (feature.includes("Compact")) {
-          icon = "fa-compress-arrows-alt";
-          text = "Compact";
-        } else if (feature.includes("Sporty")) {
-          icon = "fa-tachometer-alt";
-          text = "Sporty";
-        } else {
-          icon = "fa-check";
-          text = feature;
-        }
-        
-        return `
+      // Create specs HTML with icons
+      let specsHTML = `
+        <div class="car-specs">
           <div class="spec-item">
-            <i class="fas ${icon}"></i>
-            <span>${text}</span>
+            <i class="fas fa-car-engine"></i>
+            <span>Engine: ${car.specs.engine}</span>
           </div>
-        `;
-      }).join('');
+          <div class="spec-item">
+            <i class="fas fa-users"></i>
+            <span>Passengers: ${car.specs.passengers}</span>
+          </div>
+          <div class="spec-item">
+            <i class="fas fa-door-open"></i>
+            <span>Doors: ${car.specs.doors}</span>
+          </div>
+          <div class="spec-item">
+            <i class="fas fa-cogs"></i>
+            <span>Gearbox: ${car.specs.gearbox}</span>
+          </div>
+          <div class="spec-item">
+            <i class="fas fa-snowflake"></i>
+            <span>Air Condition</span>
+          </div>
+          <div class="spec-item">
+            <i class="fas fa-car-crash"></i>
+            <span>ABS</span>
+          </div>
+          <div class="spec-item">
+            <i class="fas fa-shield-alt"></i>
+            <span>Airbag</span>
+          </div>
+          <div class="spec-item">
+            <i class="fas fa-gas-pump"></i>
+            <span>Fuel: ${car.specs.fuel}</span>
+          </div>
+          <div class="spec-item">
+            <i class="fas fa-music"></i>
+            <span>${car.specs.entertainment}</span>
+          </div>
+        </div>
+      `;
 
       html += `
         <div class="car-card" data-car-id="${car.id}">
           <div class="car-image">
             <img src="${car.image}" alt="${car.name}" onerror="this.src='images/CalmaLogo.jpg'">
-            <div class="car-category">${car.id.charAt(0).toUpperCase() + car.id.slice(1)}</div>
+            <div class="car-category">${car.category}</div>
           </div>
           <div class="car-details">
             <div>
               <h3>${car.name}</h3>
-              <div class="car-group">Group ${car.id.charAt(0).toUpperCase()}</div>
+              <div class="car-group">Group ${car.group}</div>
               <p>${car.description}</p>
             </div>
             
-            <div class="car-specs">
-              ${featureIcons}
-            </div>
+            ${specsHTML}
             
             <div class="mt-auto">
               <div class="car-pricing">

@@ -587,7 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadBookings();
     }
     
-    // Function to load bookings
+    // Function to load bookings data
     function loadBookings() {
         const bookingsContainer = document.getElementById('bookings-container');
         if (!bookingsContainer) return;
@@ -600,39 +600,30 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
-        // API base URL
-        const API_BASE_URL = window.location.hostname === 'localhost' 
-            ? 'http://localhost:3000'
-            : 'https://calmarental.com';
+        // Get bookings from localStorage instead of API
+        const storedBookings = localStorage.getItem('calma_bookings');
         
-        fetch(`${API_BASE_URL}/api/admin/bookings`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Failed to load bookings: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && data.bookings) {
-                    // Store for filtering
-                    window.allBookings = data.bookings;
-                    
-                    // Update stats
-                    updateBookingStats(data.bookings);
-                    
-                    if (data.bookings.length > 0) {
-                        displayBookings(data.bookings);
-                    } else {
-                        displayEmptyBookingsState();
-                    }
+        // Small delay to simulate loading
+        setTimeout(() => {
+            try {
+                const bookings = storedBookings ? JSON.parse(storedBookings) : [];
+                
+                // Store for filtering
+                window.allBookings = bookings;
+                
+                // Update stats
+                updateBookingStats(bookings);
+                
+                if (bookings.length > 0) {
+                    displayBookings(bookings);
                 } else {
-                    throw new Error(data.message || 'Unknown error');
+                    displayEmptyBookingsState();
                 }
-            })
-            .catch(error => {
-                console.error('Error loading bookings:', error);
-                displayErrorState(bookingsContainer, error.message);
-            });
+            } catch (error) {
+                console.error('Error parsing bookings from localStorage:', error);
+                displayErrorState(bookingsContainer, 'Failed to load booking data. Please try again.');
+            }
+        }, 500);
     }
     
     // Function to initialize cars page
