@@ -47,32 +47,54 @@ export function initPayment() {
 function displayPaymentSummary(data) {
   if (!paymentSummaryElement || !data) return;
 
-  // Calculate the total price
-  const pickupDate = new Date(data['pickup-date']);
-  const dropoffDate = new Date(data['dropoff-date']);
-  const daysCount = Math.ceil((dropoffDate - pickupDate) / (1000 * 60 * 60 * 24));
+  // Retrieve booking details
+  const selectedCar = data.selectedCar || {};
+  const durationDays = data.durationDays || 1;
+  const pickupLocation = data.pickupLocation || '';
+  const pickupDate = data.pickupDate || '';
+  const returnDate = data.returnDate || '';
+  const totalPrice = data.totalPrice || 0;
   
-  // Get car price from data
-  let dailyRate = 0;
-  if (data.car && data.car.pricePerDay) {
-    dailyRate = data.car.pricePerDay;
+  // Update car name
+  const carNameEl = document.getElementById('car-name');
+  if (carNameEl) {
+    carNameEl.textContent = `${selectedCar.make} ${selectedCar.model}`;
+  }
+  
+  // Update pickup details
+  const pickupEl = document.getElementById('pickup-details');
+  if (pickupEl) {
+    const formattedPickupDate = new Date(pickupDate).toLocaleDateString('en-US', { 
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    pickupEl.textContent = `${pickupLocation} - ${formattedPickupDate}`;
+  }
+  
+  // Update dropoff details
+  const dropoffEl = document.getElementById('dropoff-details');
+  if (dropoffEl) {
+    const formattedReturnDate = new Date(returnDate).toLocaleDateString('en-US', { 
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    dropoffEl.textContent = `${pickupLocation} - ${formattedReturnDate}`;
+  }
+  
+  // Update duration
+  const durationEl = document.getElementById('rental-duration');
+  if (durationEl) {
+    durationEl.textContent = `${durationDays} ${durationDays === 1 ? 'day' : 'days'}`;
+  }
+  
+  // Update daily rate
+  const rateEl = document.getElementById('daily-rate');
+  if (rateEl) {
+    rateEl.textContent = `€${selectedCar.price}/day`;
   }
 
-  const subtotal = dailyRate * daysCount;
-  const total = subtotal;
-
-  // Update total amount text
+  // Update total amount
   if (totalAmountElement) {
-    totalAmountElement.textContent = `€${total.toFixed(2)}`;
+    totalAmountElement.textContent = `€${totalPrice.toFixed(2)}`;
   }
-
-  // Store the calculated amount in bookingData
-  bookingData.amount = total;
-  bookingData.dailyRate = dailyRate;
-  bookingData.daysCount = daysCount;
-  
-  // Also update localStorage
-  localStorage.setItem('currentBooking', JSON.stringify(bookingData));
 }
 
 /**
@@ -80,55 +102,37 @@ function displayPaymentSummary(data) {
  * @param {Event} event - The click event
  */
 async function handlePaymentClick(event) {
+  // Prevent default form submission
   event.preventDefault();
   
+  // Show loading overlay
+  const loadingOverlay = document.querySelector('.loading-overlay');
+  if (loadingOverlay) {
+    loadingOverlay.style.display = 'flex';
+  }
+  
   // Add loading state to button
-  const button = event.target;
-  const originalText = button.textContent;
+  const button = event.currentTarget;
+  const originalText = button.innerHTML;
   button.disabled = true;
   button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
   
   try {
-    // Prepare booking data for Stripe
-    const paymentData = {
-      ...bookingData,
-      customer: {
-        name: bookingData['customer-name'],
-        email: bookingData['customer-email'],
-        phone: bookingData['customer-phone']
-      },
-      car: {
-        id: bookingData['car-selection'],
-        name: bookingData.car ? bookingData.car.name : 'Selected Car',
-        dailyRate: bookingData.dailyRate || 0
-      },
-      booking: {
-        pickup: {
-          location: bookingData['pickup-location'],
-          date: bookingData['pickup-date'],
-          time: bookingData['pickup-time']
-        },
-        dropoff: {
-          location: bookingData['dropoff-location'],
-          date: bookingData['dropoff-date'],
-          time: bookingData['dropoff-time']
-        },
-        daysCount: bookingData.daysCount || 1
-      },
-      amount: bookingData.amount || 0,
-      currency: 'eur'
-    };
-    
     // Redirect to Stripe checkout
-    await redirectToCheckout(paymentData);
+    await redirectToCheckout(bookingData);
   } catch (error) {
     console.error('Payment failed:', error);
     
     // Show error to user
     alert(`Payment processing failed: ${error.message || 'Please try again'}`);
     
+    // Hide loading overlay
+    if (loadingOverlay) {
+      loadingOverlay.style.display = 'none';
+    }
+    
     // Reset button
     button.disabled = false;
-    button.textContent = originalText;
+    button.innerHTML = originalText;
   }
 } 

@@ -440,20 +440,31 @@ const CustomerInfo = {
      * Submit the booking
      */
     submitBooking: function(bookingData) {
-        // In a real app, this would be an API call
         console.log('Booking data submitted:', bookingData);
         
         // Generate booking reference (simulated)
         const bookingReference = this.generateBookingReference();
         
-        // Store booking in localStorage for retrieval in account/bookings page
-        this.storeBooking(bookingData, bookingReference);
+        // Prepare data for payment processing
+        const paymentData = {
+            ...bookingData,
+            bookingReference: bookingReference,
+            status: 'pending'
+        };
+        
+        // Store the complete booking data in localStorage for the payment page
+        localStorage.setItem('currentBooking', JSON.stringify(paymentData));
+        
+        // Store data for retrieval in booking confirmation
+        sessionStorage.setItem('bookingParams', new URLSearchParams(window.location.search).toString());
         
         // Hide loading overlay
-        this.elements.loadingOverlay.style.display = 'none';
+        if (this.elements.loadingOverlay) {
+            this.elements.loadingOverlay.style.display = 'none';
+        }
         
-        // Redirect to confirmation page
-        window.location.href = `booking-confirmation.html?booking-ref=${bookingReference}`;
+        // Redirect to payment page
+        window.location.href = 'payment.html';
     },
     
     /**
@@ -468,31 +479,6 @@ const CustomerInfo = {
         }
         
         return reference;
-    },
-    
-    /**
-     * Store the booking in localStorage
-     */
-    storeBooking: function(bookingData, bookingReference) {
-        try {
-            // Get existing bookings or initialize empty array
-            let bookings = JSON.parse(localStorage.getItem('userBookings')) || [];
-            
-            // Add new booking with reference
-            bookings.push({
-                ...bookingData,
-                bookingReference,
-                status: 'confirmed'
-            });
-            
-            // Store updated bookings
-            localStorage.setItem('userBookings', JSON.stringify(bookings));
-            
-            // Clear session storage booking data since booking is complete
-            sessionStorage.removeItem('bookingData');
-        } catch (error) {
-            console.error('Error storing booking data:', error);
-        }
     },
     
     /**

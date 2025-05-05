@@ -27,12 +27,41 @@ export const getStripe = async () => {
  */
 export const createCheckoutSession = async (bookingData) => {
   try {
+    // Prepare data for API
+    const apiData = {
+      customer: {
+        firstName: bookingData.customer.firstName,
+        lastName: bookingData.customer.lastName,
+        email: bookingData.customer.email,
+        phone: bookingData.customer.phone
+      },
+      car: {
+        id: bookingData.selectedCar.id,
+        make: bookingData.selectedCar.make,
+        model: bookingData.selectedCar.model,
+        price: bookingData.selectedCar.price
+      },
+      booking: {
+        pickupLocation: bookingData.pickupLocation,
+        pickupDate: bookingData.pickupDate,
+        returnDate: bookingData.returnDate,
+        durationDays: bookingData.durationDays
+      },
+      amount: bookingData.totalPrice,
+      currency: 'eur',
+      bookingReference: bookingData.bookingReference
+    };
+    
+    // Create a mock response for local development without a backend
+    // In production, uncomment the fetch API call below
+    
+    /* 
     const response = await fetch('/api/checkout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(bookingData),
+      body: JSON.stringify(apiData),
     });
 
     if (!response.ok) {
@@ -42,6 +71,16 @@ export const createCheckoutSession = async (bookingData) => {
 
     const data = await response.json();
     return data;
+    */
+    
+    // Mock session creation for local development
+    console.log('Creating checkout session with data:', apiData);
+    
+    // Simulate a successful response
+    return {
+      sessionId: 'mock_session_' + Date.now(),
+      url: `booking-confirmation.html?booking-ref=${bookingData.bookingReference}`
+    };
   } catch (error) {
     console.error('Error creating checkout session:', error);
     throw error;
@@ -66,11 +105,17 @@ export const redirectToCheckout = async (bookingData) => {
     loader.style.display = 'flex';
 
     // Create checkout session
-    const { sessionId } = await createCheckoutSession(bookingData);
+    const session = await createCheckoutSession(bookingData);
     
-    // Load Stripe and redirect to checkout
+    if (session.url) {
+      // For local development without Stripe, redirect directly to confirmation
+      window.location.href = session.url;
+      return;
+    }
+    
+    // Load Stripe and redirect to checkout (in production)
     const stripe = await getStripe();
-    const { error } = await stripe.redirectToCheckout({ sessionId });
+    const { error } = await stripe.redirectToCheckout({ sessionId: session.sessionId });
     
     // Handle errors
     if (error) {
@@ -85,5 +130,6 @@ export const redirectToCheckout = async (bookingData) => {
       loader.style.display = 'none';
     }
     alert(`Payment error: ${error.message}`);
+    throw error;
   }
 }; 

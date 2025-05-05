@@ -1098,14 +1098,34 @@ export const Booking = {
                 
                 // Store the complete booking data in localStorage for the payment page
                 const fullBookingData = {
-                    ...bookingData,
                     bookingReference: bookingRef,
-                    car: this.selectedCar || { name: sessionStorage.getItem('carName') }
+                    pickupLocation: sessionStorage.getItem('pickupLocation'),
+                    pickupDate: sessionStorage.getItem('pickupDate'),
+                    returnDate: sessionStorage.getItem('returnDate'),
+                    selectedCar: this.selectedCar || { 
+                        id: sessionStorage.getItem('carId'),
+                        make: sessionStorage.getItem('carMake'),
+                        model: sessionStorage.getItem('carModel'),
+                        price: parseFloat(sessionStorage.getItem('carPrice') || 0)
+                    },
+                    durationDays: parseInt(sessionStorage.getItem('duration') || 1),
+                    totalPrice: parseFloat(sessionStorage.getItem('totalPrice') || 0),
+                    customer: {
+                        firstName: bookingData['first-name'],
+                        lastName: bookingData['last-name'],
+                        email: bookingData.email,
+                        phone: bookingData.phone,
+                        age: bookingData.age || 0,
+                        driverLicense: bookingData.license,
+                        additionalRequests: bookingData.requests
+                    }
                 };
-                localStorage.setItem('currentBooking', JSON.stringify(fullBookingData));
                 
-                // Redirect to payment page instead of confirmation page
-                window.location.href = 'payment.html';
+                // Save to sessionStorage as bookingData for customer-info.js
+                sessionStorage.setItem('bookingData', JSON.stringify(fullBookingData));
+                
+                // Redirect to personal info page
+                window.location.href = 'personal-info.html';
             } catch (error) {
                 console.error('Error processing booking:', error);
                 showNotification('An error occurred while processing your booking. Please try again.', 'error');
