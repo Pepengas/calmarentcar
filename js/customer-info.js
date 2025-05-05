@@ -39,12 +39,45 @@ const CustomerInfo = {
      */
     loadBookingData: function() {
         try {
-            const storedData = sessionStorage.getItem('bookingData');
-            if (storedData) {
-                this.bookingData = JSON.parse(storedData);
+            // First check if we have URL parameters from car selection
+            const urlParams = new URLSearchParams(window.location.search);
+            const carId = urlParams.get('car-id');
+            const carName = urlParams.get('car-name');
+            const carPrice = urlParams.get('car-price');
+            
+            // If we have car selection parameters, create booking data from URL params
+            if (carId && carName && carPrice) {
+                console.log('Car selection data found in URL params:', { carId, carName, carPrice });
+                
+                // Create booking data from URL parameters
+                this.bookingData = {
+                    pickupLocation: urlParams.get('pickup-location'),
+                    dropoffLocation: urlParams.get('dropoff-location'),
+                    pickupDate: urlParams.get('pickup-date'),
+                    pickupTime: urlParams.get('pickup-time'),
+                    returnDate: urlParams.get('dropoff-date'),
+                    returnTime: urlParams.get('dropoff-time'),
+                    duration: urlParams.get('duration'),
+                    selectedCar: {
+                        id: carId,
+                        make: carName.split(' ')[0],
+                        model: carName.split(' ').slice(1).join(' '),
+                        price: parseFloat(carPrice)
+                    }
+                };
+                
+                // Save to sessionStorage for later use
+                sessionStorage.setItem('bookingData', JSON.stringify(this.bookingData));
             } else {
-                // Redirect to booking page if no data is found
-                window.location.href = 'index.html';
+                // If no URL params, try to load from sessionStorage
+                const storedData = sessionStorage.getItem('bookingData');
+                if (storedData) {
+                    this.bookingData = JSON.parse(storedData);
+                } else {
+                    // Only redirect to index if we don't have URL params or sessionStorage data
+                    console.error('No booking data found in URL or sessionStorage');
+                    window.location.href = 'index.html';
+                }
             }
         } catch (error) {
             console.error('Error loading booking data:', error);
