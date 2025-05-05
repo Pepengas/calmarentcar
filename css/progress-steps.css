@@ -1,0 +1,122 @@
+/* 
+ * Progress Steps Indicator Styles
+ * Custom CSS to fix alignment issues with the booking progress steps
+ */
+
+/* Hide any existing step styles that might be causing conflicts */
+.step-titles {
+    display: none !important;
+}
+
+/* Container for the progress steps */
+.progress-steps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 30px auto;
+    position: relative;
+    max-width: 450px;
+}
+
+/* Horizontal line connecting the steps */
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #0066cc;
+    z-index: 1;
+}
+
+/* Individual step circle */
+.step {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin: 0 40px;
+    position: relative;
+    z-index: 2;
+    border: 2px solid #ddd;
+    color: #666;
+}
+
+/* Active step styling */
+.step.active {
+    background-color: #0066cc;
+    color: white;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+}
+
+/* Completed step styling */
+.step.completed {
+    background-color: #0066cc;
+    color: white;
+    border-color: #0066cc;
+}
+
+/* Text below steps */
+.step::after {
+    content: attr(data-title);
+    position: absolute;
+    top: 35px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    font-weight: normal;
+}
+
+/* Active step text styling */
+.step.active::after {
+    font-weight: 600;
+    color: #0066cc;
+}
+
+/* Completed step text styling */
+.step.completed::after {
+    color: #0066cc;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .progress-steps {
+        max-width: 360px;
+    }
+    
+    .step {
+        margin: 0 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-steps {
+        max-width: 300px;
+    }
+    
+    .step {
+        margin: 0 12px;
+        width: 25px;
+        height: 25px;
+        font-size: 12px;
+    }
+    
+    .step::after {
+        top: 30px;
+        font-size: 10px;
+        width: 60px;
+    }
+    
+    .progress-steps::before {
+        top: 12px;
+    }
+} 
