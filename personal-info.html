@@ -155,7 +155,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 40px auto 15px;
+      margin: 40px auto 80px;
       position: relative;
       max-width: 400px;
     }
@@ -203,25 +203,31 @@
       box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.2), 0 4px 15px rgba(0, 102, 204, 0.3);
     }
     
-    .step-titles {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 40px;
-      text-align: center;
-    }
-    
-    .step-title {
+    /* Position titles below steps */
+    .step::after {
+      content: attr(data-title);
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
       width: 120px;
+      margin-top: 30px;
+      text-align: center;
       font-size: 0.9rem;
       color: #666;
-      margin: 0 12px;
+      font-weight: normal;
+      white-space: nowrap;
       transition: all 0.3s ease;
     }
     
-    .step-title.active {
+    .step.active::after {
       font-weight: 600;
       color: #0066cc;
-      transform: translateY(-2px);
+    }
+    
+    /* Hide the old step titles since we're now showing them under the numbers */
+    .step-titles {
+      display: none;
     }
     
     /* Booking summary */
@@ -702,6 +708,7 @@
     @media (max-width: 768px) {
       .progress-steps {
         max-width: 300px;
+        margin: 30px auto 70px; /* Maintain the larger margin on mobile */
       }
       
       .step {
@@ -709,6 +716,12 @@
         height: 36px;
         margin: 0 20px;
         font-size: 0.9rem;
+      }
+      
+      .step::after {
+        margin-top: 25px; /* Still significant but slightly reduced for mobile */
+        width: 90px;
+        font-size: 0.8rem;
       }
       
       .step-titles {
@@ -812,9 +825,9 @@
     
     <!-- Progress Steps -->
     <div class="progress-steps">
-      <div class="step completed" data-step="1">1</div>
-      <div class="step completed" data-step="2">2</div>
-      <div class="step active" data-step="3">3</div>
+      <div class="step completed" data-step="1" data-title="Trip Details">1</div>
+      <div class="step completed" data-step="2" data-title="Vehicle Selection">2</div>
+      <div class="step active" data-step="3" data-title="Personal Information">3</div>
     </div>
     
     <div class="step-titles">
@@ -1076,6 +1089,13 @@
           // Basic validation
           if (!firstName || !lastName || !email || !phone || !driverLicense || !licenseExpiry || !age || !nationality) {
             alert('Please fill in all required fields');
+            return;
+          }
+          
+          // Validate age (must be at least 25)
+          if (parseInt(age) < 25) {
+            alert('You must be at least 25 years old to rent a car');
+            document.getElementById('age').focus();
             return;
           }
           

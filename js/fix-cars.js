@@ -380,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
       let specsHTML = `
         <div class="car-specs">
           <div class="spec-item">
-            <i class="fas fa-car-engine"></i>
+            <i class="fas fa-gas-pump"></i>
             <span>Engine: ${car.specs.engine}</span>
           </div>
           <div class="spec-item">
