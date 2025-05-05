@@ -44,12 +44,12 @@ const CustomerInfo = {
                 this.bookingData = JSON.parse(storedData);
             } else {
                 // Redirect to booking page if no data is found
-                window.location.href = 'booking.html';
+                window.location.href = 'index.html';
             }
         } catch (error) {
             console.error('Error loading booking data:', error);
             // Redirect to booking page in case of error
-            window.location.href = 'booking.html';
+            window.location.href = 'index.html';
         }
     },
     
