@@ -179,6 +179,25 @@
     .summary-label {
       font-weight: 600;
     }
+
+    .summary-section {
+      margin-top: 1rem;
+      border-top: 1px solid #ddd;
+      padding-top: 1rem;
+    }
+
+    .summary-section h4 {
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .summary-item.total {
+      margin-top: 1rem;
+      border-top: 1px solid #ddd;
+      padding-top: 0.5rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
     
     /* Selected car */
     .selected-car {
@@ -492,7 +511,42 @@
     <!-- Booking Summary -->
     <div id="booking-summary">
       <div class="summary-title">Your Trip Details</div>
-      <!-- Summary content will be populated by JavaScript -->
+      <div class="summary-content">
+        <div class="summary-item">
+          <span class="summary-label">Pickup Location:</span>
+          <span class="summary-value" id="summary-location"></span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Pickup Date:</span>
+          <span class="summary-value" id="summary-pickup-date"></span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Return Date:</span>
+          <span class="summary-value" id="summary-return-date"></span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Duration:</span>
+          <span class="summary-value" id="summary-duration"></span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Selected Car:</span>
+          <span class="summary-value" id="summary-car"></span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Daily Rate:</span>
+          <span class="summary-value" id="summary-daily-rate"></span>
+        </div>
+        <div class="summary-section">
+          <h4>Additional Options</h4>
+          <div id="additional-options-summary">
+            <!-- Additional options will be added here by JavaScript -->
+          </div>
+        </div>
+        <div class="summary-item total">
+          <span class="summary-label">Total Price:</span>
+          <span class="summary-value" id="summary-total"></span>
+        </div>
+      </div>
     </div>
     
     <!-- Personal Information Form -->
@@ -597,7 +651,7 @@
       <div class="form-actions">
         <button type="button" id="back-btn" class="btn btn-secondary">Back</button>
         <div class="form-group form-submit">
-          <button type="submit" id="complete-booking-btn" class="btn-primary">
+          <button type="submit" id="complete-booking-btn" class="btn btn-primary">
             Proceed to Payment <i class="fas fa-credit-card"></i>
           </button>
         </div>

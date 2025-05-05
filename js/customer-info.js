@@ -300,8 +300,17 @@ const CustomerInfo = {
         e.preventDefault();
         console.log('Form submission handler called');
         
+        // Log the current event target and type
+        console.log('Event details:', {
+            target: e.target,
+            type: e.type,
+            currentTarget: e.currentTarget
+        });
+        
         // Prevent double submissions
         if (this.elements.completeBookingBtn) {
+            console.log('Complete booking button found:', this.elements.completeBookingBtn);
+            
             if (this.elements.completeBookingBtn.getAttribute('data-processing') === 'true') {
                 console.log('Form already being processed, ignoring duplicate submission');
                 return;
@@ -311,16 +320,21 @@ const CustomerInfo = {
             this.elements.completeBookingBtn.setAttribute('data-processing', 'true');
             this.elements.completeBookingBtn.disabled = true;
             this.elements.completeBookingBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        } else {
+            console.error('Complete booking button not found in DOM elements');
         }
         
         // Validate form
-        if (!this.validateForm()) {
+        const isValid = this.validateForm();
+        console.log('Form validation result:', isValid);
+        
+        if (!isValid) {
             console.log('Form validation failed');
             // Reset button state if validation fails
             if (this.elements.completeBookingBtn) {
                 this.elements.completeBookingBtn.removeAttribute('data-processing');
                 this.elements.completeBookingBtn.disabled = false;
-                this.elements.completeBookingBtn.innerHTML = 'Complete Booking';
+                this.elements.completeBookingBtn.innerHTML = 'Proceed to Payment <i class="fas fa-credit-card"></i>';
             }
             return;
         }
@@ -330,6 +344,8 @@ const CustomerInfo = {
         // Show loading overlay
         if (this.elements.loadingOverlay) {
             this.elements.loadingOverlay.style.display = 'flex';
+        } else {
+            console.error('Loading overlay element not found');
         }
         
         // Collect form data
