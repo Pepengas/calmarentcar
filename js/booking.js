@@ -1124,8 +1124,8 @@ export const Booking = {
                 // Save to sessionStorage as bookingData for customer-info.js
                 sessionStorage.setItem('bookingData', JSON.stringify(fullBookingData));
                 
-                // Redirect to personal info page
-                window.location.href = 'personal-info.html';
+                // Redirect to payment page
+                window.location.href = 'payment.html';
             } catch (error) {
                 console.error('Error processing booking:', error);
                 showNotification('An error occurred while processing your booking. Please try again.', 'error');
