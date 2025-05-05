@@ -708,7 +708,101 @@
       if (submitBtn) {
         submitBtn.addEventListener('click', function(e) {
           console.log('Submit button clicked from inline handler');
-          // We'll let the form handle the submission naturally
+          
+          // Force direct submission by collecting form data manually
+          e.preventDefault();
+          
+          const firstName = document.getElementById('firstName').value;
+          const lastName = document.getElementById('lastName').value;
+          const email = document.getElementById('email').value;
+          const phone = document.getElementById('phone').value;
+          const driverLicense = document.getElementById('driverLicense').value;
+          const licenseExpiry = document.getElementById('licenseExpiry').value;
+          const age = document.getElementById('age').value;
+          const nationality = document.getElementById('nationality').value;
+          
+          // Basic validation
+          if (!firstName || !lastName || !email || !phone || !driverLicense || !licenseExpiry || !age || !nationality) {
+            alert('Please fill in all required fields');
+            return;
+          }
+          
+          // Check terms acceptance
+          const termsAccepted = document.getElementById('termsAccepted').checked;
+          if (!termsAccepted) {
+            alert('Please accept the terms and conditions');
+            return;
+          }
+          
+          // Show loading overlay
+          const loadingOverlay = document.getElementById('loading-overlay');
+          if (loadingOverlay) {
+            loadingOverlay.style.display = 'flex';
+          }
+          
+          // Get URL parameters for booking data
+          const urlParams = new URLSearchParams(window.location.search);
+          
+          // Create customer data
+          const customerData = {
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            phone: phone,
+            driverLicense: driverLicense,
+            licenseExpiry: licenseExpiry,
+            age: parseInt(age),
+            nationality: nationality,
+            additionalOptions: {
+              additionalDriver: document.getElementById('additionalDriver').checked,
+              fullInsurance: document.getElementById('fullInsurance').checked,
+              gpsNavigation: document.getElementById('gpsNavigation').checked,
+              childSeat: document.getElementById('childSeat').checked
+            }
+          };
+          
+          // Create booking data
+          const bookingData = {
+            pickupLocation: urlParams.get('pickup-location'),
+            dropoffLocation: urlParams.get('dropoff-location'),
+            pickupDate: urlParams.get('pickup-date'),
+            pickupTime: urlParams.get('pickup-time'),
+            returnDate: urlParams.get('dropoff-date'),
+            returnTime: urlParams.get('dropoff-time'),
+            duration: urlParams.get('duration'),
+            selectedCar: {
+              id: urlParams.get('car-id'),
+              make: (urlParams.get('car-name') || '').split(' ')[0],
+              model: (urlParams.get('car-name') || '').split(' ').slice(1).join(' '),
+              price: parseFloat(urlParams.get('car-price') || 0)
+            },
+            customer: customerData,
+            bookingReference: 'DIR-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+            status: 'pending',
+            dateSubmitted: new Date().toISOString()
+          };
+          
+          // Calculate total price based on duration and selected car
+          const durationDays = parseInt(urlParams.get('duration') || 1);
+          let totalPrice = parseFloat(urlParams.get('car-price') || 0) * durationDays;
+          
+          // Add additional options costs
+          if (customerData.additionalOptions.additionalDriver) totalPrice += 15 * durationDays;
+          if (customerData.additionalOptions.fullInsurance) totalPrice += 25 * durationDays;
+          if (customerData.additionalOptions.gpsNavigation) totalPrice += 8 * durationDays;
+          if (customerData.additionalOptions.childSeat) totalPrice += 5 * durationDays;
+          
+          bookingData.totalPrice = totalPrice;
+          bookingData.durationDays = durationDays;
+          
+          // Store booking data in localStorage
+          localStorage.setItem('currentBooking', JSON.stringify(bookingData));
+          
+          // Redirect to payment page after short delay
+          setTimeout(function() {
+            console.log('Manual redirect to payment.html');
+            window.location.href = 'payment.html';
+          }, 1500);
         });
       }
       
@@ -716,7 +810,12 @@
       if (form) {
         form.addEventListener('submit', function(e) {
           console.log('Form submitted from inline handler');
-          // Let customer-info.js handle the submission
+          e.preventDefault(); // Prevent default to avoid conflicts
+          
+          // Trigger the click handler to ensure our custom logic runs
+          if (submitBtn) {
+            submitBtn.click();
+          }
         });
       }
     });
