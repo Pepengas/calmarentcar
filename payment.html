@@ -7,195 +7,175 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Payment page specific styles */
-    .payment-section {
-      padding-top: 120px;
-      padding-bottom: 80px;
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-
+    
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      color: #333;
+      line-height: 1.5;
+      background-color: #f8f9fa;
+    }
+    
+    /* Header */
+    header {
+      border-bottom: 1px solid #eee;
+      padding: 1rem 0;
+      background-color: #fff;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-weight: 600;
+    }
+    
+    .logo a {
+      color: #333;
+      text-decoration: none;
+    }
+    
+    .nav-menu {
+      display: flex;
+      list-style: none;
+    }
+    
+    .nav-menu li {
+      margin-left: 1.5rem;
+    }
+    
+    .nav-menu a {
+      color: #333;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    
+    /* Main content */
+    .content {
+      padding: 3rem 0;
+    }
+    
     .payment-container {
       max-width: 800px;
       margin: 0 auto;
-      background: #fff;
+      background-color: #fff;
       border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
     }
-
+    
     .payment-header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .payment-header h1 {
-      font-size: 2rem;
-      color: #0066cc;
-      margin-bottom: 10px;
-    }
-
-    .payment-header p {
-      color: #666;
-      font-size: 1rem;
-    }
-
-    .payment-summary {
-      background-color: #f8f9fa;
-      border-left: 4px solid #0066cc;
-      padding: 20px;
-      border-radius: 4px;
-      margin-bottom: 30px;
-    }
-
-    .summary-title {
-      font-weight: 600;
-      margin-bottom: 15px;
-      font-size: 1.2rem;
-    }
-
-    .summary-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #eee;
-    }
-
-    .summary-item:last-child {
-      border-bottom: none;
-    }
-
-    .summary-label {
-      font-weight: 600;
-    }
-
-    .total-row {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #0066cc;
-      margin-top: 15px;
-      padding-top: 15px;
-      border-top: 2px solid #eee;
-    }
-
-    .payment-methods {
-      margin-bottom: 30px;
-    }
-
-    .payment-methods h3 {
-      margin-bottom: 15px;
-      font-size: 1.2rem;
-    }
-
-    .payment-icons {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .payment-icon {
-      font-size: 2rem;
-      color: #666;
-    }
-
-    .payment-security {
-      background-color: #f8f9fa;
-      padding: 15px;
-      border-radius: 4px;
-      margin-bottom: 30px;
-    }
-
-    .security-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .security-header i {
-      color: #28a745;
-      font-size: 1.2rem;
-    }
-
-    .security-header h4 {
-      margin: 0;
-      font-size: 1rem;
-    }
-
-    .security-text {
-      font-size: 0.9rem;
-      color: #666;
-    }
-
-    .btn-pay {
       background-color: #0066cc;
       color: white;
-      padding: 15px 30px;
-      font-size: 1.1rem;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-      transition: background-color 0.3s;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
+      padding: 1.5rem;
+      text-align: center;
     }
-
-    .btn-pay:hover {
+    
+    .payment-header h1 {
+      margin-bottom: 0.5rem;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+    
+    .payment-header p {
+      opacity: 0.9;
+      font-size: 1rem;
+    }
+    
+    .payment-content {
+      padding: 2rem;
+    }
+    
+    .booking-summary {
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .summary-title {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+    
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.75rem;
+    }
+    
+    .summary-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .summary-label {
+      font-weight: 500;
+    }
+    
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-top: 1rem;
+      border-top: 2px solid #ddd;
+      padding-top: 1rem;
+    }
+    
+    .payment-methods {
+      margin-top: 2rem;
+      text-align: center;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      font-size: 1rem;
+    }
+    
+    .btn-primary {
+      background-color: #0066cc;
+      color: white;
+    }
+    
+    .btn-primary:hover {
       background-color: #0055aa;
     }
-
-    .btn-pay:disabled {
-      background-color: #7da7d9;
-      cursor: not-allowed;
+    
+    .btn-lg {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
     }
-
-    .action-buttons {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-
-    .back-to-summary {
-      color: #666;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.9rem;
-      margin-top: 15px;
-    }
-
-    .back-to-summary:hover {
-      color: #0066cc;
-    }
-
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.7);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-
-    .spinner {
-      border: 6px solid #f3f3f3;
-      border-top: 6px solid #0066cc;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    
+    .payment-icon {
+      font-size: 1.5rem;
+      margin-right: 0.5rem;
+      vertical-align: middle;
     }
   </style>
 </head>
@@ -205,222 +185,140 @@
     <div class="container">
       <div class="header-content">
         <div class="logo">
-          <a href="index.html" aria-label="Calma Car Rental Home">
-            <img src="images/CalmaLogo.png" alt="Calma Car Rental Logo" width="120" height="40">
-          </a>
+          <a href="index.html">Calma Car Rental</a>
         </div>
         <nav>
-          <ul class="nav-links">
+          <ul class="nav-menu">
             <li><a href="index.html">Home</a></li>
-            <li><a href="index.html#cars">Our Cars</a></li>
-            <li><a href="index.html#locations">Locations</a></li>
-            <li><a href="index.html#about">About Us</a></li>
-            <li><a href="index.html#faq">FAQ</a></li>
-            <li><a href="index.html#contact">Contact</a></li>
+            <li><a href="#">Our Fleet</a></li>
+            <li><a href="#">Book Now</a></li>
+            <li><a href="#">Contact</a></li>
           </ul>
         </nav>
-        <div class="header-actions">
-          <button class="mobile-menu" aria-expanded="false" aria-label="Toggle mobile menu">
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-        </div>
       </div>
     </div>
   </header>
 
-  <!-- Progress steps -->
-  <div class="progress-container container" style="margin-top: 120px;">
-    <div class="progress-steps">
-      <div class="step completed">1</div>
-      <div class="step completed">2</div>
-      <div class="step completed">3</div>
-      <div class="step active">4</div>
-    </div>
-    <div class="step-titles">
-      <div class="step-title">Car Selection</div>
-      <div class="step-title">Date & Location</div>
-      <div class="step-title">Personal Info</div>
-      <div class="step-title active">Payment</div>
-    </div>
-  </div>
-
-  <!-- Payment Section -->
-  <section class="payment-section">
-    <div class="container">
-      <div class="payment-container">
-        <div class="payment-header">
-          <h1>Complete Your Booking</h1>
-          <p>Please review your booking details and proceed to payment</p>
-        </div>
-
-        <!-- Payment Summary -->
-        <div id="payment-summary" class="payment-summary">
-          <h2 class="summary-title">Booking Summary</h2>
-          
-          <div class="summary-item">
-            <span class="summary-label">Car:</span>
-            <span id="car-name">Loading...</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Pick-up:</span>
-            <span id="pickup-details">Loading...</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Drop-off:</span>
-            <span id="dropoff-details">Loading...</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Duration:</span>
-            <span id="rental-duration">Loading...</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Daily Rate:</span>
-            <span id="daily-rate">Loading...</span>
-          </div>
-          
-          <div class="summary-item total-row">
-            <span class="summary-label">Total:</span>
-            <span id="total-amount">€0.00</span>
-          </div>
-        </div>
-
-        <!-- Payment Methods -->
-        <div class="payment-methods">
-          <h3>Secure Payment</h3>
-          <div class="payment-icons">
-            <i class="fab fa-cc-visa payment-icon"></i>
-            <i class="fab fa-cc-mastercard payment-icon"></i>
-            <i class="fab fa-cc-amex payment-icon"></i>
-            <i class="fab fa-cc-discover payment-icon"></i>
-          </div>
-          
-          <div class="payment-security">
-            <div class="security-header">
-              <i class="fas fa-lock"></i>
-              <h4>Secure Transaction</h4>
-            </div>
-            <p class="security-text">Your payment information is encrypted and securely processed by Stripe. We do not store your card details.</p>
-          </div>
-        </div>
-
-        <!-- Payment Button -->
-        <button id="pay-now-button" class="btn-pay">
-          <i class="fas fa-credit-card"></i>
-          Pay Now
-        </button>
-        
-        <div class="action-buttons">
-          <a href="personal-info.html" class="back-to-summary">
-            <i class="fas fa-arrow-left"></i>
-            Back to Personal Information
-          </a>
-        </div>
+  <div class="container content">
+    <div class="payment-container">
+      <div class="payment-header">
+        <h1>Payment</h1>
+        <p>Complete your booking securely</p>
       </div>
-    </div>
-  </section>
-
-  <!-- Loading Overlay -->
-  <div class="loading-overlay">
-    <div class="spinner"></div>
-  </div>
-
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-logo">
-          <img src="images/CalmaLogo.png" alt="Calma Car Rental Logo" width="120" height="40">
-        </div>
-        <div class="footer-links">
-          <div class="footer-column">
-            <h3>Quick Links</h3>
-            <ul>
-              <li><a href="index.html">Home</a></li>
-              <li><a href="index.html#cars">Our Cars</a></li>
-              <li><a href="index.html#locations">Locations</a></li>
-              <li><a href="index.html#about">About Us</a></li>
-            </ul>
-          </div>
-          <div class="footer-column">
-            <h3>Support</h3>
-            <ul>
-              <li><a href="index.html#faq">FAQ</a></li>
-              <li><a href="index.html#contact">Contact Us</a></li>
-              <li><a href="#">Terms & Conditions</a></li>
-              <li><a href="#">Privacy Policy</a></li>
-            </ul>
-          </div>
-          <div class="footer-column">
-            <h3>Contact</h3>
-            <ul>
-              <li><a href="tel:+306912345678"><i class="fas fa-phone"></i> +30 691 234 5678</a></li>
-              <li><a href="mailto:info@calmarental.com"><i class="fas fa-envelope"></i> info@calmarental.com</a></li>
-              <li><a href="#"><i class="fas fa-map-marker-alt"></i> Chania, Crete, Greece</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="copyright">
-        <p>&copy; 2023 Calma Car Rental. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
-
-  <!-- JavaScript -->
-  <script type="module">
-    import { initPayment } from './js/payment.js';
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      // Initialize payment component
-      initPayment();
       
-      // Populate booking summary with saved data
-      const savedBookingData = localStorage.getItem('currentBooking');
-      if (savedBookingData) {
-        const data = JSON.parse(savedBookingData);
+      <div class="payment-content">
+        <div class="booking-summary">
+          <h2 class="summary-title">Booking Summary</h2>
+          <div id="booking-details">
+            <!-- Booking details will be populated by JavaScript -->
+            <div class="summary-row">
+              <span class="summary-label">Booking Reference:</span>
+              <span id="booking-reference">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Car:</span>
+              <span id="car-details">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Pick-up:</span>
+              <span id="pickup-details">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Return:</span>
+              <span id="return-details">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Duration:</span>
+              <span id="duration">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Additional Options:</span>
+              <span id="options">Loading...</span>
+            </div>
+            <div class="total-row">
+              <span>Total Amount:</span>
+              <span id="total-amount">Loading...</span>
+            </div>
+          </div>
+        </div>
         
-        // Display car details
-        const carNameEl = document.getElementById('car-name');
-        if (carNameEl && data.car && data.car.name) {
-          carNameEl.textContent = data.car.name;
-        }
+        <div class="payment-methods">
+          <p style="margin-bottom: 1.5rem;">Please select your preferred payment method:</p>
+          <button class="btn btn-primary btn-lg">
+            <i class="fas fa-credit-card payment-icon"></i>Pay with Credit Card
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Payment page loaded');
+      
+      // Try to load booking data from localStorage
+      try {
+        const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+        console.log('Booking data loaded:', bookingData);
         
-        // Display pickup details
-        const pickupEl = document.getElementById('pickup-details');
-        if (pickupEl) {
-          const pickupDate = new Date(data['pickup-date']);
-          const pickupDateStr = pickupDate.toLocaleDateString('en-US', { 
-            year: 'numeric', month: 'short', day: 'numeric' 
-          });
-          pickupEl.textContent = `${data['pickup-location']} - ${pickupDateStr}, ${data['pickup-time']}`;
+        if (bookingData && bookingData.bookingReference) {
+          // Populate booking summary
+          document.getElementById('booking-reference').textContent = bookingData.bookingReference;
+          
+          if (bookingData.selectedCar) {
+            document.getElementById('car-details').textContent = 
+              `${bookingData.selectedCar.make} ${bookingData.selectedCar.model}`;
+          }
+          
+          if (bookingData.pickupLocation && bookingData.pickupDate) {
+            document.getElementById('pickup-details').textContent = 
+              `${bookingData.pickupLocation} - ${new Date(bookingData.pickupDate).toLocaleDateString()}`;
+          }
+          
+          if (bookingData.returnDate) {
+            document.getElementById('return-details').textContent = 
+              `${bookingData.pickupLocation} - ${new Date(bookingData.returnDate).toLocaleDateString()}`;
+          }
+          
+          if (bookingData.durationDays) {
+            document.getElementById('duration').textContent = 
+              `${bookingData.durationDays} day${bookingData.durationDays !== 1 ? 's' : ''}`;
+          }
+          
+          // Display options if any
+          let options = 'None';
+          if (bookingData.customer && bookingData.customer.additionalOptions) {
+            const selectedOptions = [];
+            const { additionalOptions } = bookingData.customer;
+            
+            if (additionalOptions.additionalDriver) selectedOptions.push('Additional Driver');
+            if (additionalOptions.fullInsurance) selectedOptions.push('Full Insurance');
+            if (additionalOptions.gpsNavigation) selectedOptions.push('GPS Navigation');
+            if (additionalOptions.childSeat) selectedOptions.push('Child Seat');
+            
+            if (selectedOptions.length > 0) {
+              options = selectedOptions.join(', ');
+            }
+          }
+          document.getElementById('options').textContent = options;
+          
+          // Display total price
+          if (bookingData.totalPrice) {
+            document.getElementById('total-amount').textContent = `€${bookingData.totalPrice.toFixed(2)}`;
+          }
+        } else {
+          console.error('No valid booking data found');
+          document.getElementById('booking-details').innerHTML = `
+            <div class="error-message" style="color: #e51c23; text-align: center; padding: 2rem;">
+              <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+              <p>Sorry, we couldn't find your booking information.</p>
+              <p>Please try booking again.</p>
+              <a href="index.html" class="btn btn-primary" style="margin-top: 1rem;">Return to Homepage</a>
+            </div>
+          `;
         }
-        
-        // Display dropoff details
-        const dropoffEl = document.getElementById('dropoff-details');
-        if (dropoffEl) {
-          const dropoffDate = new Date(data['dropoff-date']);
-          const dropoffDateStr = dropoffDate.toLocaleDateString('en-US', { 
-            year: 'numeric', month: 'short', day: 'numeric' 
-          });
-          dropoffEl.textContent = `${data['dropoff-location']} - ${dropoffDateStr}, ${data['dropoff-time']}`;
-        }
-        
-        // Calculate and display duration
-        const durationEl = document.getElementById('rental-duration');
-        if (durationEl) {
-          const pickupDate = new Date(data['pickup-date']);
-          const dropoffDate = new Date(data['dropoff-date']);
-          const days = Math.ceil((dropoffDate - pickupDate) / (1000 * 60 * 60 * 24));
-          durationEl.textContent = `${days} ${days === 1 ? 'day' : 'days'}`;
-        }
-        
-        // Display daily rate
-        const rateEl = document.getElementById('daily-rate');
-        if (rateEl && data.car && data.car.pricePerDay) {
-          rateEl.textContent = `€${data.car.pricePerDay}/day`;
-        }
+      } catch (error) {
+        console.error('Error loading booking data:', error);
       }
     });
   </script>

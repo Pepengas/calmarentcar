@@ -690,5 +690,36 @@
 
   <!-- JavaScript -->
   <script src="js/customer-info.js"></script>
+  
+  <!-- Debug Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add debug logging
+      console.log('Debug script loaded');
+      
+      // Get form and button
+      const form = document.getElementById('customer-form');
+      const submitBtn = document.getElementById('complete-booking-btn');
+      
+      console.log('Form:', form);
+      console.log('Submit button:', submitBtn);
+      
+      // Add a direct event listener to the submit button
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function(e) {
+          console.log('Submit button clicked from inline handler');
+          // We'll let the form handle the submission naturally
+        });
+      }
+      
+      // Add event listener to the form submit event
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          console.log('Form submitted from inline handler');
+          // Let customer-info.js handle the submission
+        });
+      }
+    });
+  </script>
 </body>
 </html>
