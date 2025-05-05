@@ -419,9 +419,9 @@ const CustomerInfo = {
             if (age < 18) {
                 isValid = false;
                 this.showFieldError(this.elements.age, 'age-error', 'You must be at least 18 years old to rent a car');
-            } else if (age < 25 && this.bookingData.selectedCar.category === 'luxury') {
+            } else if (age < 25) {
                 isValid = false;
-                this.showFieldError(this.elements.age, 'age-error', 'You must be at least 25 years old to rent a luxury car');
+                this.showFieldError(this.elements.age, 'age-error', 'You must be at least 25 years old to rent a car');
             }
         }
         
