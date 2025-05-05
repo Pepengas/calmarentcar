@@ -144,7 +144,11 @@
                                 </li>
                                 <li style="margin-top: 20px; color: #4CAF50;">
                                     <strong>Payment Status:</strong> 
-                                    <span>To be paid at pick-up</span>
+                                    <span id="payment-status">Paid via Stripe</span>
+                                </li>
+                                <li style="margin-top: 10px;">
+                                    <strong>Payment ID:</strong> 
+                                    <span id="payment-id">Loading...</span>
                                 </li>
                             </ul>
                             
@@ -226,5 +230,23 @@
     <script type="module" src="js/main.js"></script>
     <script src="fix-cards.js"></script>
     <script src="js/booking-confirmation.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get URL parameters to check for Stripe session ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session_id');
+            
+            if (sessionId) {
+                document.getElementById('payment-status').innerHTML = '<i class="fas fa-check-circle"></i> Payment Successful';
+                document.getElementById('payment-id').textContent = sessionId.substring(0, 16) + '...';
+            } else {
+                document.getElementById('payment-status').innerHTML = 'To be paid at pick-up';
+                document.getElementById('payment-id').textContent = 'N/A';
+            }
+            
+            // Rest of the existing confirmation page script
+            // ...
+        });
+    </script>
 </body>
 </html> 

@@ -6,6 +6,35 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the booking confirmation page
     BookingConfirmation.init();
+    
+    // Get URL parameters to check for Stripe session ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    
+    if (sessionId) {
+        const paymentStatus = document.getElementById('payment-status');
+        const paymentId = document.getElementById('payment-id');
+        
+        if (paymentStatus) {
+            paymentStatus.innerHTML = '<i class="fas fa-check-circle"></i> Payment Successful';
+        }
+        
+        if (paymentId) {
+            paymentId.textContent = sessionId.substring(0, 16) + '...';
+        }
+        
+        // Store payment information in the booking
+        if (BookingConfirmation.bookingData) {
+            BookingConfirmation.bookingData.payment = {
+                status: 'paid',
+                sessionId: sessionId,
+                date: new Date().toISOString()
+            };
+            
+            // Update the booking in localStorage
+            BookingConfirmation.updateBookingPaymentStatus();
+        }
+    }
 });
 
 const BookingConfirmation = {
@@ -341,6 +370,27 @@ const BookingConfirmation = {
             console.log('Booking data sent to admin dashboard');
         } catch (error) {
             console.error('Error sending booking to admin:', error);
+        }
+    },
+    
+    /**
+     * Update the payment status of the booking in localStorage
+     */
+    updateBookingPaymentStatus: function() {
+        try {
+            const bookings = JSON.parse(localStorage.getItem('userBookings')) || [];
+            const bookingIndex = bookings.findIndex(b => 
+                b.bookingReference === this.bookingData.bookingReference
+            );
+            
+            if (bookingIndex >= 0) {
+                // Update payment status
+                bookings[bookingIndex].payment = this.bookingData.payment;
+                localStorage.setItem('userBookings', JSON.stringify(bookings));
+                console.log('Updated booking payment status in localStorage');
+            }
+        } catch (error) {
+            console.error('Error updating booking payment status:', error);
         }
     }
 }; 

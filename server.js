@@ -4,6 +4,10 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
 const path = require('path');
+const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config({ path: '.env.local' });
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -140,6 +144,15 @@ const bookingsStorage = {
 bookingsStorage.init().catch(err => {
     console.error('Failed to initialize bookings storage:', err);
 });
+
+// === API Routes ===
+// Import Stripe API routes
+const checkoutRoutes = require('./api/checkout');
+const webhookRoutes = require('./api/webhooks');
+
+// Register API routes
+app.use('/api/checkout', checkoutRoutes);
+app.use('/api/webhooks', webhookRoutes);
 
 // === API: Cars ===
 app.get('/api/cars', async (req, res) => {

@@ -1096,8 +1096,16 @@ export const Booking = {
                 }
                 sessionStorage.setItem('bookingParams', urlParams.toString());
                 
-                // Redirect to confirmation page
-                window.location.href = 'booking-confirmation.html';
+                // Store the complete booking data in localStorage for the payment page
+                const fullBookingData = {
+                    ...bookingData,
+                    bookingReference: bookingRef,
+                    car: this.selectedCar || { name: sessionStorage.getItem('carName') }
+                };
+                localStorage.setItem('currentBooking', JSON.stringify(fullBookingData));
+                
+                // Redirect to payment page instead of confirmation page
+                window.location.href = 'payment.html';
             } catch (error) {
                 console.error('Error processing booking:', error);
                 showNotification('An error occurred while processing your booking. Please try again.', 'error');
