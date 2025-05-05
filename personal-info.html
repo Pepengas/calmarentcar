@@ -92,68 +92,76 @@
       margin-right: 0.5rem;
     }
 
-    /* Progress indicator */
+    /* Improved Progress indicator */
     .progress-steps {
       display: flex;
       justify-content: center;
-      margin-bottom: 1.5rem;
+      align-items: center;
+      margin: 30px auto 10px;
+      position: relative;
+      max-width: 400px;
+    }
+    
+    .progress-steps::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      height: 2px;
+      width: 70%;
+      background-color: #0066cc;
+      z-index: 1;
     }
     
     .step {
-      width: 35px;
-      height: 35px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background-color: #eee;
+      background-color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 600;
-      margin: 0 0.5rem;
+      margin: 0 30px;
       position: relative;
+      z-index: 2;
+      border: 2px solid #eee;
+      color: #666;
+      transition: all 0.3s ease;
     }
     
     .step.completed {
       background-color: #0066cc;
       color: white;
+      border-color: #0066cc;
     }
     
     .step.active {
       background-color: #0066cc;
       color: white;
-      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
-    }
-    
-    .step:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      right: -30px;
-      top: 50%;
-      width: 30px;
-      height: 2px;
-      background-color: #eee;
-    }
-    
-    .step.completed:not(:last-child)::after {
-      background-color: #0066cc;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.2);
     }
     
     .step-titles {
       display: flex;
       justify-content: center;
-      margin-bottom: 2rem;
+      margin-bottom: 30px;
       text-align: center;
     }
     
     .step-title {
       width: 120px;
-      font-size: 0.8rem;
-      color: #999;
-      margin: 0 0.5rem;
+      font-size: 0.9rem;
+      color: #666;
+      margin: 0 12px;
+      transition: color 0.3s ease;
     }
     
     .step-title.active {
       font-weight: 600;
-      color: #333;
+      color: #0066cc;
     }
     
     /* Booking summary */
@@ -468,6 +476,49 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    /* Responsive styles for progress steps */
+    @media (max-width: 768px) {
+      .progress-steps {
+        max-width: 300px;
+      }
+      
+      .step {
+        width: 36px;
+        height: 36px;
+        margin: 0 20px;
+        font-size: 0.9rem;
+      }
+      
+      .step-titles {
+        max-width: 300px;
+      }
+      
+      .step-title {
+        width: 90px;
+        font-size: 0.8rem;
+        margin: 0 8px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .progress-steps {
+        max-width: 260px;
+      }
+      
+      .step {
+        width: 32px;
+        height: 32px;
+        margin: 0 15px;
+        font-size: 0.8rem;
+      }
+      
+      .step-title {
+        width: 80px;
+        font-size: 0.75rem;
+        margin: 0 5px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -694,6 +745,41 @@
   <!-- Debug Script -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // Set the correct progress step indicators
+      const steps = document.querySelectorAll('.step');
+      const stepTitles = document.querySelectorAll('.step-title');
+      
+      // Initialize progress steps
+      function updateProgressSteps(currentStep) {
+        steps.forEach((step, index) => {
+          if (index + 1 === currentStep) {
+            step.classList.add('active');
+            step.classList.remove('completed');
+          } else if (index + 1 < currentStep) {
+            step.classList.add('completed');
+            step.classList.remove('active');
+          } else {
+            step.classList.remove('active', 'completed');
+          }
+        });
+        
+        stepTitles.forEach((title, index) => {
+          if (index + 1 === currentStep) {
+            title.classList.add('active');
+          } else {
+            title.classList.remove('active');
+          }
+        });
+      }
+      
+      // We're on step 3 (Personal Information)
+      updateProgressSteps(3);
+      
+      // Handle back button click
+      document.getElementById('back-btn').addEventListener('click', function() {
+        window.location.href = 'car-selection.html';
+      });
+      
       // Add debug logging
       console.log('Debug script loaded');
       
@@ -815,6 +901,28 @@
           // Trigger the click handler to ensure our custom logic runs
           if (submitBtn) {
             submitBtn.click();
+          }
+        });
+      }
+      
+      // Handle terms and conditions modal
+      const termsLink = document.getElementById('terms-link');
+      const termsModal = document.getElementById('terms-modal');
+      const closeModal = document.querySelector('.close-modal');
+      
+      if (termsLink && termsModal) {
+        termsLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          termsModal.style.display = 'block';
+        });
+        
+        closeModal.addEventListener('click', function() {
+          termsModal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', function(e) {
+          if (e.target === termsModal) {
+            termsModal.style.display = 'none';
           }
         });
       }
