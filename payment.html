@@ -244,7 +244,7 @@
         
         <div class="payment-methods">
           <p style="margin-bottom: 1.5rem;">Please select your preferred payment method:</p>
-          <button class="btn btn-primary btn-lg">
+          <button id="pay-button" class="btn btn-primary btn-lg">
             <i class="fas fa-credit-card payment-icon"></i>Pay with Credit Card
           </button>
         </div>
@@ -255,6 +255,62 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       console.log('Payment page loaded');
+      
+      // Add event listener to the payment button
+      const payButton = document.getElementById('pay-button');
+      if (payButton) {
+        payButton.addEventListener('click', function() {
+          // Show processing state
+          payButton.disabled = true;
+          payButton.innerHTML = '<i class="fas fa-spinner fa-spin payment-icon"></i> Processing...';
+          
+          // Simulate payment processing
+          setTimeout(function() {
+            // Complete the booking process
+            const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+            
+            // Update booking status to confirmed
+            if (bookingData) {
+              bookingData.status = 'confirmed';
+              bookingData.paymentDate = new Date().toISOString();
+              localStorage.setItem('currentBooking', JSON.stringify(bookingData));
+              
+              // Add to admin bookings
+              const adminBookings = JSON.parse(localStorage.getItem('adminBookings') || '[]');
+              adminBookings.push(bookingData);
+              localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
+            }
+            
+            // Redirect to confirmation page (or show success message)
+            showPaymentSuccess();
+          }, 2000);
+        });
+      }
+      
+      // Function to show payment success message
+      function showPaymentSuccess() {
+        const paymentContainer = document.querySelector('.payment-container');
+        if (paymentContainer) {
+          // Get booking reference
+          const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+          const bookingRef = bookingData.bookingReference || 'UNKNOWN';
+          
+          // Replace content with success message
+          paymentContainer.innerHTML = `
+            <div class="payment-success" style="text-align: center; padding: 2rem;">
+              <div style="color: #27ae60; font-size: 4rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <h2 style="color: #333; margin-bottom: 1rem;">Payment Successful!</h2>
+              <p style="color: #555; margin-bottom: 0.5rem;">Your booking reference: <strong>${bookingRef}</strong></p>
+              <p style="color: #555; margin-bottom: 1.5rem;">A confirmation email has been sent to your email address.</p>
+              <div style="margin-top: 2rem;">
+                <a href="index.html" class="btn btn-primary">Return to Home</a>
+              </div>
+            </div>
+          `;
+        }
+      }
       
       // Try to load booking data from localStorage
       try {
