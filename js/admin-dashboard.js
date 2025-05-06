@@ -49,6 +49,9 @@ const AdminDashboard = {
         // Update dashboard stats
         this.updateDashboardStats();
         
+        // Set up auto-refresh (every 30 seconds)
+        this.setupAutoRefresh();
+        
         console.log('Admin Dashboard initialization complete');
     },
     
@@ -917,5 +920,26 @@ const AdminDashboard = {
             this.filteredBookings = [...validBookings];
             localStorage.setItem('adminBookings', JSON.stringify(validBookings));
         }
+    },
+    
+    /**
+     * Set up automatic refresh of data
+     */
+    setupAutoRefresh: function() {
+        // Clear any existing interval
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
+        
+        // Set new interval (30 seconds)
+        this.refreshInterval = setInterval(() => {
+            console.log('Auto-refreshing admin dashboard data...');
+            this.loadBookings();
+            this.sanitizeBookingsData();
+            this.applyFilters();
+            this.updateDashboardStats();
+        }, 30000); // 30 seconds
+        
+        console.log('Auto-refresh set up to check for new bookings every 30 seconds');
     }
 }; 

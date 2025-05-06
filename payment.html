@@ -299,23 +299,66 @@
               bookingData.timestamp = new Date().toISOString(); // Add timestamp for sorting
               localStorage.setItem('currentBooking', JSON.stringify(bookingData));
               
-              // Add to admin bookings
-              const adminBookings = JSON.parse(localStorage.getItem('adminBookings') || '[]');
+              // Debug output to console
+              console.log('Payment processed for booking:', bookingData.bookingReference);
+              console.log('Full booking data:', bookingData);
               
-              // Check if booking already exists and update it, or add it if new
-              const existingIndex = adminBookings.findIndex(b => b.bookingReference === bookingData.bookingReference);
-              if (existingIndex >= 0) {
-                adminBookings[existingIndex] = bookingData;
-              } else {
-                adminBookings.push(bookingData);
+              // Add to admin bookings - using a more robust method
+              try {
+                // Get existing admin bookings
+                let adminBookings = [];
+                const existingData = localStorage.getItem('adminBookings');
+                
+                if (existingData) {
+                  try {
+                    adminBookings = JSON.parse(existingData);
+                    console.log(`Found ${adminBookings.length} existing admin bookings`);
+                  } catch (e) {
+                    console.error('Error parsing existing admin bookings, creating new array:', e);
+                    adminBookings = [];
+                  }
+                } else {
+                  console.log('No existing admin bookings found, creating new array');
+                }
+                
+                // Check if booking already exists (by reference)
+                const existingIndex = adminBookings.findIndex(b => b.bookingReference === bookingData.bookingReference);
+                
+                if (existingIndex >= 0) {
+                  console.log(`Updating existing booking #${bookingData.bookingReference} at index ${existingIndex}`);
+                  adminBookings[existingIndex] = bookingData;
+                } else {
+                  console.log(`Adding new booking #${bookingData.bookingReference} to admin bookings`);
+                  adminBookings.push(bookingData);
+                }
+                
+                // Sort bookings by timestamp (newest first)
+                adminBookings.sort((a, b) => {
+                  // Handle missing timestamps safely
+                  const dateA = a.timestamp || a.dateSubmitted || '1970-01-01';
+                  const dateB = b.timestamp || b.dateSubmitted || '1970-01-01';
+                  return new Date(dateB) - new Date(dateA);
+                });
+                
+                // Save updated bookings
+                localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
+                console.log(`Successfully saved ${adminBookings.length} bookings to adminBookings in localStorage`);
+                
+                // Verify the data was saved
+                const verifyData = localStorage.getItem('adminBookings');
+                if (verifyData) {
+                  try {
+                    const verifiedBookings = JSON.parse(verifyData);
+                    console.log(`Verification: ${verifiedBookings.length} bookings saved successfully`);
+                  } catch (e) {
+                    console.error('Error verifying saved data:', e);
+                  }
+                } else {
+                  console.error('Failed to save adminBookings - verification failed!');
+                }
+              } catch (e) {
+                console.error('Error saving to admin bookings:', e);
               }
-              
-              // Sort bookings by timestamp (newest first)
-              adminBookings.sort((a, b) => new Date(b.timestamp || '1970-01-01') - new Date(a.timestamp || '1970-01-01'));
-              
-              // Save updated bookings
-              localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
-              console.log(`Booking ${bookingData.bookingReference} added to admin bookings.`);
             }
             
             // Redirect to confirmation page (or show success message)
