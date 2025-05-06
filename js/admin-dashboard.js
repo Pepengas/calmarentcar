@@ -29,6 +29,8 @@ const AdminDashboard = {
      * Initialize the admin dashboard
      */
     init: function() {
+        console.log('Initializing Admin Dashboard...');
+        
         // Cache DOM elements
         this.cacheElements();
         
@@ -46,6 +48,8 @@ const AdminDashboard = {
         
         // Update dashboard stats
         this.updateDashboardStats();
+        
+        console.log('Admin Dashboard initialization complete');
     },
     
     /**
@@ -87,28 +91,59 @@ const AdminDashboard = {
      * Cache DOM elements
      */
     cacheElements: function() {
+        console.log('Caching DOM elements...');
+        
         // Stats elements
         this.elements.totalBookingsValue = document.getElementById('total-bookings-value');
         this.elements.newBookingsValue = document.getElementById('new-bookings-value');
         this.elements.pendingBookingsValue = document.getElementById('pending-bookings-value');
         this.elements.confirmedBookingsValue = document.getElementById('confirmed-bookings-value');
         
+        // Check if stats elements were found
+        console.log('Stats elements found:', {
+            totalBookingsValue: !!this.elements.totalBookingsValue,
+            newBookingsValue: !!this.elements.newBookingsValue,
+            pendingBookingsValue: !!this.elements.pendingBookingsValue,
+            confirmedBookingsValue: !!this.elements.confirmedBookingsValue
+        });
+        
         // Filters
         this.elements.searchInput = document.getElementById('booking-search');
         this.elements.statusFilter = document.getElementById('status-filter');
         this.elements.dateFilter = document.getElementById('date-filter');
         
+        // Check if filter elements were found
+        console.log('Filter elements found:', {
+            searchInput: !!this.elements.searchInput,
+            statusFilter: !!this.elements.statusFilter,
+            dateFilter: !!this.elements.dateFilter
+        });
+        
         // Bookings table
         this.elements.bookingsTableBody = document.getElementById('bookings-table-body');
         this.elements.noBookingsMessage = document.getElementById('no-bookings-message');
+        
+        // Check if table elements were found
+        console.log('Table elements found:', {
+            bookingsTableBody: !!this.elements.bookingsTableBody,
+            noBookingsMessage: !!this.elements.noBookingsMessage
+        });
         
         // Booking details modal
         this.elements.bookingModal = document.getElementById('booking-modal');
         this.elements.bookingModalContent = document.getElementById('booking-modal-content');
         this.elements.closeModalBtn = document.querySelector('.close-modal');
         
+        // Check if modal elements were found
+        console.log('Modal elements found:', {
+            bookingModal: !!this.elements.bookingModal,
+            bookingModalContent: !!this.elements.bookingModalContent,
+            closeModalBtn: !!this.elements.closeModalBtn
+        });
+        
         // Refresh data button
         this.elements.refreshDataBtn = document.getElementById('refresh-data-btn');
+        console.log('Refresh button found:', !!this.elements.refreshDataBtn);
     },
     
     /**
@@ -384,18 +419,33 @@ const AdminDashboard = {
      * Render bookings table
      */
     renderBookingsTable: function() {
-        if (!this.elements.bookingsTableBody) return;
+        if (!this.elements.bookingsTableBody) {
+            console.error('Bookings table body element not found!');
+            return;
+        }
         
         // Clear table
         this.elements.bookingsTableBody.innerHTML = '';
         
+        console.log(`Rendering ${this.filteredBookings.length} bookings to table`);
+        
         // Show/hide no bookings message
         if (this.filteredBookings.length === 0) {
+            console.log('No bookings to display, showing empty message');
             if (this.elements.noBookingsMessage) {
                 this.elements.noBookingsMessage.style.display = 'block';
             }
+            
+            // Also check if we have any bookings at all (not just filtered)
+            if (this.bookings.length === 0) {
+                console.log('No bookings found in localStorage');
+            } else {
+                console.log(`Found ${this.bookings.length} bookings but they were filtered out`);
+            }
+            
             return;
         } else {
+            console.log(`Displaying ${this.filteredBookings.length} bookings`);
             if (this.elements.noBookingsMessage) {
                 this.elements.noBookingsMessage.style.display = 'none';
             }
