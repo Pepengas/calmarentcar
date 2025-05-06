@@ -274,32 +274,99 @@ const AdminDashboard = {
             
             // Get bookings from localStorage
             const bookingsData = localStorage.getItem('adminBookings');
+            let bookings = [];
             
             if (bookingsData) {
                 // Parse bookings data
-                this.bookings = JSON.parse(bookingsData);
-                console.log(`Loaded ${this.bookings.length} bookings`);
-                
-                // Sort bookings by date (newest first)
-                this.bookings.sort((a, b) => {
-                    const dateA = new Date(a.dateSubmitted || a.timestamp || 0);
-                    const dateB = new Date(b.dateSubmitted || b.timestamp || 0);
-                    return dateB - dateA;
-                });
-                
-                // Update filtered bookings
-                this.applyFilters();
+                bookings = JSON.parse(bookingsData);
+                console.log(`Loaded ${bookings.length} bookings from adminBookings`);
             } else {
-                console.log('No bookings found in localStorage');
+                console.log('No adminBookings found in localStorage');
+            }
+            
+            // IMPROVED: Also check for individual booking_* entries and add them
+            const backupBookings = this.loadBackupBookings();
+            if (backupBookings.length > 0) {
+                console.log(`Found ${backupBookings.length} individual booking entries`);
+                
+                // Merge with main bookings, avoiding duplicates
+                backupBookings.forEach(backup => {
+                    const exists = bookings.some(b => b.bookingReference === backup.bookingReference);
+                    if (!exists) {
+                        bookings.push(backup);
+                        console.log(`Added booking ${backup.bookingReference} from individual storage`);
+                    }
+                });
+            }
+            
+            if (bookings.length === 0) {
+                console.log('No bookings found in any storage location');
                 this.bookings = [];
                 this.filteredBookings = [];
+                return;
             }
+            
+            // Sort bookings by date (newest first)
+            bookings.sort((a, b) => {
+                const dateA = new Date(a.dateSubmitted || a.timestamp || 0);
+                const dateB = new Date(b.dateSubmitted || b.timestamp || 0);
+                return dateB - dateA;
+            });
+            
+            // Save merged bookings back to adminBookings for future use
+            if (backupBookings.length > 0) {
+                try {
+                    localStorage.setItem('adminBookings', JSON.stringify(bookings));
+                    console.log('Updated adminBookings with merged bookings');
+                } catch (err) {
+                    console.error('Failed to save merged bookings:', err);
+                }
+            }
+            
+            // Update bookings array
+            this.bookings = bookings;
+            console.log(`Total bookings after merging: ${this.bookings.length}`);
+            
+            // Update filtered bookings
+            this.applyFilters();
         } catch (error) {
             console.error('Error loading bookings:', error);
             this.showNotification('Error loading bookings. Please try refreshing.', 'error');
             this.bookings = [];
             this.filteredBookings = [];
         }
+    },
+    
+    // Load backup bookings from individual localStorage entries
+    loadBackupBookings: function() {
+        const backupBookings = [];
+        
+        try {
+            // Get all localStorage keys
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                keys.push(localStorage.key(i));
+            }
+            
+            // Filter booking_* keys
+            const bookingKeys = keys.filter(key => key.startsWith('booking_'));
+            
+            // Process each booking
+            bookingKeys.forEach(key => {
+                try {
+                    const bookingData = JSON.parse(localStorage.getItem(key));
+                    if (bookingData && bookingData.bookingReference) {
+                        backupBookings.push(bookingData);
+                    }
+                } catch (e) {
+                    console.error(`Error parsing backup booking ${key}:`, e);
+                }
+            });
+        } catch (e) {
+            console.error('Error loading backup bookings:', e);
+        }
+        
+        return backupBookings;
     },
     
     // Apply filters to bookings
