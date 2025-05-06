@@ -333,6 +333,27 @@
             margin-top: 10px;
             text-align: center;
         }
+        
+        /* Refresh button */
+        .btn-refresh {
+            background-color: #27ae60;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-refresh:hover {
+            background-color: #219653;
+        }
+        
+        .btn-refresh:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -407,6 +428,7 @@
                     <option value="price-desc">Price (High to Low)</option>
                     <option value="price-asc">Price (Low to High)</option>
                 </select>
+                <button id="refresh-data-btn" class="btn btn-refresh"><i class="fas fa-sync-alt"></i> Refresh Data</button>
             </div>
         </div>
         
@@ -433,10 +455,19 @@
                 const password = document.getElementById('password').value;
                 
                 if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                    // Store login state in localStorage
+                    localStorage.setItem('adminLoggedIn', 'true');
+                    
+                    // Show dashboard
                     loginContainer.style.display = 'none';
                     dashboardContainer.style.display = 'block';
+                    
+                    // Load data
                     loadBookings();
                     updateDashboardStats();
+                    
+                    // Start session timeout
+                    startSessionTimeout();
                 } else {
                     loginError.textContent = 'Invalid username or password';
                 }
@@ -445,11 +476,20 @@
             // Handle logout
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function() {
+                    // Clear login state
+                    localStorage.removeItem('adminLoggedIn');
+                    
+                    // Show login form
                     dashboardContainer.style.display = 'none';
                     loginContainer.style.display = 'block';
                     document.getElementById('username').value = '';
                     document.getElementById('password').value = '';
                     loginError.textContent = '';
+                    
+                    // Clear timeout
+                    if (window.sessionTimeout) {
+                        clearTimeout(window.sessionTimeout);
+                    }
                 });
             }
             
@@ -479,6 +519,67 @@
             
             if (sortBy) {
                 sortBy.addEventListener('change', applyFilters);
+            }
+            
+            // Handle refresh button
+            const refreshBtn = document.getElementById('refresh-data-btn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function() {
+                    // Show loading indicator
+                    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+                    refreshBtn.disabled = true;
+                    
+                    // Reload data
+                    loadBookings();
+                    updateDashboardStats();
+                    
+                    // Reset button after short delay
+                    setTimeout(() => {
+                        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
+                        refreshBtn.disabled = false;
+                    }, 800);
+                });
+            }
+            
+            // Session timeout handling
+            function startSessionTimeout() {
+                // Clear any existing timeout
+                if (window.sessionTimeout) {
+                    clearTimeout(window.sessionTimeout);
+                }
+                
+                // Set new timeout (5 minutes)
+                window.sessionTimeout = setTimeout(() => {
+                    if (localStorage.getItem('adminLoggedIn') === 'true') {
+                        // Log out user
+                        localStorage.removeItem('adminLoggedIn');
+                        
+                        // Show login form
+                        dashboardContainer.style.display = 'none';
+                        loginContainer.style.display = 'block';
+                        document.getElementById('username').value = '';
+                        document.getElementById('password').value = '';
+                        loginError.textContent = 'Your session has expired. Please log in again.';
+                    }
+                }, 5 * 60 * 1000); // 5 minutes
+            }
+            
+            // Reset session timeout on user activity
+            ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+                document.addEventListener(event, () => {
+                    if (localStorage.getItem('adminLoggedIn') === 'true') {
+                        startSessionTimeout();
+                    }
+                });
+            });
+            
+            // Check if already logged in
+            if (localStorage.getItem('adminLoggedIn') === 'true') {
+                loginContainer.style.display = 'none';
+                dashboardContainer.style.display = 'block';
+                loadBookings();
+                updateDashboardStats();
+                startSessionTimeout();
             }
             
             // Function to update dashboard stats

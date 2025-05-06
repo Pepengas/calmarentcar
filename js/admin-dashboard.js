@@ -77,6 +77,9 @@ const AdminDashboard = {
         this.elements.bookingModal = document.getElementById('booking-modal');
         this.elements.bookingModalContent = document.getElementById('booking-modal-content');
         this.elements.closeModalBtn = document.querySelector('.close-modal');
+        
+        // Refresh data button
+        this.elements.refreshDataBtn = document.getElementById('refresh-data-btn');
     },
     
     /**
@@ -109,6 +112,80 @@ const AdminDashboard = {
                 this.closeBookingModal();
             }
         });
+        
+        // Refresh data button
+        if (this.elements.refreshDataBtn) {
+            this.elements.refreshDataBtn.addEventListener('click', this.refreshData.bind(this));
+        }
+        
+        // Setup session timeout
+        this.setupSessionTimeout();
+        
+        // Add event listeners to reset the timeout on user activity
+        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, this.resetSessionTimeout.bind(this));
+        });
+    },
+    
+    /**
+     * Setup session timeout
+     */
+    setupSessionTimeout: function() {
+        this.sessionTimeoutDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+        this.resetSessionTimeout();
+    },
+    
+    /**
+     * Reset session timeout
+     */
+    resetSessionTimeout: function() {
+        // Clear any existing timeout
+        if (this.sessionTimeout) {
+            clearTimeout(this.sessionTimeout);
+        }
+        
+        // Set a new timeout
+        this.sessionTimeout = setTimeout(() => {
+            // Check if user is logged in
+            if (localStorage.getItem('adminLoggedIn') === 'true') {
+                // Log the user out
+                this.logoutUser();
+            }
+        }, this.sessionTimeoutDuration);
+    },
+    
+    /**
+     * Logout user
+     */
+    logoutUser: function() {
+        localStorage.removeItem('adminLoggedIn');
+        window.location.href = 'admin-login.html';
+    },
+    
+    /**
+     * Refresh data from localStorage
+     */
+    refreshData: function() {
+        // Show loading indicator if available
+        if (this.elements.refreshDataBtn) {
+            this.elements.refreshDataBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+            this.elements.refreshDataBtn.disabled = true;
+        }
+        
+        // Reload bookings from localStorage
+        this.loadBookings();
+        
+        // Update UI
+        this.updateDashboardStats();
+        this.applyFilters();
+        
+        // Restore button text after a short delay
+        setTimeout(() => {
+            if (this.elements.refreshDataBtn) {
+                this.elements.refreshDataBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
+                this.elements.refreshDataBtn.disabled = false;
+            }
+        }, 800);
     },
     
     /**
@@ -387,19 +464,87 @@ const AdminDashboard = {
                 minute: '2-digit'
             }) : 'N/A';
         
-        // Build additional options list
+        // Build additional options list with prices
         let additionalOptions = 'None';
+        let additionalOptionsHTML = '';
+        
         if (customer.additionalOptions) {
             const options = [];
-            if (customer.additionalOptions.additionalDriver) options.push('Additional Driver');
-            if (customer.additionalOptions.fullInsurance) options.push('Full Insurance');
-            if (customer.additionalOptions.gpsNavigation) options.push('GPS Navigation');
-            if (customer.additionalOptions.childSeat) options.push('Child Seat');
+            let hasOptions = false;
+            
+            if (customer.additionalOptions.additionalDriver) {
+                options.push('Additional Driver (+€15/day)');
+                additionalOptionsHTML += `
+                    <div class="detail-item">
+                        <span class="detail-label">Additional Driver:</span>
+                        <span class="detail-value">Yes (+€15/day)</span>
+                    </div>
+                `;
+                hasOptions = true;
+            }
+            
+            if (customer.additionalOptions.fullInsurance) {
+                options.push('Full Insurance (+€25/day)');
+                additionalOptionsHTML += `
+                    <div class="detail-item">
+                        <span class="detail-label">Full Insurance:</span>
+                        <span class="detail-value">Yes (+€25/day)</span>
+                    </div>
+                `;
+                hasOptions = true;
+            }
+            
+            if (customer.additionalOptions.gpsNavigation) {
+                options.push('GPS Navigation (+€8/day)');
+                additionalOptionsHTML += `
+                    <div class="detail-item">
+                        <span class="detail-label">GPS Navigation:</span>
+                        <span class="detail-value">Yes (+€8/day)</span>
+                    </div>
+                `;
+                hasOptions = true;
+            }
+            
+            if (customer.additionalOptions.childSeat) {
+                options.push('Child Seat (+€5/day)');
+                additionalOptionsHTML += `
+                    <div class="detail-item">
+                        <span class="detail-label">Child Seat:</span>
+                        <span class="detail-value">Yes (+€5/day)</span>
+                    </div>
+                `;
+                hasOptions = true;
+            }
             
             if (options.length > 0) {
                 additionalOptions = options.join(', ');
             }
+            
+            if (!hasOptions) {
+                additionalOptionsHTML = `
+                    <div class="detail-item">
+                        <span class="detail-label">Additional Options:</span>
+                        <span class="detail-value">None selected</span>
+                    </div>
+                `;
+            }
+        } else {
+            additionalOptionsHTML = `
+                <div class="detail-item">
+                    <span class="detail-label">Additional Options:</span>
+                    <span class="detail-value">None selected</span>
+                </div>
+            `;
         }
+        
+        // Special requests
+        const specialRequests = customer.specialRequests || booking.specialRequests || '';
+        const specialRequestsHTML = `
+            <div class="detail-item">
+                <span class="detail-label">Special Requests:</span>
+                <span class="detail-value">${specialRequests ? specialRequests : 'None'}</span>
+            </div>
+        `;
         
         // Create modal content
         this.elements.bookingModalContent.innerHTML = `
@@ -483,10 +628,10 @@ const AdminDashboard = {
                         <span class="detail-label">Duration:</span>
                         <span class="detail-value">${booking.durationDays || 1} days</span>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Additional Options:</span>
-                        <span class="detail-value">${additionalOptions}</span>
-                    </div>
+                    
+                    <h3>Additional Services</h3>
+                    ${additionalOptionsHTML}
+                    ${specialRequestsHTML}
                 </div>
                 
                 <div class="booking-detail-section">
