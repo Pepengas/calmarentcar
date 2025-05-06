@@ -1454,6 +1454,30 @@
     </script>
     
     <!-- Import admin dashboard script -->
-    <script src="js/admin-dashboard.js?v=1.0.1"></script>
+    <script>
+        // First, try to check if the admin dashboard script was loaded
+        setTimeout(function() {
+            if (typeof AdminDashboard === 'undefined') {
+                console.error('Admin dashboard script not loaded! Attempting to load directly...');
+                // Create script element and append to document
+                var script = document.createElement('script');
+                script.src = 'https://calmarental.com/js/admin-dashboard.js?nocache=' + new Date().getTime();
+                document.body.appendChild(script);
+                
+                // Check again after script load
+                script.onload = function() {
+                    console.log('Admin dashboard script loaded successfully via fallback');
+                    if (typeof AdminDashboard !== 'undefined' && AdminDashboard.init) {
+                        AdminDashboard.init();
+                    }
+                };
+            } else {
+                console.log('Admin dashboard script loaded successfully');
+            }
+        }, 1000);
+    </script>
+    <script src="js/admin-dashboard.js?v=1.0.2"></script>
+    <!-- Import admin fix and diagnostic tool -->
+    <script src="js/admin-fix.js?v=1.0.0"></script>
 </body>
 </html> 
