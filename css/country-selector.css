@@ -24,25 +24,18 @@
   box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
 }
 
+/* Completely new approach for the dropdown */
 .country-dropdown {
   display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  max-height: 250px;
-  overflow-y: auto;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-top: none;
-  border-radius: 0 0 4px 4px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  z-index: 99999 !important;
-}
-
-/* Make sure dropdown is above all other elements */
-.country-dropdown {
-  position: absolute !important;
+  position: fixed !important; /* Changed to fixed */
+  background-color: #fff !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2) !important;
+  max-height: 250px !important;
+  overflow-y: auto !important;
+  z-index: 999999 !important; /* Even higher z-index */
+  margin-top: 2px !important;
 }
 
 .country-option {

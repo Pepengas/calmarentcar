@@ -51,9 +51,10 @@ function initCountrySelector() {
   searchInput.placeholder = 'Search for a country...';
   searchInput.autocomplete = 'off';
   
-  // Create the dropdown container
+  // Create the dropdown container and add it to the body for maximum z-index
   const dropdown = document.createElement('div');
   dropdown.className = 'country-dropdown';
+  document.body.appendChild(dropdown);
   
   // Add all countries to the dropdown
   countries.forEach(country => {
@@ -63,7 +64,7 @@ function initCountrySelector() {
     option.addEventListener('click', function() {
       nationalityInput.value = country;
       searchInput.value = country;
-      dropdown.style.display = 'none';
+      hideDropdown();
       
       // Trigger validation if any
       const event = new Event('change', { bubbles: true });
@@ -72,19 +73,38 @@ function initCountrySelector() {
     dropdown.appendChild(option);
   });
   
+  // Function to position and show dropdown
+  function showDropdown() {
+    const rect = searchInput.getBoundingClientRect();
+    dropdown.style.width = rect.width + 'px';
+    dropdown.style.left = rect.left + 'px';
+    dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+    dropdown.style.display = 'block';
+    
+    console.log('Showing dropdown at position:', {
+      left: rect.left,
+      top: rect.bottom + window.scrollY,
+      width: rect.width
+    });
+  }
+  
+  // Function to hide dropdown
+  function hideDropdown() {
+    dropdown.style.display = 'none';
+  }
+  
   // Add event listeners for the search input
   searchInput.addEventListener('focus', function() {
-    dropdown.style.display = 'block';
+    showDropdown();
   });
   
   searchInput.addEventListener('click', function(e) {
     e.stopPropagation();
-    dropdown.style.display = 'block';
+    showDropdown();
   });
   
   searchInput.addEventListener('input', function() {
-    // Make sure dropdown is visible when typing
-    dropdown.style.display = 'block';
+    showDropdown();
     
     const value = this.value.toLowerCase();
     const options = dropdown.querySelectorAll('.country-option');
@@ -115,7 +135,21 @@ function initCountrySelector() {
   // Close dropdown when clicking outside
   document.addEventListener('click', function(e) {
     if (!wrapper.contains(e.target) && e.target !== dropdown && !dropdown.contains(e.target)) {
-      dropdown.style.display = 'none';
+      hideDropdown();
+    }
+  });
+  
+  // Handle window resize
+  window.addEventListener('resize', function() {
+    if (dropdown.style.display === 'block') {
+      showDropdown();
+    }
+  });
+  
+  // Handle scroll
+  window.addEventListener('scroll', function() {
+    if (dropdown.style.display === 'block') {
+      showDropdown();
     }
   });
   
@@ -124,11 +158,10 @@ function initCountrySelector() {
   
   // Append elements to the wrapper
   wrapper.appendChild(searchInput);
-  wrapper.appendChild(dropdown);
   
   // Insert the wrapper after the input
   nationalityInput.parentNode.insertBefore(wrapper, nationalityInput.nextSibling);
   
   // Add debugging log
-  console.log('Country selector initialized');
+  console.log('Country selector initialized with fixed position approach');
 } 
