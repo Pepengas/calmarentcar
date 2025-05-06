@@ -5,6 +5,8 @@ const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
 const path = require('path');
 const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
+const { Pool } = require('pg');
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -16,8 +18,25 @@ const port = process.env.PORT || 3000;
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(express.static('.')); // Serve static files from current directory
 
-// --- Storage ---
+// === PostgreSQL connection ===
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+// Test the database connection
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('Error connecting to the database:', err);
+  } else {
+    console.log('Successfully connected to PostgreSQL database at:', res.rows[0].now);
+  }
+});
+
+// === Storage ===
 // Determine storage location - use environment variable if available
 const DATA_DIR = process.env.DATA_DIR || '/app/data';
 const BOOKINGS_FILE = path.join(DATA_DIR, 'bookings.json');
@@ -385,7 +404,168 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// === PostgreSQL API Routes ===
+// Get all bookings
+app.get('/api/bookings', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM bookings ORDER BY date_submitted DESC');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching bookings:', err);
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
+});
+
+// Get a booking by reference
+app.get('/api/bookings/:reference', async (req, res) => {
+  try {
+    const { reference } = req.params;
+    const result = await pool.query('SELECT * FROM bookings WHERE booking_reference = $1', [reference]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching booking:', err);
+    res.status(500).json({ error: 'Failed to fetch booking' });
+  }
+});
+
+// Create a new booking
+app.post('/api/bookings', async (req, res) => {
+  try {
+    const booking = req.body;
+    
+    // Validate required fields
+    if (!booking.bookingReference) {
+      return res.status(400).json({ error: 'Booking reference is required' });
+    }
+    
+    // Extract customer info from booking
+    const customer = booking.customer || {};
+    
+    // Extract car info
+    const car = booking.selectedCar || {};
+    
+    // Insert into database
+    const result = await pool.query(
+      `INSERT INTO bookings (
+        booking_reference, customer_first_name, customer_last_name, 
+        customer_email, customer_phone, pickup_date, return_date,
+        pickup_location, dropoff_location, car_make, car_model,
+        status, total_price, payment_date, date_submitted, booking_data
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      RETURNING *`,
+      [
+        booking.bookingReference,
+        customer.firstName || '',
+        customer.lastName || '',
+        customer.email || '',
+        customer.phone || '',
+        booking.pickupDate ? new Date(booking.pickupDate) : null,
+        booking.returnDate ? new Date(booking.returnDate) : null,
+        booking.pickupLocation || '',
+        booking.dropoffLocation || booking.pickupLocation || '',
+        car.make || '',
+        car.model || '',
+        booking.status || 'pending',
+        booking.totalPrice || 0,
+        booking.paymentDate ? new Date(booking.paymentDate) : null,
+        booking.dateSubmitted || booking.timestamp ? new Date(booking.dateSubmitted || booking.timestamp) : new Date(),
+        booking // Store the complete booking object as JSONB
+      ]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error creating booking:', err);
+    res.status(500).json({ error: 'Failed to create booking', details: err.message });
+  }
+});
+
+// Update a booking
+app.put('/api/bookings/:reference', async (req, res) => {
+  try {
+    const { reference } = req.params;
+    const booking = req.body;
+    
+    // Check if booking exists
+    const checkResult = await pool.query('SELECT * FROM bookings WHERE booking_reference = $1', [reference]);
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    
+    // Update booking status
+    const result = await pool.query(
+      `UPDATE bookings 
+       SET status = $1, booking_data = $2
+       WHERE booking_reference = $3
+       RETURNING *`,
+      [booking.status, booking, reference]
+    );
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating booking:', err);
+    res.status(500).json({ error: 'Failed to update booking' });
+  }
+});
+
+// Delete a booking
+app.delete('/api/bookings/:reference', async (req, res) => {
+  try {
+    const { reference } = req.params;
+    
+    const result = await pool.query('DELETE FROM bookings WHERE booking_reference = $1 RETURNING *', [reference]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    
+    res.json({ message: 'Booking deleted successfully', booking: result.rows[0] });
+  } catch (err) {
+    console.error('Error deleting booking:', err);
+    res.status(500).json({ error: 'Failed to delete booking' });
+  }
+});
+
 // === Start the Server ===
 app.listen(port, () => {
     console.log(`Calma Car Rental server listening on port ${port}`);
-}); 
+});
+
+// Init database tables if they don't exist
+async function initDatabase() {
+  try {
+    // Create bookings table if it doesn't exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS bookings (
+        id SERIAL PRIMARY KEY,
+        booking_reference VARCHAR(50) UNIQUE NOT NULL,
+        customer_first_name VARCHAR(100),
+        customer_last_name VARCHAR(100),
+        customer_email VARCHAR(150),
+        customer_phone VARCHAR(50),
+        pickup_date TIMESTAMP,
+        return_date TIMESTAMP,
+        pickup_location VARCHAR(100),
+        dropoff_location VARCHAR(100),
+        car_make VARCHAR(100),
+        car_model VARCHAR(100),
+        status VARCHAR(20),
+        total_price NUMERIC(10, 2),
+        payment_date TIMESTAMP,
+        date_submitted TIMESTAMP,
+        booking_data JSONB
+      )
+    `);
+    console.log('Database tables initialized successfully');
+  } catch (err) {
+    console.error('Error initializing database tables:', err);
+  }
+}
+
+// Call init database
+initDatabase(); 

@@ -267,10 +267,91 @@ const AdminDashboard = {
         console.log(`Auto-refresh set to ${this.autoRefreshInterval / 1000} seconds`);
     },
     
-    // Load bookings from localStorage
+    // Load bookings from API
     loadBookings: function() {
         try {
-            console.log('Loading bookings from localStorage...');
+            console.log('Loading bookings from API...');
+            
+            // Determine the API URL based on environment
+            const apiUrl = window.location.hostname === 'localhost' 
+                ? 'http://localhost:3000/api/bookings' 
+                : '/api/bookings';
+            
+            // Fetch bookings from API
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status} ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(apiBookings => {
+                    console.log(`Loaded ${apiBookings.length} bookings from API`);
+                    
+                    // Process bookings data from API
+                    const bookings = apiBookings.map(apiBooking => {
+                        // If the booking came with a complete booking_data object, use that
+                        if (apiBooking.booking_data) {
+                            return apiBooking.booking_data;
+                        }
+                        
+                        // Otherwise, construct a booking object from the database fields
+                        return {
+                            bookingReference: apiBooking.booking_reference,
+                            customer: {
+                                firstName: apiBooking.customer_first_name,
+                                lastName: apiBooking.customer_last_name,
+                                email: apiBooking.customer_email,
+                                phone: apiBooking.customer_phone
+                            },
+                            selectedCar: {
+                                make: apiBooking.car_make,
+                                model: apiBooking.car_model
+                            },
+                            pickupDate: apiBooking.pickup_date,
+                            returnDate: apiBooking.return_date,
+                            pickupLocation: apiBooking.pickup_location,
+                            dropoffLocation: apiBooking.dropoff_location,
+                            status: apiBooking.status,
+                            totalPrice: apiBooking.total_price,
+                            paymentDate: apiBooking.payment_date,
+                            dateSubmitted: apiBooking.date_submitted
+                        };
+                    });
+                    
+                    // Set bookings array
+                    this.bookings = bookings;
+                    
+                    // Update filtered bookings
+                    this.applyFilters();
+                    
+                    // Update dashboard stats
+                    this.updateDashboardStats();
+                })
+                .catch(error => {
+                    console.error('Error loading bookings from API:', error);
+                    
+                    // Fallback to localStorage if API fails
+                    this.loadBookingsFromLocalStorage();
+                    
+                    // Show notification
+                    this.showNotification('Error loading bookings from server. Using local data instead.', 'error');
+                });
+        } catch (error) {
+            console.error('Error in loadBookings function:', error);
+            
+            // Fallback to localStorage
+            this.loadBookingsFromLocalStorage();
+            
+            // Show notification
+            this.showNotification('Error loading bookings. Using local data as fallback.', 'error');
+        }
+    },
+    
+    // Fallback function to load bookings from localStorage
+    loadBookingsFromLocalStorage: function() {
+        try {
+            console.log('Loading bookings from localStorage (fallback)...');
             
             // Get bookings from localStorage
             const bookingsData = localStorage.getItem('adminBookings');
@@ -279,12 +360,12 @@ const AdminDashboard = {
             if (bookingsData) {
                 // Parse bookings data
                 bookings = JSON.parse(bookingsData);
-                console.log(`Loaded ${bookings.length} bookings from adminBookings`);
+                console.log(`Loaded ${bookings.length} bookings from localStorage`);
             } else {
                 console.log('No adminBookings found in localStorage');
             }
             
-            // IMPROVED: Also check for individual booking_* entries and add them
+            // Also check for individual booking_* entries and add them
             const backupBookings = this.loadBackupBookings();
             if (backupBookings.length > 0) {
                 console.log(`Found ${backupBookings.length} individual booking entries`);
@@ -313,24 +394,17 @@ const AdminDashboard = {
                 return dateB - dateA;
             });
             
-            // Save merged bookings back to adminBookings for future use
-            if (backupBookings.length > 0) {
-                try {
-                    localStorage.setItem('adminBookings', JSON.stringify(bookings));
-                    console.log('Updated adminBookings with merged bookings');
-                } catch (err) {
-                    console.error('Failed to save merged bookings:', err);
-                }
-            }
-            
             // Update bookings array
             this.bookings = bookings;
-            console.log(`Total bookings after merging: ${this.bookings.length}`);
+            console.log(`Total bookings from localStorage: ${this.bookings.length}`);
             
             // Update filtered bookings
             this.applyFilters();
+            
+            // Update dashboard stats
+            this.updateDashboardStats();
         } catch (error) {
-            console.error('Error loading bookings:', error);
+            console.error('Error loading bookings from localStorage:', error);
             this.showNotification('Error loading bookings. Please try refreshing.', 'error');
             this.bookings = [];
             this.filteredBookings = [];
@@ -755,7 +829,7 @@ const AdminDashboard = {
     // Update booking status
     updateBookingStatus: function(bookingRef, newStatus) {
         try {
-            // Find booking index
+            // Find booking 
             const index = this.bookings.findIndex(b => b.bookingReference === bookingRef);
             
             if (index === -1) {
@@ -763,8 +837,70 @@ const AdminDashboard = {
                 return;
             }
             
-            // Update status
-            this.bookings[index].status = newStatus;
+            // Get booking object
+            const booking = {...this.bookings[index]};
+            booking.status = newStatus;
+            
+            // Determine API URL
+            const apiUrl = window.location.hostname === 'localhost'
+                ? `http://localhost:3000/api/bookings/${bookingRef}`
+                : `/api/bookings/${bookingRef}`;
+            
+            // Update booking via API
+            fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(booking)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status} ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(updatedBooking => {
+                console.log(`Booking ${bookingRef} updated successfully via API`);
+                
+                // Update local booking in the array
+                this.bookings[index] = booking;
+                
+                // Update UI
+                this.applyFilters();
+                this.updateDashboardStats();
+                
+                // Show notification
+                this.showNotification(`Booking #${bookingRef} status updated to ${this.formatStatus(newStatus)}.`, 'success');
+            })
+            .catch(error => {
+                console.error('Error updating booking via API:', error);
+                
+                // Fallback to localStorage
+                this.updateBookingInLocalStorage(booking);
+                
+                // Show notification
+                this.showNotification(`Booking #${bookingRef} status updated to ${this.formatStatus(newStatus)} (local only).`, 'success');
+            });
+        } catch (error) {
+            console.error('Error updating booking status:', error);
+            this.showNotification('Error updating booking status. Please try again.', 'error');
+        }
+    },
+    
+    // Fallback: Update booking in localStorage
+    updateBookingInLocalStorage: function(booking) {
+        try {
+            // Find booking index
+            const index = this.bookings.findIndex(b => b.bookingReference === booking.bookingReference);
+            
+            if (index === -1) {
+                console.error('Booking not found in local data');
+                return;
+            }
+            
+            // Update local array
+            this.bookings[index] = booking;
             
             // Save to localStorage
             localStorage.setItem('adminBookings', JSON.stringify(this.bookings));
@@ -773,13 +909,9 @@ const AdminDashboard = {
             this.applyFilters();
             this.updateDashboardStats();
             
-            // Show notification
-            this.showNotification(`Booking #${bookingRef} status updated to ${this.formatStatus(newStatus)}.`, 'success');
-            
-            console.log(`Updated booking ${bookingRef} status to ${newStatus}`);
+            console.log(`Updated booking ${booking.bookingReference} in localStorage`);
         } catch (error) {
-            console.error('Error updating booking status:', error);
-            this.showNotification('Error updating booking status. Please try again.', 'error');
+            console.error('Error updating booking in localStorage:', error);
         }
     },
     
@@ -794,23 +926,68 @@ const AdminDashboard = {
                 return;
             }
             
-            // Remove booking
+            // Determine API URL
+            const apiUrl = window.location.hostname === 'localhost'
+                ? `http://localhost:3000/api/bookings/${bookingRef}`
+                : `/api/bookings/${bookingRef}`;
+            
+            // Delete booking via API
+            fetch(apiUrl, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status} ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log(`Booking ${bookingRef} deleted successfully via API`);
+                
+                // Remove from local array
+                this.bookings.splice(index, 1);
+                
+                // Update UI
+                this.applyFilters();
+                this.updateDashboardStats();
+                
+                // Show notification
+                this.showNotification(`Booking #${bookingRef} has been deleted.`, 'success');
+            })
+            .catch(error => {
+                console.error('Error deleting booking via API:', error);
+                
+                // Fallback to localStorage
+                this.deleteBookingFromLocalStorage(bookingRef, index);
+                
+                // Show notification
+                this.showNotification(`Booking #${bookingRef} has been deleted (local only).`, 'success');
+            });
+        } catch (error) {
+            console.error('Error deleting booking:', error);
+            this.showNotification('Error deleting booking. Please try again.', 'error');
+        }
+    },
+    
+    // Fallback: Delete booking from localStorage
+    deleteBookingFromLocalStorage: function(bookingRef, index) {
+        try {
+            // Remove booking from array
             this.bookings.splice(index, 1);
             
             // Save to localStorage
             localStorage.setItem('adminBookings', JSON.stringify(this.bookings));
             
+            // Also remove individual booking if it exists
+            localStorage.removeItem(`booking_${bookingRef}`);
+            
             // Update UI
             this.applyFilters();
             this.updateDashboardStats();
             
-            // Show notification
-            this.showNotification(`Booking #${bookingRef} has been deleted.`, 'success');
-            
-            console.log(`Deleted booking ${bookingRef}`);
+            console.log(`Deleted booking ${bookingRef} from localStorage`);
         } catch (error) {
-            console.error('Error deleting booking:', error);
-            this.showNotification('Error deleting booking. Please try again.', 'error');
+            console.error('Error deleting booking from localStorage:', error);
         }
     },
     

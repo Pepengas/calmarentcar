@@ -256,29 +256,6 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('Payment page loaded');
       
-      // Check if booking already exists in admin bookings
-      function checkExistingAdminBooking() {
-        const currentBooking = JSON.parse(localStorage.getItem('currentBooking') || '{}');
-        
-        if (currentBooking && currentBooking.bookingReference) {
-          const adminBookings = JSON.parse(localStorage.getItem('adminBookings') || '[]');
-          const existingBooking = adminBookings.find(b => b.bookingReference === currentBooking.bookingReference);
-          
-          if (existingBooking) {
-            console.log('Booking already exists in admin bookings:', existingBooking);
-            return true;
-          } else {
-            console.log('Booking does not exist in admin bookings yet');
-            return false;
-          }
-        }
-        
-        return false;
-      }
-      
-      // Check existence on page load
-      checkExistingAdminBooking();
-      
       // Add event listener to the payment button
       const payButton = document.getElementById('pay-button');
       if (payButton) {
@@ -305,91 +282,66 @@
               bookingData.status = 'confirmed';
               bookingData.paymentDate = new Date().toISOString();
               bookingData.timestamp = new Date().toISOString();
-              bookingData.dateSubmitted = new Date().toISOString(); // Add this for compatibility
+              bookingData.dateSubmitted = new Date().toISOString();
               
-              // Save updated booking to localStorage
+              // Save updated booking to localStorage (as a backup)
               localStorage.setItem('currentBooking', JSON.stringify(bookingData));
               
-              // IMPROVED: Save to admin bookings with better error handling
-              console.log('Saving booking to admin dashboard...');
-              
-              // Get existing admin bookings
-              let adminBookings = [];
+              // Save booking to database using our API
               try {
-                const existingData = localStorage.getItem('adminBookings');
-                if (existingData) {
-                  adminBookings = JSON.parse(existingData);
-                  console.log(`Found ${adminBookings.length} existing bookings in adminBookings`);
-                } else {
-                  console.log('No existing adminBookings found, creating new array');
+                const apiUrl = window.location.hostname === 'localhost' 
+                  ? 'http://localhost:3000/api/bookings' 
+                  : '/api/bookings';
+                
+                console.log('Saving booking to database via API:', apiUrl);
+                
+                const response = await fetch(apiUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(bookingData)
+                });
+                
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(`API Error: ${errorData.error || response.statusText}`);
                 }
-              } catch (error) {
-                console.error('Error parsing existing adminBookings, creating new array:', error);
-              }
-              
-              // Check if booking already exists
-              const existingIndex = adminBookings.findIndex(b => 
-                b.bookingReference === bookingData.bookingReference
-              );
-              
-              if (existingIndex >= 0) {
-                // Update existing booking
-                console.log(`Updating existing booking at index ${existingIndex}`);
-                adminBookings[existingIndex] = bookingData;
-              } else {
-                // Add as new booking
-                console.log('Adding new booking to admin bookings array');
-                adminBookings.push(bookingData);
-              }
-              
-              // Save to localStorage
-              try {
-                localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
-                console.log('Successfully saved booking to adminBookings localStorage');
                 
-                // IMPORTANT: Also save booking individually for redundancy
-                localStorage.setItem(`booking_${bookingData.bookingReference}`, JSON.stringify(bookingData));
-                console.log('Successfully saved individual booking backup');
+                const savedBooking = await response.json();
+                console.log('Booking successfully saved to database:', savedBooking);
                 
-                // Verify the booking was saved
+                // Show success message
+                showPaymentSuccess();
+              } catch (apiError) {
+                console.error('Error saving booking to API:', apiError);
+                
+                // Fallback to localStorage only
+                console.log('Using localStorage fallback for booking storage');
+                
+                // Save to adminBookings as a backup
+                let adminBookings = [];
                 try {
-                  const verify = localStorage.getItem('adminBookings');
-                  if (verify) {
-                    console.log('Verified adminBookings exists in localStorage');
-                  } else {
-                    console.error('WARNING: adminBookings not found after saving');
-                  }
+                  adminBookings = JSON.parse(localStorage.getItem('adminBookings') || '[]');
                 } catch (e) {
-                  console.error('Error verifying save:', e);
+                  console.error('Error parsing adminBookings:', e);
+                  adminBookings = [];
                 }
                 
-              } catch (saveError) {
-                console.error('Error saving to adminBookings:', saveError);
-                
-                // Fallback method
-                try {
-                  localStorage.setItem(`booking_${bookingData.bookingReference}`, JSON.stringify(bookingData));
-                  console.log('Saved booking using fallback method');
-                } catch (fallbackError) {
-                  console.error('Fallback save also failed:', fallbackError);
+                // Add/update booking
+                const existingIndex = adminBookings.findIndex(b => b.bookingReference === bookingData.bookingReference);
+                if (existingIndex >= 0) {
+                  adminBookings[existingIndex] = bookingData;
+                } else {
+                  adminBookings.push(bookingData);
                 }
+                
+                // Save back to localStorage
+                localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
+                
+                // Show success message (even though we used fallback)
+                showPaymentSuccess();
               }
-              
-              // Add debugging info to localStorage
-              try {
-                const debug = {
-                  timestamp: new Date().toISOString(),
-                  bookingRef: bookingData.bookingReference,
-                  adminBookingsCount: adminBookings.length,
-                  storageUsed: JSON.stringify(adminBookings).length + " bytes"
-                };
-                localStorage.setItem('debug_lastBooking', JSON.stringify(debug));
-              } catch (e) {
-                console.error('Error saving debug info:', e);
-              }
-              
-              // Show success message
-              showPaymentSuccess();
             } catch (error) {
               console.error('Error processing payment:', error);
               showPaymentError('An error occurred while processing your payment. Please try again.');
@@ -420,31 +372,6 @@
               </div>
             </div>
           `;
-          
-          // CRUCIAL FIX: Verify once more that booking is saved in admin bookings
-          setTimeout(function() {
-            try {
-              const adminBookings = JSON.parse(localStorage.getItem('adminBookings') || '[]');
-              const savedBooking = adminBookings.find(b => b.bookingReference === bookingRef);
-              
-              if (!savedBooking) {
-                console.warn('Booking not found in adminBookings after success screen - attempting emergency save');
-                
-                // Get current booking again
-                const currentBooking = JSON.parse(localStorage.getItem('currentBooking') || '{}');
-                if (currentBooking && currentBooking.bookingReference) {
-                  // Add to admin bookings
-                  adminBookings.push(currentBooking);
-                  localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
-                  console.log('Emergency save completed');
-                }
-              } else {
-                console.log('Final verification passed: booking exists in adminBookings');
-              }
-            } catch (e) {
-              console.error('Error in final verification:', e);
-            }
-          }, 1000);
         }
       }
       

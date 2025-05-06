@@ -1,13 +1,11 @@
 {
   "name": "calma-car-rental",
   "version": "1.0.0",
-  "description": "Calma Car Rental booking system",
+  "description": "Calma Car Rental Website with PostgreSQL Database",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js",
-    "build": "node build.js",
-    "lint": "eslint js/*.js"
+    "dev": "nodemon server.js"
   },
   "keywords": [
     "car rental",
@@ -17,20 +15,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@stripe/stripe-js": "^7.3.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
     "express": "^4.18.2",
-    "nodemailer": "^6.9.9",
-    "stripe": "^18.1.0"
+    "pg": "^8.11.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "body-parser": "^1.20.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=16.0.0"
   },
   "devDependencies": {
-    "clean-css-cli": "^5.6.2",
-    "esbuild": "^0.19.8",
-    "eslint": "^8.55.0",
-    "terser": "^5.19.4"
+    "nodemon": "^3.0.1"
   }
 }
