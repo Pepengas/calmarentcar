@@ -1,300 +1,378 @@
 /**
- * Admin Dashboard JavaScript
- * Handles displaying and managing bookings in the admin dashboard
+ * Calma Car Rental Admin Dashboard
+ * Main JavaScript file for handling the admin interface,
+ * loading bookings from localStorage, and managing the UI
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize the admin dashboard
-    AdminDashboard.init();
-});
-
+// Main AdminDashboard object
 const AdminDashboard = {
-    // Bookings data
+    // Store bookings data
     bookings: [],
     
-    // Filtered bookings
+    // Store filtered bookings
     filteredBookings: [],
     
-    // Current filter/search settings
+    // Filter settings
     filters: {
-        status: 'all',
         search: '',
+        status: 'all',
         dateRange: 'all'
     },
     
-    // DOM Elements
-    elements: {},
+    // Admin credentials - would be better in a backend system
+    credentials: {
+        username: 'admin',
+        password: 'admin123'
+    },
     
-    /**
-     * Initialize the admin dashboard
-     */
+    // Auto refresh interval in milliseconds (30 seconds)
+    autoRefreshInterval: 30000,
+    
+    // Session timeout in milliseconds (10 minutes)
+    sessionTimeout: 10 * 60 * 1000,
+    
+    // Initialize the dashboard
     init: function() {
         console.log('Initializing Admin Dashboard...');
         
-        // Cache DOM elements
-        this.cacheElements();
+        // Check if user is logged in
+        this.checkLoginStatus();
         
-        // Load bookings data
-        this.loadBookings();
+        // Add event listeners
+        this.addEventListeners();
         
-        // Sanitize bookings data
-        this.sanitizeBookingsData();
-        
-        // Bind event listeners
-        this.bindEvents();
-        
-        // Apply filters to show all bookings initially
-        this.applyFilters();
-        
-        // Update dashboard stats
-        this.updateDashboardStats();
-        
-        // Set up auto-refresh (every 30 seconds)
+        // Setup auto-refresh
         this.setupAutoRefresh();
         
-        console.log('Admin Dashboard initialization complete');
+        // Setup session timeout
+        this.setupSessionTimeout();
+        
+        console.log('Admin Dashboard initialized');
     },
     
-    /**
-     * Load bookings from localStorage
-     */
+    // Check if user is logged in
+    checkLoginStatus: function() {
+        const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
+        const loginContainer = document.getElementById('login-container');
+        const dashboardContainer = document.getElementById('dashboard-container');
+        
+        if (isLoggedIn) {
+            // Show dashboard
+            if (loginContainer) loginContainer.style.display = 'none';
+            if (dashboardContainer) dashboardContainer.style.display = 'block';
+            
+            // Load data
+            this.loadBookings();
+            this.updateDashboardStats();
+            this.renderBookings();
+        } else {
+            // Show login form
+            if (loginContainer) loginContainer.style.display = 'block';
+            if (dashboardContainer) dashboardContainer.style.display = 'none';
+        }
+    },
+    
+    // Add event listeners
+    addEventListeners: function() {
+        // Login button
+        const loginButton = document.getElementById('login-button');
+        if (loginButton) {
+            loginButton.addEventListener('click', this.handleLogin.bind(this));
+        }
+        
+        // Login inputs - add enter key support
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        
+        if (usernameInput) {
+            usernameInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') this.handleLogin();
+            });
+        }
+        
+        if (passwordInput) {
+            passwordInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') this.handleLogin();
+            });
+        }
+        
+        // Logout button
+        const logoutButton = document.getElementById('logout-btn');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', this.handleLogout.bind(this));
+        }
+        
+        // Refresh button
+        const refreshButton = document.getElementById('refresh-btn');
+        if (refreshButton) {
+            refreshButton.addEventListener('click', this.refreshData.bind(this));
+        }
+        
+        // Search input and button
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-btn');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.filters.search = e.target.value.toLowerCase();
+                this.applyFilters();
+            });
+            
+            searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') this.applyFilters();
+            });
+        }
+        
+        if (searchButton) {
+            searchButton.addEventListener('click', this.applyFilters.bind(this));
+        }
+        
+        // Status filter
+        const statusFilter = document.getElementById('status-filter');
+        if (statusFilter) {
+            statusFilter.addEventListener('change', (e) => {
+                this.filters.status = e.target.value;
+                this.applyFilters();
+            });
+        }
+        
+        // Date filter
+        const dateFilter = document.getElementById('date-filter');
+        if (dateFilter) {
+            dateFilter.addEventListener('change', (e) => {
+                this.filters.dateRange = e.target.value;
+                this.applyFilters();
+            });
+        }
+        
+        // Modal close buttons
+        const modalCloseButtons = document.querySelectorAll('.modal-close, #modal-close-btn');
+        modalCloseButtons.forEach(button => {
+            button.addEventListener('click', this.closeModal.bind(this));
+        });
+        
+        // Modal status update button
+        const statusUpdateButton = document.getElementById('modal-status-btn');
+        if (statusUpdateButton) {
+            statusUpdateButton.addEventListener('click', this.showStatusUpdateDialog.bind(this));
+        }
+        
+        // Modal delete button
+        const deleteButton = document.getElementById('modal-delete-btn');
+        if (deleteButton) {
+            deleteButton.addEventListener('click', this.showDeleteConfirmation.bind(this));
+        }
+        
+        // Close modal when clicking outside
+        const modal = document.getElementById('booking-modal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) this.closeModal();
+            });
+        }
+        
+        // Reset session timeout on user activity
+        const events = ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+        events.forEach(event => {
+            document.addEventListener(event, this.resetSessionTimeout.bind(this));
+        });
+    },
+    
+    // Handle login
+    handleLogin: function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const loginError = document.getElementById('login-error');
+        
+        if (username === this.credentials.username && password === this.credentials.password) {
+            // Set login status
+            localStorage.setItem('adminLoggedIn', 'true');
+            
+            // Show dashboard
+            this.checkLoginStatus();
+            
+            // Reset form
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            if (loginError) loginError.textContent = '';
+            
+            // Show success notification
+            this.showNotification('Login successful. Welcome to the admin dashboard!', 'success');
+        } else {
+            // Show error
+            if (loginError) loginError.textContent = 'Invalid username or password. Please try again.';
+        }
+    },
+    
+    // Handle logout
+    handleLogout: function() {
+        // Clear login status
+        localStorage.removeItem('adminLoggedIn');
+        
+        // Clear any existing session timeout
+        if (this.sessionTimeoutId) {
+            clearTimeout(this.sessionTimeoutId);
+        }
+        
+        // Clear auto-refresh
+        if (this.autoRefreshId) {
+            clearInterval(this.autoRefreshId);
+        }
+        
+        // Show login form
+        this.checkLoginStatus();
+        
+        // Show notification
+        this.showNotification('You have been logged out successfully.', 'info');
+    },
+    
+    // Setup session timeout
+    setupSessionTimeout: function() {
+        this.resetSessionTimeout();
+    },
+    
+    // Reset session timeout
+    resetSessionTimeout: function() {
+        // Clear existing timeout
+        if (this.sessionTimeoutId) {
+            clearTimeout(this.sessionTimeoutId);
+        }
+        
+        // Set new timeout
+        this.sessionTimeoutId = setTimeout(() => {
+            if (localStorage.getItem('adminLoggedIn') === 'true') {
+                this.handleLogout();
+                this.showNotification('Your session has expired. Please log in again.', 'info');
+            }
+        }, this.sessionTimeout);
+    },
+    
+    // Setup auto-refresh
+    setupAutoRefresh: function() {
+        // Clear existing interval
+        if (this.autoRefreshId) {
+            clearInterval(this.autoRefreshId);
+        }
+        
+        // Set new interval
+        this.autoRefreshId = setInterval(() => {
+            if (localStorage.getItem('adminLoggedIn') === 'true') {
+                console.log('Auto-refreshing data...');
+                this.loadBookings();
+                this.updateDashboardStats();
+                this.renderBookings();
+            }
+        }, this.autoRefreshInterval);
+        
+        console.log(`Auto-refresh set to ${this.autoRefreshInterval / 1000} seconds`);
+    },
+    
+    // Load bookings from localStorage
     loadBookings: function() {
         try {
+            console.log('Loading bookings from localStorage...');
+            
             // Get bookings from localStorage
-            const storedBookings = localStorage.getItem('adminBookings');
+            const bookingsData = localStorage.getItem('adminBookings');
             
-            if (storedBookings) {
-                console.log('Raw adminBookings data:', storedBookings);
-                this.bookings = JSON.parse(storedBookings);
-                console.log(`Parsed ${this.bookings.length} bookings:`, this.bookings);
-            } else {
-                console.log('No adminBookings found in localStorage');
-                this.bookings = [];
-            }
-            
-            this.filteredBookings = [...this.bookings];
-            
-            // Log specific booking details for debugging
-            if (this.bookings.length > 0) {
-                this.bookings.forEach((booking, index) => {
-                    console.log(`Booking ${index + 1}:`, 
-                        `Ref: ${booking.bookingReference || 'N/A'}`, 
-                        `Status: ${booking.status || 'N/A'}`,
-                        `Customer: ${booking.customer ? booking.customer.firstName + ' ' + booking.customer.lastName : 'N/A'}`);
+            if (bookingsData) {
+                // Parse bookings data
+                this.bookings = JSON.parse(bookingsData);
+                console.log(`Loaded ${this.bookings.length} bookings`);
+                
+                // Sort bookings by date (newest first)
+                this.bookings.sort((a, b) => {
+                    const dateA = new Date(a.dateSubmitted || a.timestamp || 0);
+                    const dateB = new Date(b.dateSubmitted || b.timestamp || 0);
+                    return dateB - dateA;
                 });
+                
+                // Update filtered bookings
+                this.applyFilters();
+            } else {
+                console.log('No bookings found in localStorage');
+                this.bookings = [];
+                this.filteredBookings = [];
             }
         } catch (error) {
             console.error('Error loading bookings:', error);
+            this.showNotification('Error loading bookings. Please try refreshing.', 'error');
             this.bookings = [];
             this.filteredBookings = [];
         }
     },
     
-    /**
-     * Cache DOM elements
-     */
-    cacheElements: function() {
-        console.log('Caching DOM elements...');
+    // Apply filters to bookings
+    applyFilters: function() {
+        console.log('Applying filters...');
+        console.log('Filters:', this.filters);
         
-        // Stats elements
-        this.elements.totalBookingsValue = document.getElementById('total-bookings-value');
-        this.elements.newBookingsValue = document.getElementById('new-bookings-value');
-        this.elements.pendingBookingsValue = document.getElementById('pending-bookings-value');
-        this.elements.confirmedBookingsValue = document.getElementById('confirmed-bookings-value');
+        // Start with all bookings
+        let filtered = [...this.bookings];
         
-        // Check if stats elements were found
-        console.log('Stats elements found:', {
-            totalBookingsValue: !!this.elements.totalBookingsValue,
-            newBookingsValue: !!this.elements.newBookingsValue,
-            pendingBookingsValue: !!this.elements.pendingBookingsValue,
-            confirmedBookingsValue: !!this.elements.confirmedBookingsValue
-        });
-        
-        // Filters
-        this.elements.searchInput = document.getElementById('booking-search');
-        this.elements.statusFilter = document.getElementById('status-filter');
-        this.elements.dateFilter = document.getElementById('date-filter');
-        
-        // Check if filter elements were found
-        console.log('Filter elements found:', {
-            searchInput: !!this.elements.searchInput,
-            statusFilter: !!this.elements.statusFilter,
-            dateFilter: !!this.elements.dateFilter
-        });
-        
-        // Bookings table
-        this.elements.bookingsTableBody = document.getElementById('bookings-table-body');
-        this.elements.noBookingsMessage = document.getElementById('no-bookings-message');
-        
-        // Check if table elements were found
-        console.log('Table elements found:', {
-            bookingsTableBody: !!this.elements.bookingsTableBody,
-            noBookingsMessage: !!this.elements.noBookingsMessage
-        });
-        
-        // Booking details modal
-        this.elements.bookingModal = document.getElementById('booking-modal');
-        this.elements.bookingModalContent = document.getElementById('booking-modal-content');
-        this.elements.closeModalBtn = document.querySelector('.close-modal');
-        
-        // Check if modal elements were found
-        console.log('Modal elements found:', {
-            bookingModal: !!this.elements.bookingModal,
-            bookingModalContent: !!this.elements.bookingModalContent,
-            closeModalBtn: !!this.elements.closeModalBtn
-        });
-        
-        // Refresh data button
-        this.elements.refreshDataBtn = document.getElementById('refresh-data-btn');
-        console.log('Refresh button found:', !!this.elements.refreshDataBtn);
-    },
-    
-    /**
-     * Bind event listeners
-     */
-    bindEvents: function() {
-        // Search input
-        if (this.elements.searchInput) {
-            this.elements.searchInput.addEventListener('input', this.handleSearch.bind(this));
-        }
-        
-        // Status filter
-        if (this.elements.statusFilter) {
-            this.elements.statusFilter.addEventListener('change', this.handleStatusFilter.bind(this));
-        }
-        
-        // Date filter
-        if (this.elements.dateFilter) {
-            this.elements.dateFilter.addEventListener('change', this.handleDateFilter.bind(this));
-        }
-        
-        // Modal close button
-        if (this.elements.closeModalBtn) {
-            this.elements.closeModalBtn.addEventListener('click', this.closeBookingModal.bind(this));
-        }
-        
-        // Close modal on outside click
-        window.addEventListener('click', (e) => {
-            if (e.target === this.elements.bookingModal) {
-                this.closeBookingModal();
-            }
-        });
-        
-        // Refresh data button
-        if (this.elements.refreshDataBtn) {
-            this.elements.refreshDataBtn.addEventListener('click', this.refreshData.bind(this));
-        }
-        
-        // Setup session timeout
-        this.setupSessionTimeout();
-        
-        // Add event listeners to reset the timeout on user activity
-        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-            document.addEventListener(event, this.resetSessionTimeout.bind(this));
-        });
-    },
-    
-    /**
-     * Setup session timeout
-     */
-    setupSessionTimeout: function() {
-        this.sessionTimeoutDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
-        this.resetSessionTimeout();
-    },
-    
-    /**
-     * Reset session timeout
-     */
-    resetSessionTimeout: function() {
-        // Clear any existing timeout
-        if (this.sessionTimeout) {
-            clearTimeout(this.sessionTimeout);
-        }
-        
-        // Set a new timeout
-        this.sessionTimeout = setTimeout(() => {
-            // Check if user is logged in
-            if (localStorage.getItem('adminLoggedIn') === 'true') {
-                // Log the user out
-                this.logoutUser();
-            }
-        }, this.sessionTimeoutDuration);
-    },
-    
-    /**
-     * Logout user
-     */
-    logoutUser: function() {
-        localStorage.removeItem('adminLoggedIn');
-        window.location.href = 'admin-login.html';
-    },
-    
-    /**
-     * Refresh data from localStorage
-     */
-    refreshData: function() {
-        console.log('Refreshing data...');
-        
-        // Show loading indicator if available
-        if (this.elements.refreshDataBtn) {
-            this.elements.refreshDataBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-            this.elements.refreshDataBtn.disabled = true;
-        }
-        
-        // Check localStorage first to verify data is actually there
-        try {
-            const rawData = localStorage.getItem('adminBookings');
-            console.log('Current adminBookings in localStorage:', rawData);
-            
-            if (rawData) {
-                const parsedData = JSON.parse(rawData);
-                console.log(`Found ${parsedData.length} bookings in localStorage`);
+        // Apply search filter
+        if (this.filters.search) {
+            const searchTerm = this.filters.search.toLowerCase();
+            filtered = filtered.filter(booking => {
+                const customer = booking.customer || {};
+                const customerName = `${customer.firstName || ''} ${customer.lastName || ''}`.toLowerCase();
+                const customerEmail = (customer.email || '').toLowerCase();
+                const bookingId = (booking.bookingReference || '').toLowerCase();
+                const carDetails = booking.selectedCar ? 
+                    `${booking.selectedCar.make || ''} ${booking.selectedCar.model || ''}`.toLowerCase() : '';
                 
-                // If there are bookings, log the first one for debugging
-                if (parsedData.length > 0) {
-                    console.log('First booking:', parsedData[0]);
-                }
-            } else {
-                console.warn('No adminBookings found in localStorage during refresh');
-            }
-        } catch (error) {
-            console.error('Error checking localStorage:', error);
+                return customerName.includes(searchTerm) ||
+                       customerEmail.includes(searchTerm) ||
+                       bookingId.includes(searchTerm) ||
+                       carDetails.includes(searchTerm);
+            });
         }
         
-        // Reload bookings from localStorage
-        this.loadBookings();
+        // Apply status filter
+        if (this.filters.status !== 'all') {
+            filtered = filtered.filter(booking => 
+                (booking.status || '').toLowerCase() === this.filters.status.toLowerCase()
+            );
+        }
         
-        // Update UI
-        this.updateDashboardStats();
-        this.applyFilters();
-        
-        // Show notification if available
-        const notificationContainer = document.getElementById('notification-container');
-        if (notificationContainer) {
-            notificationContainer.innerHTML = `
-                <div class="notification success">
-                    <i class="fas fa-check-circle"></i> Data refreshed successfully
-                </div>
-            `;
+        // Apply date filter
+        if (this.filters.dateRange !== 'all') {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             
-            // Auto-hide notification after 3 seconds
-            setTimeout(() => {
-                notificationContainer.innerHTML = '';
-            }, 3000);
+            filtered = filtered.filter(booking => {
+                const bookingDate = new Date(booking.dateSubmitted || booking.timestamp || 0);
+                
+                switch (this.filters.dateRange) {
+                    case 'today':
+                        return bookingDate >= today;
+                    case 'yesterday':
+                        const yesterday = new Date(today);
+                        yesterday.setDate(today.getDate() - 1);
+                        return bookingDate >= yesterday && bookingDate < today;
+                    case 'week':
+                        const lastWeek = new Date(today);
+                        lastWeek.setDate(today.getDate() - 7);
+                        return bookingDate >= lastWeek;
+                    case 'month':
+                        const lastMonth = new Date(today);
+                        lastMonth.setMonth(today.getMonth() - 1);
+                        return bookingDate >= lastMonth;
+                    default:
+                        return true;
+                }
+            });
         }
         
-        // Restore button text after a short delay
-        setTimeout(() => {
-            if (this.elements.refreshDataBtn) {
-                this.elements.refreshDataBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
-                this.elements.refreshDataBtn.disabled = false;
-            }
-        }, 800);
+        // Update filtered bookings
+        this.filteredBookings = filtered;
+        console.log(`Filtered to ${this.filteredBookings.length} bookings`);
+        
+        // Render bookings
+        this.renderBookings();
     },
     
-    /**
-     * Update dashboard statistics
-     */
+    // Update dashboard statistics
     updateDashboardStats: function() {
         // Count bookings by status
         const totalBookings = this.bookings.length;
@@ -320,223 +398,364 @@ const AdminDashboard = {
         }
     },
     
-    /**
-     * Handle search input
-     */
-    handleSearch: function(e) {
-        this.filters.search = e.target.value.toLowerCase().trim();
-        this.applyFilters();
-    },
-    
-    /**
-     * Handle status filter change
-     */
-    handleStatusFilter: function(e) {
-        this.filters.status = e.target.value;
-        this.applyFilters();
-    },
-    
-    /**
-     * Handle date filter change
-     */
-    handleDateFilter: function(e) {
-        this.filters.dateRange = e.target.value;
-        this.applyFilters();
-    },
-    
-    /**
-     * Apply all filters to bookings
-     */
-    applyFilters: function() {
-        // Start with all bookings
-        let filtered = [...this.bookings];
+    // Render bookings
+    renderBookings: function() {
+        const tableBody = document.getElementById('bookings-table-body');
+        const emptyState = document.getElementById('empty-state');
+        const bookingsCount = document.getElementById('bookings-count');
         
-        // Apply status filter
-        if (this.filters.status !== 'all') {
-            filtered = filtered.filter(booking => booking.status === this.filters.status);
+        // Update bookings count
+        if (bookingsCount) {
+            bookingsCount.textContent = `${this.filteredBookings.length} bookings found`;
         }
         
-        // Apply search filter (search by name, email, booking reference)
-        if (this.filters.search) {
-            filtered = filtered.filter(booking => {
-                const searchTerm = this.filters.search.toLowerCase();
-                const customerName = booking.customer ? 
-                    `${booking.customer.firstName} ${booking.customer.lastName}`.toLowerCase() : '';
-                const customerEmail = booking.customer ? booking.customer.email.toLowerCase() : '';
-                const bookingRef = booking.bookingReference ? booking.bookingReference.toLowerCase() : '';
-                const carModel = booking.selectedCar ? 
-                    `${booking.selectedCar.make} ${booking.selectedCar.model}`.toLowerCase() : '';
-                
-                return customerName.includes(searchTerm) || 
-                       customerEmail.includes(searchTerm) || 
-                       bookingRef.includes(searchTerm) ||
-                       carModel.includes(searchTerm);
-            });
-        }
+        // Check if table body exists
+        if (!tableBody) return;
         
-        // Apply date filter
-        if (this.filters.dateRange !== 'all') {
-            const now = new Date();
-            
-            filtered = filtered.filter(booking => {
-                const bookingDate = new Date(booking.timestamp || booking.dateSubmitted);
-                
-                switch(this.filters.dateRange) {
-                    case 'today':
-                        return this.isSameDay(bookingDate, now);
-                    case 'yesterday':
-                        const yesterday = new Date(now);
-                        yesterday.setDate(now.getDate() - 1);
-                        return this.isSameDay(bookingDate, yesterday);
-                    case 'week':
-                        const weekAgo = new Date(now);
-                        weekAgo.setDate(now.getDate() - 7);
-                        return bookingDate >= weekAgo;
-                    case 'month':
-                        const monthAgo = new Date(now);
-                        monthAgo.setMonth(now.getMonth() - 1);
-                        return bookingDate >= monthAgo;
-                    default:
-                        return true;
-                }
-            });
-        }
+        // Clear table body
+        tableBody.innerHTML = '';
         
-        // Update filtered bookings
-        this.filteredBookings = filtered;
-        
-        // Render bookings table
-        this.renderBookingsTable();
-    },
-    
-    /**
-     * Check if two dates are the same day
-     */
-    isSameDay: function(date1, date2) {
-        return date1.getDate() === date2.getDate() && 
-               date1.getMonth() === date2.getMonth() && 
-               date1.getFullYear() === date2.getFullYear();
-    },
-    
-    /**
-     * Render bookings table
-     */
-    renderBookingsTable: function() {
-        if (!this.elements.bookingsTableBody) {
-            console.error('Bookings table body element not found!');
-            return;
-        }
-        
-        // Clear table
-        this.elements.bookingsTableBody.innerHTML = '';
-        
-        console.log(`Rendering ${this.filteredBookings.length} bookings to table`);
-        
-        // Show/hide no bookings message
+        // Show/hide empty state
         if (this.filteredBookings.length === 0) {
-            console.log('No bookings to display, showing empty message');
-            if (this.elements.noBookingsMessage) {
-                this.elements.noBookingsMessage.style.display = 'block';
-            }
-            
-            // Also check if we have any bookings at all (not just filtered)
-            if (this.bookings.length === 0) {
-                console.log('No bookings found in localStorage');
-            } else {
-                console.log(`Found ${this.bookings.length} bookings but they were filtered out`);
-            }
-            
+            if (emptyState) emptyState.style.display = 'block';
+            tableBody.innerHTML = '';
             return;
         } else {
-            console.log(`Displaying ${this.filteredBookings.length} bookings`);
-            if (this.elements.noBookingsMessage) {
-                this.elements.noBookingsMessage.style.display = 'none';
-            }
+            if (emptyState) emptyState.style.display = 'none';
         }
         
-        // Add bookings to table
+        // Render each booking
         this.filteredBookings.forEach(booking => {
             const row = document.createElement('tr');
             
-            // Format date
-            const bookingDate = new Date(booking.timestamp || booking.dateSubmitted);
-            const formattedDate = bookingDate.toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            // Extract customer data
+            const customer = booking.customer || {};
+            const customerName = `${customer.firstName || ''} ${customer.lastName || ''}`;
+            const customerEmail = customer.email || '';
             
-            // Format customer name
-            const customerName = booking.customer ? 
-                `${booking.customer.firstName} ${booking.customer.lastName}` : 'N/A';
+            // Extract car data
+            const car = booking.selectedCar || {};
+            const carName = `${car.make || ''} ${car.model || ''}`;
             
-            // Format car
-            const carName = booking.selectedCar ? 
-                `${booking.selectedCar.make} ${booking.selectedCar.model}` : 'N/A';
+            // Extract dates
+            const pickupDate = booking.pickupDate ? new Date(booking.pickupDate).toLocaleDateString() : 'N/A';
+            const returnDate = booking.returnDate ? new Date(booking.returnDate).toLocaleDateString() : 'N/A';
             
-            // Format rental dates
-            const pickupDate = booking.pickupDate ? 
-                new Date(booking.pickupDate).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric'
-                }) : 'N/A';
+            // Format status badge
+            const status = booking.status || 'pending';
+            const statusBadge = `<span class="status-badge ${status.toLowerCase()}">${this.formatStatus(status)}</span>`;
             
-            const returnDate = booking.returnDate ? 
-                new Date(booking.returnDate).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric'
-                }) : 'N/A';
+            // Format price
+            const price = booking.totalPrice ? `€${booking.totalPrice.toFixed(2)}` : 'N/A';
             
-            // Format amount
-            const amount = booking.totalPrice ? 
-                `€${booking.totalPrice.toFixed(2)}` : 'N/A';
-            
-            // Create row HTML
+            // Set row HTML
             row.innerHTML = `
                 <td>${booking.bookingReference || 'N/A'}</td>
-                <td>${formattedDate}</td>
-                <td>${customerName}</td>
-                <td>${carName}</td>
-                <td>${pickupDate} - ${returnDate}</td>
-                <td>${amount}</td>
                 <td>
-                    <span class="status-badge ${booking.status}">
-                        ${this.formatStatus(booking.status)}
-                    </span>
+                    <div>${customerName}</div>
+                    <div style="font-size: 0.8rem; color: #666;">${customerEmail}</div>
                 </td>
+                <td>${carName || 'N/A'}</td>
                 <td>
-                    <button class="action-btn view-btn" data-booking-id="${booking.bookingReference}">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="action-btn edit-btn" data-booking-id="${booking.bookingReference}">
-                        <i class="fas fa-edit"></i>
-                    </button>
+                    <div>From: ${pickupDate}</div>
+                    <div>To: ${returnDate}</div>
+                </td>
+                <td>${price}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="action-button view" data-id="${booking.bookingReference}" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-button edit" data-id="${booking.bookingReference}" title="Edit Status">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-button delete" data-id="${booking.bookingReference}" title="Delete Booking">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             
             // Add event listeners to action buttons
-            const viewBtn = row.querySelector('.view-btn');
-            if (viewBtn) {
-                viewBtn.addEventListener('click', () => this.viewBookingDetails(booking));
+            const viewButton = row.querySelector('.action-button.view');
+            if (viewButton) {
+                viewButton.addEventListener('click', () => this.showBookingDetails(booking));
             }
             
-            const editBtn = row.querySelector('.edit-btn');
-            if (editBtn) {
-                editBtn.addEventListener('click', () => this.editBookingStatus(booking));
+            const editButton = row.querySelector('.action-button.edit');
+            if (editButton) {
+                editButton.addEventListener('click', () => this.showStatusUpdateDialog(booking));
+            }
+            
+            const deleteButton = row.querySelector('.action-button.delete');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', () => this.showDeleteConfirmation(booking));
             }
             
             // Add row to table
-            this.elements.bookingsTableBody.appendChild(row);
+            tableBody.appendChild(row);
         });
     },
     
-    /**
-     * Format booking status for display
-     */
+    // Show booking details modal
+    showBookingDetails: function(booking) {
+        console.log('Showing booking details:', booking);
+        
+        const modal = document.getElementById('booking-modal');
+        const modalBody = document.getElementById('modal-body');
+        
+        if (!modal || !modalBody) return;
+        
+        // Extract customer and car data
+        const customer = booking.customer || {};
+        const car = booking.selectedCar || {};
+        
+        // Prepare dates
+        const bookingDate = booking.dateSubmitted || booking.timestamp ? 
+            new Date(booking.dateSubmitted || booking.timestamp).toLocaleString() : 'N/A';
+        const pickupDate = booking.pickupDate ? 
+            new Date(booking.pickupDate).toLocaleString() : 'N/A';
+        const returnDate = booking.returnDate ? 
+            new Date(booking.returnDate).toLocaleString() : 'N/A';
+        
+        // Format duration
+        const duration = booking.durationDays ? 
+            `${booking.durationDays} day${booking.durationDays !== 1 ? 's' : ''}` : 'N/A';
+        
+        // Format additional options
+        let additionalOptions = '<div>None</div>';
+        if (customer.additionalOptions) {
+            const options = [];
+            if (customer.additionalOptions.additionalDriver) options.push('Additional Driver (+€15/day)');
+            if (customer.additionalOptions.fullInsurance) options.push('Full Insurance (+€25/day)');
+            if (customer.additionalOptions.gpsNavigation) options.push('GPS Navigation (+€8/day)');
+            if (customer.additionalOptions.childSeat) options.push('Child Seat (+€5/day)');
+            
+            if (options.length > 0) {
+                additionalOptions = options.map(opt => `<div>${opt}</div>`).join('');
+            }
+        }
+        
+        // Format price
+        const price = booking.totalPrice ? `€${booking.totalPrice.toFixed(2)}` : 'N/A';
+        
+        // Set modal content
+        modalBody.innerHTML = `
+            <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 5px;">Booking #${booking.bookingReference || 'N/A'}</div>
+                    <div style="color: #666;">Made on ${bookingDate}</div>
+                </div>
+                <div>
+                    <span class="status-badge ${(booking.status || 'pending').toLowerCase()}" style="font-size: 1rem; padding: 8px 15px;">
+                        ${this.formatStatus(booking.status || 'pending')}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="booking-details">
+                <div>
+                    <div class="detail-section">
+                        <h3>Customer Information</h3>
+                        <div class="detail-row">
+                            <div class="detail-label">Name:</div>
+                            <div class="detail-value">${customer.firstName || ''} ${customer.lastName || ''}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Email:</div>
+                            <div class="detail-value">${customer.email || 'N/A'}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Phone:</div>
+                            <div class="detail-value">${customer.phone || 'N/A'}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Rental Details</h3>
+                        <div class="detail-row">
+                            <div class="detail-label">Pickup:</div>
+                            <div class="detail-value">${this.formatLocation(booking.pickupLocation)} - ${pickupDate}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Return:</div>
+                            <div class="detail-value">${this.formatLocation(booking.dropoffLocation || booking.pickupLocation)} - ${returnDate}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Duration:</div>
+                            <div class="detail-value">${duration}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="detail-section">
+                        <h3>Vehicle Information</h3>
+                        <div class="car-details">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 5px;">${carName || 'N/A'}</div>
+                                <div style="color: #666;">${car.category || ''} ${car.group ? '- Group ' + car.group : ''}</div>
+                                <div style="margin-top: 10px;">Daily Rate: <strong>€${car.price || 0}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Additional Services</h3>
+                        ${additionalOptions}
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Payment Information</h3>
+                        <div class="detail-row">
+                            <div class="detail-label">Total Amount:</div>
+                            <div class="detail-value" style="font-weight: 600; font-size: 1.1rem;">${price}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Payment Status:</div>
+                            <div class="detail-value">Paid on ${booking.paymentDate ? new Date(booking.paymentDate).toLocaleString() : 'N/A'}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Store current booking reference for use in buttons
+        modal.dataset.bookingRef = booking.bookingReference;
+        
+        // Show modal
+        modal.style.display = 'block';
+    },
+    
+    // Show status update dialog
+    showStatusUpdateDialog: function(booking) {
+        // If booking is not passed, get it from the modal dataset
+        if (!booking) {
+            const modal = document.getElementById('booking-modal');
+            if (!modal || !modal.dataset.bookingRef) return;
+            
+            // Find booking by reference
+            const bookingRef = modal.dataset.bookingRef;
+            booking = this.bookings.find(b => b.bookingReference === bookingRef);
+            
+            if (!booking) {
+                this.showNotification('Booking not found.', 'error');
+                return;
+            }
+        }
+        
+        // Prompt for new status
+        const currentStatus = booking.status || 'pending';
+        const newStatus = prompt(
+            `Current status: ${this.formatStatus(currentStatus)}\n\nEnter new status (new, pending, confirmed, completed, cancelled):`,
+            currentStatus
+        );
+        
+        // Validate and update status
+        if (newStatus && ['new', 'pending', 'confirmed', 'completed', 'cancelled'].includes(newStatus.toLowerCase())) {
+            this.updateBookingStatus(booking.bookingReference, newStatus.toLowerCase());
+            this.closeModal();
+        } else if (newStatus) {
+            this.showNotification('Invalid status. Please use one of: new, pending, confirmed, completed, cancelled.', 'error');
+        }
+    },
+    
+    // Show delete confirmation dialog
+    showDeleteConfirmation: function(booking) {
+        // If booking is not passed, get it from the modal dataset
+        if (!booking) {
+            const modal = document.getElementById('booking-modal');
+            if (!modal || !modal.dataset.bookingRef) return;
+            
+            // Find booking by reference
+            const bookingRef = modal.dataset.bookingRef;
+            booking = this.bookings.find(b => b.bookingReference === bookingRef);
+            
+            if (!booking) {
+                this.showNotification('Booking not found.', 'error');
+                return;
+            }
+        }
+        
+        // Confirm deletion
+        if (confirm(`Are you sure you want to delete booking #${booking.bookingReference}? This action cannot be undone.`)) {
+            this.deleteBooking(booking.bookingReference);
+            this.closeModal();
+        }
+    },
+    
+    // Update booking status
+    updateBookingStatus: function(bookingRef, newStatus) {
+        try {
+            // Find booking index
+            const index = this.bookings.findIndex(b => b.bookingReference === bookingRef);
+            
+            if (index === -1) {
+                this.showNotification('Booking not found.', 'error');
+                return;
+            }
+            
+            // Update status
+            this.bookings[index].status = newStatus;
+            
+            // Save to localStorage
+            localStorage.setItem('adminBookings', JSON.stringify(this.bookings));
+            
+            // Update UI
+            this.applyFilters();
+            this.updateDashboardStats();
+            
+            // Show notification
+            this.showNotification(`Booking #${bookingRef} status updated to ${this.formatStatus(newStatus)}.`, 'success');
+            
+            console.log(`Updated booking ${bookingRef} status to ${newStatus}`);
+        } catch (error) {
+            console.error('Error updating booking status:', error);
+            this.showNotification('Error updating booking status. Please try again.', 'error');
+        }
+    },
+    
+    // Delete booking
+    deleteBooking: function(bookingRef) {
+        try {
+            // Find booking index
+            const index = this.bookings.findIndex(b => b.bookingReference === bookingRef);
+            
+            if (index === -1) {
+                this.showNotification('Booking not found.', 'error');
+                return;
+            }
+            
+            // Remove booking
+            this.bookings.splice(index, 1);
+            
+            // Save to localStorage
+            localStorage.setItem('adminBookings', JSON.stringify(this.bookings));
+            
+            // Update UI
+            this.applyFilters();
+            this.updateDashboardStats();
+            
+            // Show notification
+            this.showNotification(`Booking #${bookingRef} has been deleted.`, 'success');
+            
+            console.log(`Deleted booking ${bookingRef}`);
+        } catch (error) {
+            console.error('Error deleting booking:', error);
+            this.showNotification('Error deleting booking. Please try again.', 'error');
+        }
+    },
+    
+    // Close modal
+    closeModal: function() {
+        const modal = document.getElementById('booking-modal');
+        if (modal) modal.style.display = 'none';
+    },
+    
+    // Format status for display
     formatStatus: function(status) {
-        switch (status) {
+        switch (status.toLowerCase()) {
             case 'new':
                 return 'New';
             case 'pending':
@@ -552,394 +771,80 @@ const AdminDashboard = {
         }
     },
     
-    /**
-     * View booking details
-     */
-    viewBookingDetails: function(booking) {
-        if (!this.elements.bookingModal || !this.elements.bookingModalContent) return;
+    // Format location for display
+    formatLocation: function(locationCode) {
+        switch (locationCode) {
+            case 'airport':
+                return 'Chania Airport';
+            case 'port':
+                return 'Chania Port';
+            case 'city':
+                return 'Chania City Center';
+            case 'hotel':
+                return 'Hotel/Villa';
+            default:
+                return locationCode || 'N/A';
+        }
+    },
+    
+    // Refresh data
+    refreshData: function() {
+        console.log('Manual refresh triggered');
         
-        // Get customer and car details
-        const customer = booking.customer || {};
-        const car = booking.selectedCar || {};
-        
-        // Format dates
-        const pickupDate = booking.pickupDate ? 
-            new Date(booking.pickupDate).toLocaleString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            }) : 'N/A';
-        
-        const returnDate = booking.returnDate ? 
-            new Date(booking.returnDate).toLocaleString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            }) : 'N/A';
-        
-        // Build additional options list with prices
-        let additionalOptions = 'None';
-        let additionalOptionsHTML = '';
-        
-        if (customer.additionalOptions) {
-            const options = [];
-            let hasOptions = false;
-            
-            if (customer.additionalOptions.additionalDriver) {
-                options.push('Additional Driver (+€15/day)');
-                additionalOptionsHTML += `
-                    <div class="detail-item">
-                        <span class="detail-label">Additional Driver:</span>
-                        <span class="detail-value">Yes (+€15/day)</span>
-                    </div>
-                `;
-                hasOptions = true;
-            }
-            
-            if (customer.additionalOptions.fullInsurance) {
-                options.push('Full Insurance (+€25/day)');
-                additionalOptionsHTML += `
-                    <div class="detail-item">
-                        <span class="detail-label">Full Insurance:</span>
-                        <span class="detail-value">Yes (+€25/day)</span>
-                    </div>
-                `;
-                hasOptions = true;
-            }
-            
-            if (customer.additionalOptions.gpsNavigation) {
-                options.push('GPS Navigation (+€8/day)');
-                additionalOptionsHTML += `
-                    <div class="detail-item">
-                        <span class="detail-label">GPS Navigation:</span>
-                        <span class="detail-value">Yes (+€8/day)</span>
-                    </div>
-                `;
-                hasOptions = true;
-            }
-            
-            if (customer.additionalOptions.childSeat) {
-                options.push('Child Seat (+€5/day)');
-                additionalOptionsHTML += `
-                    <div class="detail-item">
-                        <span class="detail-label">Child Seat:</span>
-                        <span class="detail-value">Yes (+€5/day)</span>
-                    </div>
-                `;
-                hasOptions = true;
-            }
-            
-            if (options.length > 0) {
-                additionalOptions = options.join(', ');
-            }
-            
-            if (!hasOptions) {
-                additionalOptionsHTML = `
-                    <div class="detail-item">
-                        <span class="detail-label">Additional Options:</span>
-                        <span class="detail-value">None selected</span>
-                    </div>
-                `;
-            }
-        } else {
-            additionalOptionsHTML = `
-                <div class="detail-item">
-                    <span class="detail-label">Additional Options:</span>
-                    <span class="detail-value">None selected</span>
-                </div>
-            `;
+        // Change refresh button appearance
+        const refreshButton = document.getElementById('refresh-btn');
+        if (refreshButton) {
+            refreshButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+            refreshButton.disabled = true;
         }
         
-        // Special requests
-        const specialRequests = customer.specialRequests || booking.specialRequests || '';
-        const specialRequestsHTML = `
-            <div class="detail-item">
-                <span class="detail-label">Special Requests:</span>
-                <span class="detail-value">${specialRequests ? specialRequests : 'None'}</span>
-            </div>
+        // Load bookings and update UI
+        this.loadBookings();
+        this.updateDashboardStats();
+        this.renderBookings();
+        
+        // Show notification
+        this.showNotification('Data refreshed successfully.', 'success');
+        
+        // Restore refresh button
+        setTimeout(() => {
+            if (refreshButton) {
+                refreshButton.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                refreshButton.disabled = false;
+            }
+        }, 500);
+    },
+    
+    // Show notification
+    showNotification: function(message, type = 'info') {
+        const container = document.getElementById('notification-container');
+        if (!container) return;
+        
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 
+                         type === 'error' ? 'fa-exclamation-circle' : 
+                         'fa-info-circle'}"></i>
+            <div>${message}</div>
         `;
         
-        // Create modal content
-        this.elements.bookingModalContent.innerHTML = `
-            <h2>Booking Details</h2>
-            <div class="booking-detail-header">
-                <div>
-                    <span class="status-badge large ${booking.status}">
-                        ${this.formatStatus(booking.status)}
-                    </span>
-                    <div class="booking-reference">
-                        Reference: ${booking.bookingReference || 'N/A'}
-                    </div>
-                </div>
-                <div class="status-actions">
-                    <div class="form-group">
-                        <label for="modal-status">Update Status:</label>
-                        <select id="modal-status" class="status-select">
-                            <option value="new" ${booking.status === 'new' ? 'selected' : ''}>New</option>
-                            <option value="pending" ${booking.status === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="confirmed" ${booking.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
-                            <option value="completed" ${booking.status === 'completed' ? 'selected' : ''}>Completed</option>
-                            <option value="cancelled" ${booking.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                        </select>
-                    </div>
-                    <button id="update-status-btn" class="btn btn-primary">Update</button>
-                </div>
-            </div>
-            
-            <div class="booking-details-grid">
-                <div class="booking-detail-section">
-                    <h3>Customer Information</h3>
-                    <div class="detail-item">
-                        <span class="detail-label">Name:</span>
-                        <span class="detail-value">${customer.firstName || ''} ${customer.lastName || ''}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Email:</span>
-                        <span class="detail-value">${customer.email || 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Phone:</span>
-                        <span class="detail-value">${customer.phone || 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Age:</span>
-                        <span class="detail-value">${customer.age || 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Nationality:</span>
-                        <span class="detail-value">${customer.nationality || 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Driver's License:</span>
-                        <span class="detail-value">${customer.driverLicense || 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">License Expiry:</span>
-                        <span class="detail-value">${customer.licenseExpiry || 'N/A'}</span>
-                    </div>
-                </div>
-                
-                <div class="booking-detail-section">
-                    <h3>Rental Information</h3>
-                    <div class="detail-item">
-                        <span class="detail-label">Pickup Location:</span>
-                        <span class="detail-value">${this.getLocationName(booking.pickupLocation) || 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Pickup Date:</span>
-                        <span class="detail-value">${pickupDate}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Return Location:</span>
-                        <span class="detail-value">${this.getLocationName(booking.dropoffLocation) || 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Return Date:</span>
-                        <span class="detail-value">${returnDate}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Duration:</span>
-                        <span class="detail-value">${booking.durationDays || 1} days</span>
-                    </div>
-                    
-                    <h3>Additional Services</h3>
-                    ${additionalOptionsHTML}
-                    ${specialRequestsHTML}
-                </div>
-                
-                <div class="booking-detail-section">
-                    <h3>Vehicle Information</h3>
-                    <div class="car-detail">
-                        ${car.image ? `<img src="${car.image}" alt="${car.make} ${car.model}" class="car-image">` : ''}
-                        <div>
-                            <div class="detail-item">
-                                <span class="detail-label">Vehicle:</span>
-                                <span class="detail-value">${car.make || ''} ${car.model || ''}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Category:</span>
-                                <span class="detail-value">${car.category || 'N/A'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Group:</span>
-                                <span class="detail-value">${car.group || 'N/A'}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <h3>Payment Information</h3>
-                    <div class="detail-item">
-                        <span class="detail-label">Daily Rate:</span>
-                        <span class="detail-value">€${car.price ? car.price.toFixed(2) : 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Total Amount:</span>
-                        <span class="detail-value">€${booking.totalPrice ? booking.totalPrice.toFixed(2) : 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Payment Status:</span>
-                        <span class="detail-value">To be paid at pickup</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal-actions">
-                <button id="print-booking-btn" class="btn btn-secondary">Print Details</button>
-                <button id="close-modal-btn" class="btn btn-primary">Close</button>
-            </div>
-        `;
+        // Add to container
+        container.appendChild(notification);
         
-        // Add event listeners to modal buttons
-        const updateStatusBtn = document.getElementById('update-status-btn');
-        if (updateStatusBtn) {
-            updateStatusBtn.addEventListener('click', () => {
-                const statusSelect = document.getElementById('modal-status');
-                if (statusSelect) {
-                    this.updateBookingStatus(booking.bookingReference, statusSelect.value);
-                }
-            });
-        }
-        
-        const printBookingBtn = document.getElementById('print-booking-btn');
-        if (printBookingBtn) {
-            printBookingBtn.addEventListener('click', () => {
-                window.print();
-            });
-        }
-        
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        if (closeModalBtn) {
-            closeModalBtn.addEventListener('click', this.closeBookingModal.bind(this));
-        }
-        
-        // Show modal
-        this.elements.bookingModal.style.display = 'block';
-    },
-    
-    /**
-     * Edit booking status directly from table
-     */
-    editBookingStatus: function(booking) {
-        const newStatus = prompt(
-            `Current status: ${this.formatStatus(booking.status)}\n\nEnter new status (new, pending, confirmed, completed, cancelled):`,
-            booking.status
-        );
-        
-        if (newStatus && ['new', 'pending', 'confirmed', 'completed', 'cancelled'].includes(newStatus)) {
-            this.updateBookingStatus(booking.bookingReference, newStatus);
-        }
-    },
-    
-    /**
-     * Update booking status in localStorage and UI
-     */
-    updateBookingStatus: function(bookingRef, newStatus) {
-        // Find booking index
-        const bookingIndex = this.bookings.findIndex(b => b.bookingReference === bookingRef);
-        
-        if (bookingIndex >= 0) {
-            // Update status
-            this.bookings[bookingIndex].status = newStatus;
-            
-            // Save to localStorage
-            localStorage.setItem('adminBookings', JSON.stringify(this.bookings));
-            
-            // Update UI
-            this.updateDashboardStats();
-            this.applyFilters();
-            
-            // Close modal
-            this.closeBookingModal();
-            
-            // Show success message
-            alert(`Booking status updated to: ${this.formatStatus(newStatus)}`);
-        }
-    },
-    
-    /**
-     * Close booking details modal
-     */
-    closeBookingModal: function() {
-        if (this.elements.bookingModal) {
-            this.elements.bookingModal.style.display = 'none';
-        }
-    },
-    
-    /**
-     * Get location name
-     */
-    getLocationName: function(locationCode) {
-        if (!locationCode) return 'Not specified';
-        
-        const locations = {
-            'airport': 'Chania International Airport',
-            'port': 'Chania Port',
-            'city': 'Chania City Center',
-            'hotel': 'Hotel/Villa in Chania'
-        };
-        return locations[locationCode] || locationCode;
-    },
-    
-    /**
-     * Sanitize bookings data to ensure it's valid
-     */
-    sanitizeBookingsData: function() {
-        if (!this.bookings || !Array.isArray(this.bookings)) {
-            console.warn('Bookings data is not an array, resetting to empty array');
-            this.bookings = [];
-            this.filteredBookings = [];
-            localStorage.setItem('adminBookings', JSON.stringify([]));
-            return;
-        }
-        
-        // Filter out invalid bookings
-        const validBookings = this.bookings.filter(booking => {
-            if (!booking || typeof booking !== 'object') {
-                console.warn('Found invalid booking (not an object):', booking);
-                return false;
-            }
-            
-            if (!booking.bookingReference) {
-                console.warn('Found booking without reference:', booking);
-                return false;
-            }
-            
-            return true;
-        });
-        
-        // Check if any invalid bookings were found and removed
-        if (validBookings.length < this.bookings.length) {
-            console.warn(`Removed ${this.bookings.length - validBookings.length} invalid bookings`);
-            this.bookings = validBookings;
-            this.filteredBookings = [...validBookings];
-            localStorage.setItem('adminBookings', JSON.stringify(validBookings));
-        }
-    },
-    
-    /**
-     * Set up automatic refresh of data
-     */
-    setupAutoRefresh: function() {
-        // Clear any existing interval
-        if (this.refreshInterval) {
-            clearInterval(this.refreshInterval);
-        }
-        
-        // Set new interval (30 seconds)
-        this.refreshInterval = setInterval(() => {
-            console.log('Auto-refreshing admin dashboard data...');
-            this.loadBookings();
-            this.sanitizeBookingsData();
-            this.applyFilters();
-            this.updateDashboardStats();
-        }, 30000); // 30 seconds
-        
-        console.log('Auto-refresh set up to check for new bookings every 30 seconds');
+        // Remove after 5 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                container.removeChild(notification);
+            }, 300);
+        }, 5000);
     }
-}; 
+};
+
+// Initialize admin dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    AdminDashboard.init();
+}); 

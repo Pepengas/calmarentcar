@@ -6,74 +6,121 @@
     <title>Admin Dashboard - Calma Car Rental</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        :root {
+            --primary: #0066cc;
+            --primary-light: #3498db;
+            --primary-dark: #0055aa;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --gray: #95a5a6;
+            --light-gray: #ecf0f1;
+        }
+        
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            line-height: 1.6;
             background-color: #f5f5f5;
         }
+        
         .container {
             max-width: 1200px;
-            margin: 20px auto;
-            background-color: #fff;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        .dashboard-header {
+            background-color: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* Dashboard header */
-        .dashboard-header {
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #eee;
         }
         
-        .dashboard-header h1 {
-            color: #333;
-            margin: 0;
+        .header-title h1 {
+            color: var(--dark);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
         }
         
-        .user-info {
+        .header-subtitle {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .header-actions {
             display: flex;
             align-items: center;
             gap: 15px;
-            color: #666;
         }
         
-        .btn-logout {
-            background: none;
-            border: 1px solid #ddd;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            color: #666;
+        .refresh-btn {
             display: flex;
             align-items: center;
             gap: 8px;
+            background-color: var(--primary-light);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+        
+        .refresh-btn:hover {
+            background-color: var(--primary);
+        }
+        
+        .refresh-btn i {
+            font-size: 1rem;
+        }
+        
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: white;
+            color: var(--danger);
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
             transition: all 0.2s;
         }
         
-        .btn-logout:hover {
-            background-color: #f8f8f8;
-            color: #e74c3c;
+        .logout-btn:hover {
+            background-color: var(--danger);
+            color: white;
+            border-color: var(--danger);
         }
         
-        /* Stats cards */
+        /* Stats Cards */
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
             gap: 20px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         
         .stat-card {
-            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            background-color: white;
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             transition: transform 0.3s, box-shadow 0.3s;
@@ -85,16 +132,31 @@
         }
         
         .stat-icon {
-            background-color: rgba(52, 152, 219, 0.1);
             width: 50px;
             height: 50px;
-            border-radius: 50%;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 15px;
-            color: #3498db;
-            font-size: 1.5rem;
+            color: white;
+            font-size: 1.4rem;
+        }
+        
+        .stat-icon.blue {
+            background-color: var(--primary-light);
+        }
+        
+        .stat-icon.green {
+            background-color: var(--success);
+        }
+        
+        .stat-icon.orange {
+            background-color: var(--warning);
+        }
+        
+        .stat-icon.red {
+            background-color: var(--danger);
         }
         
         .stat-content {
@@ -105,19 +167,24 @@
             font-size: 1.8rem;
             font-weight: bold;
             margin-bottom: 5px;
-            color: #2c3e50;
+            color: var(--dark);
         }
         
         .stat-label {
-            color: #7f8c8d;
+            color: var(--gray);
             font-size: 0.9rem;
         }
         
-        /* Action bar */
-        .action-bar {
+        /* Controls Bar */
+        .controls-bar {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            align-items: center;
             flex-wrap: wrap;
             gap: 15px;
         }
@@ -139,599 +206,602 @@
         }
         
         .search-box button {
-            background-color: #f8f8f8;
+            background-color: var(--light-gray);
             border: none;
-            padding: 0 15px;
+            width: 50px;
             cursor: pointer;
-            border-left: 1px solid #ddd;
-        }
-        
-        .search-box button:hover {
-            background-color: #eee;
-        }
-        
-        .filter-options {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .filter-options select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: white;
-            outline: none;
-        }
-        
-        /* Booking cards */
-        .booking-card {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            transition: box-shadow 0.3s;
-        }
-        
-        .booking-card:hover {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .booking-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        
-        .booking-reference {
-            font-weight: bold;
-            color: #2c3e50;
-            font-size: 1.2em;
-        }
-        
-        .booking-date {
-            color: #7f8c8d;
-        }
-        
-        .booking-details, .customer-details {
-            margin-bottom: 15px;
-        }
-        
-        .additional-details {
-            margin-bottom: 15px;
-        }
-        
-        .section-title {
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #3498db;
-        }
-        
-        .detail-row {
-            display: flex;
-            margin-bottom: 5px;
-        }
-        
-        .detail-label {
-            width: 180px;
-            font-weight: 500;
-            color: #555;
-        }
-        
-        .detail-value {
-            flex: 1;
-        }
-        
-        .no-bookings {
-            text-align: center;
-            padding: 50px;
-            color: #7f8c8d;
-            font-size: 1.2em;
-        }
-        
-        .actions {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.3s;
-        }
-        
-        .btn-delete {
-            background-color: #e74c3c;
-            color: white;
-        }
-        
-        .btn-delete:hover {
-            background-color: #c0392b;
-        }
-        
-        .status-pending {
-            color: #f39c12;
-            font-weight: bold;
-        }
-        
-        .status-confirmed {
-            color: #27ae60;
-            font-weight: bold;
-        }
-        
-        .btn-status {
-            background-color: #3498db;
-            color: white;
-        }
-        
-        .btn-status:hover {
-            background-color: #2980b9;
-        }
-        
-        /* Login form */
-        .login-form {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .login-form h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #555;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            transition: border-color 0.3s;
-        }
-        
-        .form-group input:focus {
-            border-color: #3498db;
-            outline: none;
-        }
-        
-        .btn-login {
-            background-color: #3498db;
-            color: white;
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        
-        .btn-login:hover {
-            background-color: #2980b9;
-        }
-        
-        .error-message {
-            color: #e74c3c;
-            margin-top: 10px;
-            text-align: center;
-        }
-        
-        /* Refresh button */
-        .btn-refresh {
-            background-color: #27ae60;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            padding: 8px 12px;
-            transition: background-color 0.3s;
-        }
-        
-        .btn-refresh:hover {
-            background-color: #219653;
-        }
-        
-        .btn-refresh:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
-        
-        /* Notification system */
-        #notification-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            max-width: 350px;
-        }
-        
-        .notification {
-            padding: 12px 20px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            animation: slideIn 0.3s forwards;
-        }
-        
-        .notification.success {
-            background-color: #d4edda;
-            color: #155724;
-            border-left: 4px solid #28a745;
-        }
-        
-        .notification.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-left: 4px solid #dc3545;
-        }
-        
-        .notification i {
-            margin-right: 10px;
-            font-size: 1.1rem;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        /* Debug menu */
-        .debug-panel {
-            background-color: #f8f9fa;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .debug-panel h3 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: #3182ce;
-        }
-        
-        .debug-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .debug-btn {
-            background-color: #4a5568;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 12px;
-            font-size: 0.875rem;
-            cursor: pointer;
+            color: var(--dark);
             transition: background-color 0.2s;
         }
         
-        .debug-btn:hover {
-            background-color: #2d3748;
+        .search-box button:hover {
+            background-color: #ddd;
         }
         
-        .debug-log {
-            background-color: #2d3748;
-            color: #e2e8f0;
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
             border-radius: 4px;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 0.875rem;
-            height: 150px;
-            overflow-y: auto;
-            margin-bottom: 10px;
+            outline: none;
+            background-color: white;
+            color: var(--dark);
+            min-width: 150px;
         }
         
-        .debug-log-entry {
-            margin-bottom: 5px;
-            border-bottom: 1px solid #4a5568;
-            padding-bottom: 5px;
+        /* Bookings List */
+        .bookings-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
         }
         
-        .debug-toggle {
-            background: none;
-            border: none;
-            color: #718096;
-            font-size: 0.875rem;
-            cursor: pointer;
-            text-decoration: underline;
-            padding: 0;
-            float: right;
+        .bookings-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        /* Bookings table */
-        .bookings-table-container {
-            margin-top: 20px;
+        .bookings-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .bookings-count {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .bookings-table-wrapper {
             overflow-x: auto;
         }
         
         .bookings-table {
             width: 100%;
             border-collapse: collapse;
-            background-color: white;
         }
         
         .bookings-table th,
         .bookings-table td {
-            padding: 12px 15px;
+            padding: 15px 20px;
             text-align: left;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #eee;
         }
         
         .bookings-table th {
-            background-color: #f8fafc;
+            background-color: var(--light-gray);
             font-weight: 600;
-            color: #4a5568;
+            color: var(--dark);
+            position: sticky;
+            top: 0;
         }
         
-        .bookings-table tr:hover {
-            background-color: #f8f9fa;
+        .bookings-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .bookings-table tbody tr:hover {
+            background-color: #f9f9f9;
         }
         
         .status-badge {
             display: inline-block;
-            padding: 4px 8px;
+            padding: 5px 10px;
             border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
         
         .status-badge.new {
-            background-color: #ebf8ff;
-            color: #3182ce;
+            background-color: #e3f2fd;
+            color: #1976d2;
         }
         
         .status-badge.pending {
-            background-color: #fefcbf;
-            color: #d69e2e;
+            background-color: #fff8e1;
+            color: #f57f17;
         }
         
         .status-badge.confirmed {
-            background-color: #c6f6d5;
-            color: #38a169;
+            background-color: #e8f5e9;
+            color: #388e3c;
         }
         
         .status-badge.completed {
-            background-color: #e6fffa;
-            color: #319795;
+            background-color: #e0f7fa;
+            color: #0097a7;
         }
         
         .status-badge.cancelled {
-            background-color: #fed7d7;
-            color: #e53e3e;
+            background-color: #ffebee;
+            color: #d32f2f;
         }
         
-        .action-btn {
-            background: none;
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-button {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
             border: none;
-            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            margin-right: 8px;
-            color: #4a5568;
-            transition: color 0.2s;
+            transition: background-color 0.2s;
+            color: white;
         }
         
-        .action-btn:hover {
-            color: #3182ce;
+        .action-button.view {
+            background-color: var(--primary-light);
         }
         
-        .view-btn:hover {
-            color: #3182ce;
+        .action-button.edit {
+            background-color: var(--warning);
         }
         
-        .edit-btn:hover {
-            color: #38a169;
+        .action-button.delete {
+            background-color: var(--danger);
         }
         
-        /* Modal styles */
+        .action-button:hover {
+            opacity: 0.9;
+        }
+        
+        .empty-state {
+            padding: 50px 20px;
+            text-align: center;
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+        
+        .empty-state-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+        
+        .empty-state-text {
+            color: var(--gray);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        /* Login Form */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        .login-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--dark);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus {
+            border-color: var(--primary);
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .login-button:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .login-error {
+            color: var(--danger);
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        /* Notification */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .notification {
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            animation: slide-in 0.3s ease-out forwards;
+        }
+        
+        .notification.success {
+            background-color: #e8f5e9;
+            color: #388e3c;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .notification.error {
+            background-color: #ffebee;
+            color: #d32f2f;
+            border-left: 4px solid #f44336;
+        }
+        
+        .notification.info {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #2196f3;
+        }
+        
+        @keyframes slide-in {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
-            z-index: 1050;
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
             background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
         }
         
         .modal-content {
-            background-color: #fefefe;
+            background-color: white;
             margin: 5% auto;
-            padding: 20px;
+            padding: 0;
+            width: 90%;
+            max-width: 700px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            width: 80%;
-            max-width: 900px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             position: relative;
             max-height: 90vh;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         
-        .close-modal {
-            position: absolute;
-            right: 20px;
-            top: 15px;
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .close-modal:hover {
-            color: #333;
-        }
-        
-        .booking-detail-header {
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
         }
         
-        .booking-details-grid {
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: color 0.2s;
+        }
+        
+        .modal-close:hover {
+            color: var(--danger);
+        }
+        
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-button {
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .modal-button.primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .modal-button.primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .modal-button.secondary {
+            background-color: #eee;
+            color: var(--dark);
+        }
+        
+        .modal-button.secondary:hover {
+            background-color: #ddd;
+        }
+        
+        .modal-button.danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .modal-button.danger:hover {
+            opacity: 0.9;
+        }
+        
+        /* Booking Details in Modal */
+        .booking-details {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
         }
         
-        .booking-detail-section {
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 6px;
+        .detail-section {
+            margin-bottom: 20px;
         }
         
-        .booking-detail-section h3 {
-            margin-top: 0;
+        .detail-section h3 {
             margin-bottom: 15px;
-            color: #3182ce;
+            color: var(--dark);
             font-size: 1.1rem;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
         }
         
-        .detail-item {
-            margin-bottom: 12px;
+        .detail-row {
+            display: flex;
+            margin-bottom: 10px;
         }
         
         .detail-label {
-            font-weight: 600;
-            color: #4a5568;
-            display: block;
-            margin-bottom: 4px;
+            min-width: 120px;
+            font-weight: 500;
+            color: var(--dark);
         }
         
-        .car-detail {
+        .detail-value {
+            color: #555;
+        }
+        
+        .car-details {
             display: flex;
             gap: 15px;
+            align-items: center;
             margin-bottom: 15px;
         }
         
         .car-image {
-            width: 120px;
-            height: 80px;
+            width: 90px;
+            height: 60px;
             object-fit: cover;
             border-radius: 4px;
+            background-color: #eee;
         }
         
-        .modal-actions {
+        /* Responsive */
+        @media (max-width: 768px) {
+            .controls-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            
+            .bookings-table th,
+            .bookings-table td {
+                padding: 10px;
+            }
+        }
+        
+        /* Auto-refresh Indicator */
+        .auto-refresh-indicator {
             display: flex;
-            justify-content: flex-end;
-            margin-top: 20px;
-            gap: 10px;
+            align-items: center;
+            gap: 5px;
+            color: var(--gray);
+            font-size: 0.8rem;
+            margin-left: 15px;
         }
         
-        .status-select {
-            padding: 8px 10px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            width: 150px;
+        .refresh-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--success);
+            animation: pulse 2s infinite;
         }
         
-        .status-badge.large {
-            font-size: 0.9rem;
-            padding: 6px 12px;
-        }
-        
-        .booking-reference {
-            font-size: 0.9rem;
-            color: #718096;
-            margin-top: 5px;
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
+            100% {
+                opacity: 1;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="login-container" class="login-form">
-        <h2>Admin Login</h2>
+    <!-- Login Container -->
+    <div id="login-container" class="login-container" style="display: none;">
+        <h2 class="login-title">Admin Login</h2>
         <div class="form-group">
             <label for="username">Username</label>
-            <input type="text" id="username" placeholder="Enter username">
+            <input type="text" id="username" placeholder="Enter your username">
         </div>
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" placeholder="Enter password">
+            <input type="password" id="password" placeholder="Enter your password">
         </div>
-        <button id="login-btn" class="btn btn-login">Login</button>
-        <p id="login-error" class="error-message"></p>
+        <button id="login-button" class="login-button">Login</button>
+        <div id="login-error" class="login-error"></div>
     </div>
-
-    <div id="dashboard-container" class="container" style="display: none;">
+    
+    <!-- Dashboard Container -->
+    <div id="dashboard-container" class="container">
+        <!-- Header -->
         <div class="dashboard-header">
-            <h1>Admin Dashboard</h1>
-            <div class="user-info">
-                <span>Welcome, Admin</span>
-                <button id="logout-btn" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                <button id="show-debug-panel" class="debug-toggle" style="margin-left: 15px;">Debug</button>
+            <div class="header-title">
+                <h1>Admin Dashboard</h1>
+                <div class="header-subtitle">Manage all your bookings in one place</div>
+            </div>
+            <div class="header-actions">
+                <div class="auto-refresh-indicator">
+                    <div class="refresh-dot"></div>
+                    Auto-refresh active
+                </div>
+                <button id="refresh-btn" class="refresh-btn">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button id="logout-btn" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
             </div>
         </div>
         
+        <!-- Stats Cards -->
         <div class="stats-container">
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                <div class="stat-icon blue">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
                 <div class="stat-content">
-                    <div class="stat-value" id="total-bookings-value">0</div>
+                    <div id="total-bookings" class="stat-value">0</div>
                     <div class="stat-label">Total Bookings</div>
                 </div>
             </div>
+            
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                <div class="stat-content">
-                    <div class="stat-value" id="new-bookings-value">0</div>
-                    <div class="stat-label">New</div>
+                <div class="stat-icon orange">
+                    <i class="fas fa-clock"></i>
                 </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-clock"></i></div>
                 <div class="stat-content">
-                    <div class="stat-value" id="pending-bookings-value">0</div>
+                    <div id="pending-bookings" class="stat-value">0</div>
                     <div class="stat-label">Pending</div>
                 </div>
             </div>
+            
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-icon green">
+                    <i class="fas fa-check-circle"></i>
+                </div>
                 <div class="stat-content">
-                    <div class="stat-value" id="confirmed-bookings-value">0</div>
+                    <div id="confirmed-bookings" class="stat-value">0</div>
                     <div class="stat-label">Confirmed</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="fas fa-euro-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <div id="total-revenue" class="stat-value">€0</div>
+                    <div class="stat-label">Total Revenue</div>
                 </div>
             </div>
         </div>
         
-        <div class="action-bar">
+        <!-- Controls -->
+        <div class="controls-bar">
             <div class="search-box">
-                <input type="text" id="booking-search" placeholder="Search bookings...">
+                <input type="text" id="search-input" placeholder="Search by name, email, booking ID...">
                 <button id="search-btn"><i class="fas fa-search"></i></button>
             </div>
-            <div class="filter-options">
-                <select id="status-filter">
+            
+            <div class="filters">
+                <select id="status-filter" class="filter-select">
                     <option value="all">All Statuses</option>
                     <option value="new">New</option>
                     <option value="pending">Pending</option>
@@ -739,745 +809,79 @@
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                 </select>
-                <select id="date-filter">
-                    <option value="all">All Dates</option>
+                
+                <select id="date-filter" class="filter-select">
+                    <option value="all">All Time</option>
                     <option value="today">Today</option>
                     <option value="yesterday">Yesterday</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
+                    <option value="week">Last 7 Days</option>
+                    <option value="month">Last 30 Days</option>
                 </select>
-                <button id="refresh-data-btn" class="btn btn-refresh"><i class="fas fa-sync-alt"></i> Refresh Data</button>
             </div>
         </div>
         
-        <!-- Bookings table -->
-        <div class="bookings-table-container">
-            <table class="bookings-table">
-                <thead>
-                    <tr>
-                        <th>Reference</th>
-                        <th>Date</th>
-                        <th>Customer</th>
-                        <th>Car</th>
-                        <th>Rental Period</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="bookings-table-body">
-                    <!-- Bookings will be loaded here -->
-                </tbody>
-            </table>
-            <div id="no-bookings-message" class="no-bookings" style="display: none;">
-                No bookings found. New bookings will appear here when customers complete their reservation.
+        <!-- Bookings Table -->
+        <div class="bookings-container">
+            <div class="bookings-header">
+                <div class="bookings-title">All Bookings</div>
+                <div id="bookings-count" class="bookings-count">0 bookings found</div>
             </div>
-        </div>
-        
-        <!-- Booking details modal -->
-        <div id="booking-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <div id="booking-modal-content">
-                    <!-- Modal content will be loaded here -->
+            
+            <div class="bookings-table-wrapper">
+                <table class="bookings-table">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Car</th>
+                            <th>Dates</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookings-table-body">
+                        <!-- Bookings will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Empty State (shown when no bookings) -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">
+                    <i class="fas fa-calendar-times"></i>
+                </div>
+                <div class="empty-state-title">No bookings found</div>
+                <div class="empty-state-text">
+                    There are no bookings matching your current filters. Try changing your search criteria or check back later.
                 </div>
             </div>
         </div>
-        
-        <!-- Continue with original non-table booking cards container for compatibility -->
-        <div id="bookings-container">
-            <!-- Bookings will be loaded here in the card format -->
+    </div>
+    
+    <!-- Booking Details Modal -->
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Booking Details</div>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div id="modal-body" class="modal-body">
+                <!-- Modal content will be dynamically populated -->
+            </div>
+            <div class="modal-footer">
+                <button id="modal-delete-btn" class="modal-button danger">Delete</button>
+                <button id="modal-status-btn" class="modal-button primary">Update Status</button>
+                <button id="modal-close-btn" class="modal-button secondary">Close</button>
+            </div>
         </div>
     </div>
-
-    <!-- Notification container -->
-    <div id="notification-container"></div>
-
-    <!-- Debug Panel (initially hidden) -->
-    <div class="debug-panel" id="debug-panel" style="display: none;">
-        <h3>Debug Panel <button id="close-debug-panel" class="debug-toggle">Close</button></h3>
-        <div class="debug-actions">
-            <button class="debug-btn" id="debug-check-storage">Check localStorage</button>
-            <button class="debug-btn" id="debug-add-test">Add Test Booking</button>
-            <button class="debug-btn" id="debug-clear-admin">Clear Admin Bookings</button>
-            <button class="debug-btn" id="debug-reinit">Re-initialize Dashboard</button>
-        </div>
-        <div class="debug-log" id="debug-log"></div>
-    </div>
-
-    <script>
-        // Simple admin credentials (in a real app, this would be server-side)
-        const ADMIN_USERNAME = 'admin';
-        const ADMIN_PASSWORD = 'admin123';
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const loginContainer = document.getElementById('login-container');
-            const dashboardContainer = document.getElementById('dashboard-container');
-            const loginBtn = document.getElementById('login-btn');
-            const loginError = document.getElementById('login-error');
-            const logoutBtn = document.getElementById('logout-btn');
-            
-            // Handle login
-            loginBtn.addEventListener('click', function() {
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-                
-                if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-                    // Store login state in localStorage
-                    localStorage.setItem('adminLoggedIn', 'true');
-                    
-                    // Show dashboard
-                    loginContainer.style.display = 'none';
-                    dashboardContainer.style.display = 'block';
-                    
-                    // Load data
-                    loadBookings();
-                    updateDashboardStats();
-                    
-                    // Start session timeout
-                    startSessionTimeout();
-                } else {
-                    loginError.textContent = 'Invalid username or password';
-                }
-            });
-            
-            // Handle logout
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    // Clear login state
-                    localStorage.removeItem('adminLoggedIn');
-                    
-                    // Show login form
-                    dashboardContainer.style.display = 'none';
-                    loginContainer.style.display = 'block';
-                    document.getElementById('username').value = '';
-                    document.getElementById('password').value = '';
-                    loginError.textContent = '';
-                    
-                    // Clear timeout
-                    if (window.sessionTimeout) {
-                        clearTimeout(window.sessionTimeout);
-                    }
-                });
-            }
-            
-            // Handle search
-            const searchBtn = document.getElementById('search-btn');
-            const searchInput = document.getElementById('booking-search');
-            
-            if (searchBtn && searchInput) {
-                searchBtn.addEventListener('click', function() {
-                    applyFilters();
-                });
-                
-                searchInput.addEventListener('keyup', function(e) {
-                    if (e.key === 'Enter') {
-                        applyFilters();
-                    }
-                });
-            }
-            
-            // Handle filter changes
-            const statusFilter = document.getElementById('status-filter');
-            const dateFilter = document.getElementById('date-filter');
-            
-            if (statusFilter) {
-                statusFilter.addEventListener('change', applyFilters);
-            }
-            
-            if (dateFilter) {
-                dateFilter.addEventListener('change', applyFilters);
-            }
-            
-            // Handle refresh button
-            const refreshBtn = document.getElementById('refresh-data-btn');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', function() {
-                    // Show loading indicator
-                    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-                    refreshBtn.disabled = true;
-                    
-                    // Reload data
-                    loadBookings();
-                    updateDashboardStats();
-                    
-                    // Reset button after short delay
-                    setTimeout(() => {
-                        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
-                        refreshBtn.disabled = false;
-                    }, 800);
-                });
-            }
-            
-            // Session timeout handling
-            function startSessionTimeout() {
-                // Clear any existing timeout
-                if (window.sessionTimeout) {
-                    clearTimeout(window.sessionTimeout);
-                }
-                
-                // Set new timeout (5 minutes)
-                window.sessionTimeout = setTimeout(() => {
-                    if (localStorage.getItem('adminLoggedIn') === 'true') {
-                        // Log out user
-                        localStorage.removeItem('adminLoggedIn');
-                        
-                        // Show login form
-                        dashboardContainer.style.display = 'none';
-                        loginContainer.style.display = 'block';
-                        document.getElementById('username').value = '';
-                        document.getElementById('password').value = '';
-                        loginError.textContent = 'Your session has expired. Please log in again.';
-                    }
-                }, 5 * 60 * 1000); // 5 minutes
-            }
-            
-            // Reset session timeout on user activity
-            ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-                document.addEventListener(event, () => {
-                    if (localStorage.getItem('adminLoggedIn') === 'true') {
-                        startSessionTimeout();
-                    }
-                });
-            });
-            
-            // Check if already logged in
-            if (localStorage.getItem('adminLoggedIn') === 'true') {
-                loginContainer.style.display = 'none';
-                dashboardContainer.style.display = 'block';
-                loadBookings();
-                updateDashboardStats();
-                startSessionTimeout();
-            }
-            
-            // Function to update dashboard stats
-            function updateDashboardStats() {
-                const adminBookings = JSON.parse(localStorage.getItem('adminBookings')) || [];
-                
-                // Update total bookings
-                const totalBookingsEl = document.getElementById('total-bookings-value');
-                if (totalBookingsEl) {
-                    totalBookingsEl.textContent = adminBookings.length;
-                }
-                
-                // Update new bookings
-                const newBookingsEl = document.getElementById('new-bookings-value');
-                if (newBookingsEl) {
-                    const newCount = adminBookings.filter(booking => 
-                        booking.status === 'new' || booking.status === 'NEW').length;
-                    newBookingsEl.textContent = newCount;
-                }
-                
-                // Update pending bookings
-                const pendingBookingsEl = document.getElementById('pending-bookings-value');
-                if (pendingBookingsEl) {
-                    const pendingCount = adminBookings.filter(booking => 
-                        booking.status === 'pending' || booking.status === 'PENDING').length;
-                    pendingBookingsEl.textContent = pendingCount;
-                }
-                
-                // Update confirmed bookings
-                const confirmedBookingsEl = document.getElementById('confirmed-bookings-value');
-                if (confirmedBookingsEl) {
-                    const confirmedCount = adminBookings.filter(booking => 
-                        booking.status === 'confirmed' || booking.status === 'CONFIRMED').length;
-                    confirmedBookingsEl.textContent = confirmedCount;
-                }
-            }
-            
-            // Function to apply filters and sorting
-            function applyFilters() {
-                const searchValue = searchInput ? searchInput.value.toLowerCase() : '';
-                const statusValue = statusFilter ? statusFilter.value : 'all';
-                const dateValue = dateFilter ? dateFilter.value : 'all';
-                
-                let adminBookings = JSON.parse(localStorage.getItem('adminBookings')) || [];
-                
-                // Apply status filter
-                if (statusValue !== 'all') {
-                    adminBookings = adminBookings.filter(booking => {
-                        const bookingStatus = (booking.status || '').toLowerCase();
-                        return bookingStatus === statusValue;
-                    });
-                }
-                
-                // Apply date filter
-                if (dateValue !== 'all') {
-                    const today = new Date().toISOString().split('T')[0];
-                    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-                    const week = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-                    const month = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-                    
-                    const filterDate = dateValue === 'today' ? today : dateValue === 'yesterday' ? yesterday : dateValue === 'week' ? week : month;
-                    
-                    adminBookings = adminBookings.filter(booking => {
-                        const bookingDate = new Date(booking.dateSubmitted || Date.now()).toISOString().split('T')[0];
-                        return bookingDate === filterDate;
-                    });
-                }
-                
-                // Apply search filter
-                if (searchValue) {
-                    adminBookings = adminBookings.filter(booking => {
-                        // Search across multiple fields
-                        return (
-                            (booking.bookingReference || '').toLowerCase().includes(searchValue) ||
-                            (booking.firstName || '').toLowerCase().includes(searchValue) ||
-                            (booking.lastName || '').toLowerCase().includes(searchValue) ||
-                            (booking.email || '').toLowerCase().includes(searchValue) ||
-                            (booking.phone || '').toLowerCase().includes(searchValue) ||
-                            (booking.pickupLocation || '').toLowerCase().includes(searchValue)
-                        );
-                    });
-                }
-                
-                // Render the filtered bookings
-                renderBookings(adminBookings);
-                
-                // Update stats display
-                updateDashboardStats();
-            }
-            
-            // Function to render bookings
-            function renderBookings(bookings) {
-                const bookingsContainer = document.getElementById('bookings-container');
-                
-                if (!bookingsContainer) return;
-                
-                if (bookings.length === 0) {
-                    bookingsContainer.innerHTML = '<div class="no-bookings">No bookings found</div>';
-                    return;
-                }
-                
-                let bookingsHTML = '';
-                
-                bookings.forEach((booking, index) => {
-                    const bookingDate = new Date(booking.dateSubmitted || Date.now()).toLocaleString();
-                    const status = (booking.status || 'pending').toUpperCase();
-                    
-                    // Get customer data - handle different data structures
-                    const firstName = booking.firstName || (booking.customer ? booking.customer.firstName : 'N/A');
-                    const lastName = booking.lastName || (booking.customer ? booking.customer.lastName : 'N/A');
-                    const email = booking.email || (booking.customer ? booking.customer.email : 'N/A');
-                    const phone = booking.phone || (booking.customer ? booking.customer.phone : 'N/A');
-                    
-                    // Get car data
-                    const carName = booking.selectedCar 
-                        ? `${booking.selectedCar.make} ${booking.selectedCar.model}`
-                        : (booking.carName || 'N/A');
-
-                    // Get additional options data
-                    let additionalOptionsHTML = '';
-                    if (booking.customer && booking.customer.additionalOptions) {
-                        const options = [];
-                        
-                        if (booking.customer.additionalOptions.additionalDriver) {
-                            options.push('Additional Driver (+€15/day)');
-                        }
-                        if (booking.customer.additionalOptions.fullInsurance) {
-                            options.push('Full Insurance (+€25/day)');
-                        }
-                        if (booking.customer.additionalOptions.gpsNavigation) {
-                            options.push('GPS Navigation (+€8/day)');
-                        }
-                        if (booking.customer.additionalOptions.childSeat) {
-                            options.push('Child Seat (+€5/day)');
-                        }
-                        
-                        if (options.length > 0) {
-                            additionalOptionsHTML = options.join(', ');
-                        } else {
-                            additionalOptionsHTML = 'None';
-                        }
-                    } else {
-                        additionalOptionsHTML = 'None';
-                    }
-                    
-                    // Get special requests
-                    const specialRequests = booking.customer && booking.customer.specialRequests
-                        ? booking.customer.specialRequests
-                        : (booking.specialRequests || 'None');
-                    
-                    // Get drop-off location
-                    const dropoffLocation = booking.dropoffLocation || booking.pickupLocation || 'N/A';
-                    
-                    bookingsHTML += `
-                        <div class="booking-card" data-index="${index}">
-                            <div class="booking-header">
-                                <span class="booking-reference">Booking #${booking.bookingReference || 'Unknown'}</span>
-                                <span class="booking-date">${bookingDate}</span>
-                            </div>
-                            
-                            <div class="booking-details">
-                                <div class="section-title">Booking Details</div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Status:</span>
-                                    <span class="detail-value status-${status.toLowerCase()}">${status}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Car:</span>
-                                    <span class="detail-value">${carName}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Pick-up:</span>
-                                    <span class="detail-value">${booking.pickupLocation || 'N/A'} - ${booking.pickupDate || 'N/A'} ${booking.pickupTime || ''}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Drop-off:</span>
-                                    <span class="detail-value">${dropoffLocation} - ${booking.returnDate || 'N/A'} ${booking.returnTime || ''}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Duration:</span>
-                                    <span class="detail-value">${booking.durationDays || booking.duration || 'N/A'} days</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Total Price:</span>
-                                    <span class="detail-value">€${booking.totalPrice || 'N/A'}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="customer-details">
-                                <div class="section-title">Customer Information</div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Name:</span>
-                                    <span class="detail-value">${firstName} ${lastName}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Email:</span>
-                                    <span class="detail-value">${email}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Phone:</span>
-                                    <span class="detail-value">${phone}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="additional-details">
-                                <div class="section-title">Additional Services</div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Add-ons:</span>
-                                    <span class="detail-value">${additionalOptionsHTML}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Special Requests:</span>
-                                    <span class="detail-value">${specialRequests}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="actions">
-                                <button class="btn btn-status" onclick="toggleStatus(${index})">
-                                    ${status === 'PENDING' ? 'Confirm Booking' : 'Mark as Pending'}
-                                </button>
-                                <button class="btn btn-delete" onclick="deleteBooking(${index})">Delete Booking</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                bookingsContainer.innerHTML = bookingsHTML;
-            }
-            
-            // Function to load all bookings
-            function loadBookings() {
-                const adminBookings = JSON.parse(localStorage.getItem('adminBookings')) || [];
-                renderBookings(adminBookings);
-            }
-            
-            // Make these functions global so they can be called from inline event handlers
-            window.toggleStatus = function(index) {
-                const adminBookings = JSON.parse(localStorage.getItem('adminBookings')) || [];
-                
-                if (adminBookings[index]) {
-                    // Toggle the status
-                    const currentStatus = (adminBookings[index].status || 'pending').toLowerCase();
-                    adminBookings[index].status = currentStatus === 'confirmed' ? 'pending' : 'confirmed';
-                    localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
-                    
-                    // Update the page
-                    applyFilters();
-                    updateDashboardStats();
-                }
-            };
-            
-            window.deleteBooking = function(index) {
-                if (confirm('Are you sure you want to delete this booking?')) {
-                    const adminBookings = JSON.parse(localStorage.getItem('adminBookings')) || [];
-                    
-                    if (adminBookings[index]) {
-                        adminBookings.splice(index, 1);
-                        localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
-                        
-                        // Update the page
-                        applyFilters();
-                        updateDashboardStats();
-                    }
-                }
-            };
-        });
-    </script>
     
-    <!-- Diagnostic script to check localStorage access -->
-    <script>
-        console.log('Running localStorage diagnostic test...');
-        try {
-            // Test localStorage access
-            const testKey = 'admin_test_' + Date.now();
-            const testValue = JSON.stringify({test: 'data', timestamp: Date.now()});
-            
-            // Try to write to localStorage
-            localStorage.setItem(testKey, testValue);
-            console.log('Successfully wrote to localStorage');
-            
-            // Try to read from localStorage
-            const readValue = localStorage.getItem(testKey);
-            console.log('Successfully read from localStorage:', readValue);
-            
-            // Clean up
-            localStorage.removeItem(testKey);
-            console.log('Successfully removed test data from localStorage');
-            
-            // Check adminBookings
-            const adminBookings = localStorage.getItem('adminBookings');
-            if (adminBookings) {
-                try {
-                    const bookings = JSON.parse(adminBookings);
-                    console.log(`Found ${bookings.length} bookings in localStorage`);
-                    console.log('First booking sample:', bookings.length > 0 ? bookings[0] : 'No bookings');
-                } catch (e) {
-                    console.error('Error parsing adminBookings:', e);
-                    console.log('Raw adminBookings data:', adminBookings);
-                }
-            } else {
-                console.log('No adminBookings found in localStorage');
-            }
-            
-            console.log('localStorage diagnostic test completed successfully');
-        } catch (e) {
-            console.error('localStorage diagnostic test failed:', e);
-        }
-    </script>
+    <!-- Notification Container -->
+    <div id="notification-container" class="notification-container"></div>
     
-    <!-- Debug panel script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Debug log function
-            function debugLog(message) {
-                const log = document.getElementById('debug-log');
-                if (!log) return;
-                
-                const entry = document.createElement('div');
-                entry.className = 'debug-log-entry';
-                
-                const timestamp = new Date().toLocaleTimeString();
-                entry.innerHTML = `[${timestamp}] ${message}`;
-                
-                log.appendChild(entry);
-                log.scrollTop = log.scrollHeight;
-                
-                // Also log to console
-                console.log(`[DEBUG] ${message}`);
-            }
-            
-            // Show/hide debug panel
-            const showDebugBtn = document.getElementById('show-debug-panel');
-            const closeDebugBtn = document.getElementById('close-debug-panel');
-            const debugPanel = document.getElementById('debug-panel');
-            
-            if (showDebugBtn && debugPanel) {
-                showDebugBtn.addEventListener('click', function() {
-                    debugPanel.style.display = 'block';
-                    debugLog('Debug panel opened');
-                });
-            }
-            
-            if (closeDebugBtn && debugPanel) {
-                closeDebugBtn.addEventListener('click', function() {
-                    debugPanel.style.display = 'none';
-                });
-            }
-            
-            // Check localStorage
-            const checkStorageBtn = document.getElementById('debug-check-storage');
-            if (checkStorageBtn) {
-                checkStorageBtn.addEventListener('click', function() {
-                    debugLog('Checking localStorage...');
-                    
-                    try {
-                        // Check if localStorage is available
-                        if (typeof localStorage === 'undefined') {
-                            debugLog('localStorage is not available!');
-                            return;
-                        }
-                        
-                        // Check adminBookings
-                        const adminBookings = localStorage.getItem('adminBookings');
-                        if (adminBookings) {
-                            try {
-                                const bookings = JSON.parse(adminBookings);
-                                debugLog(`Found ${bookings.length} bookings in localStorage`);
-                                
-                                if (bookings.length > 0) {
-                                    bookings.forEach((booking, index) => {
-                                        if (index < 3) { // Show only first 3 for brevity
-                                            debugLog(`Booking ${index + 1}: Ref=${booking.bookingReference || 'N/A'}, Status=${booking.status || 'N/A'}`);
-                                        }
-                                    });
-                                    
-                                    if (bookings.length > 3) {
-                                        debugLog(`... and ${bookings.length - 3} more bookings`);
-                                    }
-                                }
-                            } catch (e) {
-                                debugLog(`Error parsing adminBookings: ${e.message}`);
-                                debugLog(`Raw adminBookings data: ${adminBookings.substring(0, 100)}...`);
-                            }
-                        } else {
-                            debugLog('No adminBookings found in localStorage');
-                        }
-                    } catch (e) {
-                        debugLog(`Error checking localStorage: ${e.message}`);
-                    }
-                });
-            }
-            
-            // Add test booking
-            const addTestBtn = document.getElementById('debug-add-test');
-            if (addTestBtn) {
-                addTestBtn.addEventListener('click', function() {
-                    debugLog('Adding test booking...');
-                    
-                    try {
-                        const testBooking = {
-                            bookingReference: 'DEBUG-' + Math.floor(Math.random() * 10000),
-                            status: 'confirmed',
-                            timestamp: new Date().toISOString(),
-                            dateSubmitted: new Date().toISOString(),
-                            customer: {
-                                firstName: 'Debug',
-                                lastName: 'User',
-                                email: 'debug@example.com',
-                                phone: '+1234567890',
-                                additionalOptions: {
-                                    fullInsurance: true,
-                                    gpsNavigation: true
-                                }
-                            },
-                            selectedCar: {
-                                make: 'Debug',
-                                model: 'Tester',
-                                price: 45
-                            },
-                            pickupLocation: 'airport',
-                            dropoffLocation: 'port',
-                            pickupDate: new Date().toISOString(),
-                            returnDate: new Date(Date.now() + 3*24*60*60*1000).toISOString(),
-                            durationDays: 3,
-                            totalPrice: 135
-                        };
-                        
-                        // Get existing bookings
-                        let adminBookings = [];
-                        try {
-                            const existing = localStorage.getItem('adminBookings');
-                            if (existing) {
-                                adminBookings = JSON.parse(existing);
-                                debugLog(`Found ${adminBookings.length} existing bookings`);
-                            }
-                        } catch (e) {
-                            debugLog(`Error parsing existing bookings: ${e.message}`);
-                            adminBookings = [];
-                        }
-                        
-                        // Add new booking
-                        adminBookings.push(testBooking);
-                        
-                        // Save back to localStorage
-                        localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
-                        debugLog(`Test booking ${testBooking.bookingReference} added successfully`);
-                        
-                        // Refresh admin page
-                        if (typeof AdminDashboard !== 'undefined' && AdminDashboard.refreshData) {
-                            debugLog('Refreshing dashboard...');
-                            AdminDashboard.refreshData();
-                        } else {
-                            debugLog('WARNING: AdminDashboard not found or refreshData not available');
-                        }
-                    } catch (e) {
-                        debugLog(`Error adding test booking: ${e.message}`);
-                    }
-                });
-            }
-            
-            // Clear admin bookings
-            const clearAdminBtn = document.getElementById('debug-clear-admin');
-            if (clearAdminBtn) {
-                clearAdminBtn.addEventListener('click', function() {
-                    if (confirm('Are you sure you want to clear all admin bookings?')) {
-                        try {
-                            localStorage.removeItem('adminBookings');
-                            debugLog('Cleared all admin bookings');
-                            
-                            // Refresh admin page
-                            if (typeof AdminDashboard !== 'undefined' && AdminDashboard.refreshData) {
-                                debugLog('Refreshing dashboard...');
-                                AdminDashboard.refreshData();
-                            } else {
-                                debugLog('WARNING: AdminDashboard not found or refreshData not available');
-                            }
-                        } catch (e) {
-                            debugLog(`Error clearing admin bookings: ${e.message}`);
-                        }
-                    }
-                });
-            }
-            
-            // Re-initialize dashboard
-            const reinitBtn = document.getElementById('debug-reinit');
-            if (reinitBtn) {
-                reinitBtn.addEventListener('click', function() {
-                    debugLog('Re-initializing dashboard...');
-                    
-                    try {
-                        if (typeof AdminDashboard !== 'undefined' && AdminDashboard.init) {
-                            debugLog('Calling AdminDashboard.init()...');
-                            AdminDashboard.init();
-                            debugLog('Re-initialization complete');
-                        } else {
-                            debugLog('WARNING: AdminDashboard not found or init not available');
-                        }
-                    } catch (e) {
-                        debugLog(`Error re-initializing dashboard: ${e.message}`);
-                    }
-                });
-            }
-        });
-    </script>
-    
-    <!-- Import admin dashboard script -->
-    <script>
-        // First, try to check if the admin dashboard script was loaded
-        setTimeout(function() {
-            if (typeof AdminDashboard === 'undefined') {
-                console.error('Admin dashboard script not loaded! Attempting to load directly...');
-                // Create script element and append to document
-                var script = document.createElement('script');
-                script.src = 'https://calmarental.com/js/admin-dashboard.js?nocache=' + new Date().getTime();
-                document.body.appendChild(script);
-                
-                // Check again after script load
-                script.onload = function() {
-                    console.log('Admin dashboard script loaded successfully via fallback');
-                    if (typeof AdminDashboard !== 'undefined' && AdminDashboard.init) {
-                        AdminDashboard.init();
-                    }
-                };
-            } else {
-                console.log('Admin dashboard script loaded successfully');
-            }
-        }, 1000);
-    </script>
-    <script src="js/admin-dashboard.js?v=1.0.2"></script>
-    <!-- Import admin fix and diagnostic tool -->
-    <script src="js/admin-fix.js?v=1.0.0"></script>
+    <!-- Admin Dashboard JavaScript -->
+    <script src="js/admin-dashboard.js"></script>
 </body>
+</html> 
 </html> 
