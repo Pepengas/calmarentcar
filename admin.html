@@ -400,6 +400,72 @@
             to { transform: translateX(0); opacity: 1; }
         }
         
+        /* Debug menu */
+        .debug-panel {
+            background-color: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .debug-panel h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #3182ce;
+        }
+        
+        .debug-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .debug-btn {
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .debug-btn:hover {
+            background-color: #2d3748;
+        }
+        
+        .debug-log {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.875rem;
+            height: 150px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        
+        .debug-log-entry {
+            margin-bottom: 5px;
+            border-bottom: 1px solid #4a5568;
+            padding-bottom: 5px;
+        }
+        
+        .debug-toggle {
+            background: none;
+            border: none;
+            color: #718096;
+            font-size: 0.875rem;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+            float: right;
+        }
+        
         /* Bookings table */
         .bookings-table-container {
             margin-top: 20px;
@@ -624,6 +690,7 @@
             <div class="user-info">
                 <span>Welcome, Admin</span>
                 <button id="logout-btn" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                <button id="show-debug-panel" class="debug-toggle" style="margin-left: 15px;">Debug</button>
             </div>
         </div>
         
@@ -725,6 +792,18 @@
 
     <!-- Notification container -->
     <div id="notification-container"></div>
+
+    <!-- Debug Panel (initially hidden) -->
+    <div class="debug-panel" id="debug-panel" style="display: none;">
+        <h3>Debug Panel <button id="close-debug-panel" class="debug-toggle">Close</button></h3>
+        <div class="debug-actions">
+            <button class="debug-btn" id="debug-check-storage">Check localStorage</button>
+            <button class="debug-btn" id="debug-add-test">Add Test Booking</button>
+            <button class="debug-btn" id="debug-clear-admin">Clear Admin Bookings</button>
+            <button class="debug-btn" id="debug-reinit">Re-initialize Dashboard</button>
+        </div>
+        <div class="debug-log" id="debug-log"></div>
+    </div>
 
     <script>
         // Simple admin credentials (in a real app, this would be server-side)
@@ -1137,7 +1216,244 @@
         });
     </script>
     
+    <!-- Diagnostic script to check localStorage access -->
+    <script>
+        console.log('Running localStorage diagnostic test...');
+        try {
+            // Test localStorage access
+            const testKey = 'admin_test_' + Date.now();
+            const testValue = JSON.stringify({test: 'data', timestamp: Date.now()});
+            
+            // Try to write to localStorage
+            localStorage.setItem(testKey, testValue);
+            console.log('Successfully wrote to localStorage');
+            
+            // Try to read from localStorage
+            const readValue = localStorage.getItem(testKey);
+            console.log('Successfully read from localStorage:', readValue);
+            
+            // Clean up
+            localStorage.removeItem(testKey);
+            console.log('Successfully removed test data from localStorage');
+            
+            // Check adminBookings
+            const adminBookings = localStorage.getItem('adminBookings');
+            if (adminBookings) {
+                try {
+                    const bookings = JSON.parse(adminBookings);
+                    console.log(`Found ${bookings.length} bookings in localStorage`);
+                    console.log('First booking sample:', bookings.length > 0 ? bookings[0] : 'No bookings');
+                } catch (e) {
+                    console.error('Error parsing adminBookings:', e);
+                    console.log('Raw adminBookings data:', adminBookings);
+                }
+            } else {
+                console.log('No adminBookings found in localStorage');
+            }
+            
+            console.log('localStorage diagnostic test completed successfully');
+        } catch (e) {
+            console.error('localStorage diagnostic test failed:', e);
+        }
+    </script>
+    
+    <!-- Debug panel script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Debug log function
+            function debugLog(message) {
+                const log = document.getElementById('debug-log');
+                if (!log) return;
+                
+                const entry = document.createElement('div');
+                entry.className = 'debug-log-entry';
+                
+                const timestamp = new Date().toLocaleTimeString();
+                entry.innerHTML = `[${timestamp}] ${message}`;
+                
+                log.appendChild(entry);
+                log.scrollTop = log.scrollHeight;
+                
+                // Also log to console
+                console.log(`[DEBUG] ${message}`);
+            }
+            
+            // Show/hide debug panel
+            const showDebugBtn = document.getElementById('show-debug-panel');
+            const closeDebugBtn = document.getElementById('close-debug-panel');
+            const debugPanel = document.getElementById('debug-panel');
+            
+            if (showDebugBtn && debugPanel) {
+                showDebugBtn.addEventListener('click', function() {
+                    debugPanel.style.display = 'block';
+                    debugLog('Debug panel opened');
+                });
+            }
+            
+            if (closeDebugBtn && debugPanel) {
+                closeDebugBtn.addEventListener('click', function() {
+                    debugPanel.style.display = 'none';
+                });
+            }
+            
+            // Check localStorage
+            const checkStorageBtn = document.getElementById('debug-check-storage');
+            if (checkStorageBtn) {
+                checkStorageBtn.addEventListener('click', function() {
+                    debugLog('Checking localStorage...');
+                    
+                    try {
+                        // Check if localStorage is available
+                        if (typeof localStorage === 'undefined') {
+                            debugLog('localStorage is not available!');
+                            return;
+                        }
+                        
+                        // Check adminBookings
+                        const adminBookings = localStorage.getItem('adminBookings');
+                        if (adminBookings) {
+                            try {
+                                const bookings = JSON.parse(adminBookings);
+                                debugLog(`Found ${bookings.length} bookings in localStorage`);
+                                
+                                if (bookings.length > 0) {
+                                    bookings.forEach((booking, index) => {
+                                        if (index < 3) { // Show only first 3 for brevity
+                                            debugLog(`Booking ${index + 1}: Ref=${booking.bookingReference || 'N/A'}, Status=${booking.status || 'N/A'}`);
+                                        }
+                                    });
+                                    
+                                    if (bookings.length > 3) {
+                                        debugLog(`... and ${bookings.length - 3} more bookings`);
+                                    }
+                                }
+                            } catch (e) {
+                                debugLog(`Error parsing adminBookings: ${e.message}`);
+                                debugLog(`Raw adminBookings data: ${adminBookings.substring(0, 100)}...`);
+                            }
+                        } else {
+                            debugLog('No adminBookings found in localStorage');
+                        }
+                    } catch (e) {
+                        debugLog(`Error checking localStorage: ${e.message}`);
+                    }
+                });
+            }
+            
+            // Add test booking
+            const addTestBtn = document.getElementById('debug-add-test');
+            if (addTestBtn) {
+                addTestBtn.addEventListener('click', function() {
+                    debugLog('Adding test booking...');
+                    
+                    try {
+                        const testBooking = {
+                            bookingReference: 'DEBUG-' + Math.floor(Math.random() * 10000),
+                            status: 'confirmed',
+                            timestamp: new Date().toISOString(),
+                            dateSubmitted: new Date().toISOString(),
+                            customer: {
+                                firstName: 'Debug',
+                                lastName: 'User',
+                                email: 'debug@example.com',
+                                phone: '+1234567890',
+                                additionalOptions: {
+                                    fullInsurance: true,
+                                    gpsNavigation: true
+                                }
+                            },
+                            selectedCar: {
+                                make: 'Debug',
+                                model: 'Tester',
+                                price: 45
+                            },
+                            pickupLocation: 'airport',
+                            dropoffLocation: 'port',
+                            pickupDate: new Date().toISOString(),
+                            returnDate: new Date(Date.now() + 3*24*60*60*1000).toISOString(),
+                            durationDays: 3,
+                            totalPrice: 135
+                        };
+                        
+                        // Get existing bookings
+                        let adminBookings = [];
+                        try {
+                            const existing = localStorage.getItem('adminBookings');
+                            if (existing) {
+                                adminBookings = JSON.parse(existing);
+                                debugLog(`Found ${adminBookings.length} existing bookings`);
+                            }
+                        } catch (e) {
+                            debugLog(`Error parsing existing bookings: ${e.message}`);
+                            adminBookings = [];
+                        }
+                        
+                        // Add new booking
+                        adminBookings.push(testBooking);
+                        
+                        // Save back to localStorage
+                        localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
+                        debugLog(`Test booking ${testBooking.bookingReference} added successfully`);
+                        
+                        // Refresh admin page
+                        if (typeof AdminDashboard !== 'undefined' && AdminDashboard.refreshData) {
+                            debugLog('Refreshing dashboard...');
+                            AdminDashboard.refreshData();
+                        } else {
+                            debugLog('WARNING: AdminDashboard not found or refreshData not available');
+                        }
+                    } catch (e) {
+                        debugLog(`Error adding test booking: ${e.message}`);
+                    }
+                });
+            }
+            
+            // Clear admin bookings
+            const clearAdminBtn = document.getElementById('debug-clear-admin');
+            if (clearAdminBtn) {
+                clearAdminBtn.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to clear all admin bookings?')) {
+                        try {
+                            localStorage.removeItem('adminBookings');
+                            debugLog('Cleared all admin bookings');
+                            
+                            // Refresh admin page
+                            if (typeof AdminDashboard !== 'undefined' && AdminDashboard.refreshData) {
+                                debugLog('Refreshing dashboard...');
+                                AdminDashboard.refreshData();
+                            } else {
+                                debugLog('WARNING: AdminDashboard not found or refreshData not available');
+                            }
+                        } catch (e) {
+                            debugLog(`Error clearing admin bookings: ${e.message}`);
+                        }
+                    }
+                });
+            }
+            
+            // Re-initialize dashboard
+            const reinitBtn = document.getElementById('debug-reinit');
+            if (reinitBtn) {
+                reinitBtn.addEventListener('click', function() {
+                    debugLog('Re-initializing dashboard...');
+                    
+                    try {
+                        if (typeof AdminDashboard !== 'undefined' && AdminDashboard.init) {
+                            debugLog('Calling AdminDashboard.init()...');
+                            AdminDashboard.init();
+                            debugLog('Re-initialization complete');
+                        } else {
+                            debugLog('WARNING: AdminDashboard not found or init not available');
+                        }
+                    } catch (e) {
+                        debugLog(`Error re-initializing dashboard: ${e.message}`);
+                    }
+                });
+            }
+        });
+    </script>
+    
     <!-- Import admin dashboard script -->
-    <script src="js/admin-dashboard.js"></script>
+    <script src="js/admin-dashboard.js?v=1.0.1"></script>
 </body>
 </html> 
