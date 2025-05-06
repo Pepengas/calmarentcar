@@ -5,12 +5,86 @@ const path = require('path');
 const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const { Pool } = require('pg');
+const fs = require('fs').promises;
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Legacy bookingsStorage for backwards compatibility
+const bookingsStorage = {
+  getAllBookings: async function() {
+    try {
+      const result = await pool.query('SELECT booking_data FROM bookings ORDER BY date_submitted DESC');
+      return result.rows.map(row => row.booking_data);
+    } catch (error) {
+      console.error('Error getting bookings from database:', error);
+      return [];
+    }
+  },
+  
+  addBooking: async function(booking) {
+    try {
+      // Check if booking already exists
+      const checkResult = await pool.query(
+        'SELECT id FROM bookings WHERE booking_reference = $1',
+        [booking.bookingReference || booking.booking_reference]
+      );
+      
+      if (checkResult.rows.length > 0) {
+        console.log(`Booking ${booking.bookingReference} already exists`);
+        return booking;
+      }
+      
+      // Extract customer info
+      const customer = booking.customer || {};
+      
+      // Extract car info
+      const car = booking.selectedCar || booking.car || {};
+      
+      // Generate booking reference if not provided
+      if (!booking.bookingReference && !booking.booking_reference) {
+        booking.bookingReference = 'BK' + Date.now().toString().substr(-8);
+      }
+      
+      // Insert new booking
+      const result = await pool.query(
+        `INSERT INTO bookings (
+          booking_reference, customer_first_name, customer_last_name, 
+          customer_email, customer_phone, pickup_date, return_date,
+          pickup_location, dropoff_location, car_make, car_model,
+          status, total_price, payment_date, date_submitted, booking_data
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        RETURNING *`,
+        [
+          booking.bookingReference || booking.booking_reference,
+          customer.firstName || '',
+          customer.lastName || '',
+          customer.email || '',
+          customer.phone || '',
+          booking.pickupDate ? new Date(booking.pickupDate) : null,
+          booking.returnDate || booking.dropoff_date ? new Date(booking.returnDate || booking.dropoff_date) : null,
+          booking.pickupLocation || booking.pickup_location || '',
+          booking.dropoffLocation || booking.dropoff_location || booking.pickupLocation || booking.pickup_location || '',
+          car.make || '',
+          car.model || '',
+          booking.status || 'pending',
+          booking.totalPrice || 0,
+          booking.paymentDate ? new Date(booking.paymentDate) : null,
+          booking.dateSubmitted || booking.timestamp ? new Date(booking.dateSubmitted || booking.timestamp) : new Date(),
+          booking // Store the complete booking object as JSONB
+        ]
+      );
+      
+      return result.rows[0].booking_data;
+    } catch (error) {
+      console.error('Error adding booking to database:', error);
+      return booking;
+    }
+  }
+};
 
 // === Configuration ===
 app.use(cors({ origin: '*' }));
@@ -34,142 +108,12 @@ pool.query('SELECT NOW()', (err, res) => {
   }
 });
 
-// === Storage ===
-// Determine storage location - use environment variable if available
-const DATA_DIR = process.env.DATA_DIR || '/app/data';
-const BOOKINGS_FILE = path.join(DATA_DIR, 'bookings.json');
-
-// Initialize bookings file if it doesn't exist
-async function initBookingsDB() {
-    try {
-        // Make sure the data directory exists
-        try {
-            await fs.mkdir(DATA_DIR, { recursive: true });
-            console.log('Ensured data directory exists:', DATA_DIR);
-        } catch (dirError) {
-            console.warn('Could not create data directory:', dirError.message);
-        }
-
-        await fs.access(BOOKINGS_FILE);
-        console.log('Bookings database file exists at:', BOOKINGS_FILE);
-        // Load initial bookings
-        return JSON.parse(await fs.readFile(BOOKINGS_FILE, 'utf8'));
-    } catch (error) {
-        console.log('Creating new bookings database file at:', BOOKINGS_FILE);
-        // Sample initial data
-        const initialBookings = [
-            {
-                id: 1,
-                car_id: "aygo",
-                car_name: "Toyota Aygo",
-                pickup_location: "Chania Airport",
-                dropoff_location: "Chania City Center",
-                pickup_date: "2025-04-22T00:00:00.000Z",
-                pickup_time: "10:00:00",
-                dropoff_date: "2025-04-23T00:00:00.000Z",
-                dropoff_time: "10:00:00",
-                customer_name: "Test User",
-                customer_email: "test@example.com",
-                customer_phone: "+30123456789",
-                customer_age: 25,
-                additional_requests: "Sample booking",
-                status: "confirmed",
-                created_at: "2025-04-22T09:51:26.462Z",
-                updated_at: "2025-04-22T09:51:26.462Z"
-            },
-            {
-                id: 2,
-                car_id: "i10",
-                car_name: "Hyundai i10",
-                pickup_location: "Chania City Center",
-                dropoff_location: "Chania Airport",
-                pickup_date: "2025-05-12T00:00:00.000Z",
-                pickup_time: "14:00:00",
-                dropoff_date: "2025-05-15T00:00:00.000Z",
-                dropoff_time: "12:00:00",
-                customer_name: "Another User",
-                customer_email: "another@example.com",
-                customer_phone: "+30987654321",
-                customer_age: 30,
-                additional_requests: "Sample booking #2",
-                status: "confirmed",
-                created_at: "2025-04-23T10:15:30.000Z",
-                updated_at: "2025-04-23T10:15:30.000Z"
-            }
-        ];
-        
-        try {
-            // Write initial data
-            await fs.writeFile(BOOKINGS_FILE, JSON.stringify(initialBookings, null, 2));
-            return initialBookings;
-        } catch (writeError) {
-            console.error('Error creating bookings file:', writeError);
-            // Fallback to in-memory if file creation fails
-            return initialBookings;
-        }
-    }
-}
-
-// Storage manager
-const bookingsStorage = {
-    bookings: [],
-    
-    // Initialize from file
-    async init() {
-        this.bookings = await initBookingsDB();
-        console.log(`Loaded ${this.bookings.length} bookings from storage`);
-    },
-    
-    // Save to file
-    async saveToFile() {
-        try {
-            await fs.writeFile(BOOKINGS_FILE, JSON.stringify(this.bookings, null, 2));
-            console.log('Bookings saved to file');
-        } catch (error) {
-            console.error('Failed to save bookings to file:', error);
-        }
-    },
-    
-    // Add a new booking
-    async addBooking(booking) {
-        const highestId = this.bookings.reduce((max, b) => b.id > max ? b.id : max, 0);
-        
-        const newBooking = {
-            ...booking,
-            id: highestId + 1,
-            status: 'confirmed',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        };
-        
-        this.bookings.push(newBooking);
-        console.log(`Added new booking #${newBooking.id} for ${newBooking.customer_name}`);
-        
-        // Save to persistent storage
-        await this.saveToFile();
-        
-        return newBooking;
-    },
-    
-    // Get all bookings
-    getAllBookings() {
-        return [...this.bookings];
-    }
-};
-
-// Initialize storage
-bookingsStorage.init().catch(err => {
-    console.error('Failed to initialize bookings storage:', err);
-});
-
 // === API Routes ===
-// Import Stripe API routes
-const checkoutRoutes = require('./api/checkout');
-const webhookRoutes = require('./api/webhooks');
-
-// Register API routes
-app.use('/api/checkout', checkoutRoutes);
-app.use('/api/webhooks', webhookRoutes);
+// NOTE: Checkout routes disabled until Stripe is properly configured
+// const checkoutRoutes = require('./api/checkout');
+// const webhookRoutes = require('./api/webhooks');
+// app.use('/api/checkout', checkoutRoutes);
+// app.use('/api/webhooks', webhookRoutes);
 
 // === API: Cars ===
 app.get('/api/cars', async (req, res) => {
@@ -230,14 +174,22 @@ app.post('/api/book', async (req, res) => {
 
     try {
         // Get car details
-        const carsFilePath = path.join(__dirname, 'cars.json');
-        const carsData = await fs.readFile(carsFilePath, 'utf8');
-        const cars = JSON.parse(carsData);
-        const selectedCar = cars.find(car => car.id === bookingData['car-selection']);
-        const carName = selectedCar ? selectedCar.name : 'Unknown Car';
+        let carName = 'Unknown Car';
+        try {
+            const carsFilePath = path.join(__dirname, 'cars.json');
+            const carsData = await fs.readFile(carsFilePath, 'utf8');
+            const cars = JSON.parse(carsData);
+            const selectedCar = cars.find(car => car.id === bookingData['car-selection']);
+            if (selectedCar) {
+                carName = selectedCar.name;
+            }
+        } catch (carErr) {
+            console.error('Error reading car details:', carErr);
+        }
 
         // Create booking object
         const booking = {
+            bookingReference: 'BK' + Date.now().toString().substring(6),
             car_id: bookingData['car-selection'],
             car_name: carName,
             pickup_location: bookingData['pickup-location'],
@@ -250,21 +202,20 @@ app.post('/api/book', async (req, res) => {
             customer_email: bookingData['customer-email'],
             customer_phone: bookingData['customer-phone'],
             customer_age: parseInt(bookingData.age),
-            additional_requests: bookingData['additional-requests'] || ''
+            status: 'pending',
+            additional_requests: bookingData['additional-requests'] || '',
+            created_at: new Date().toISOString()
         };
 
-        // Save booking
+        // Save booking to database
         const savedBooking = await bookingsStorage.addBooking(booking);
         console.log('Booking saved:', savedBooking);
-
-        // Send confirmation email (placeholder)
-        console.log('Simulating sending confirmation email to:', booking.customer_email);
 
         // Success response
         res.status(200).json({ 
             success: true, 
             message: 'Booking request received successfully!',
-            booking_id: savedBooking.id
+            booking_id: savedBooking.bookingReference || savedBooking.id
         });
 
     } catch (error) {
@@ -276,10 +227,14 @@ app.post('/api/book', async (req, res) => {
 // === API: Admin Bookings ===
 app.get('/api/admin/bookings', async (req, res) => {
     try {
-        const bookings = bookingsStorage.getAllBookings();
+        const bookings = await bookingsStorage.getAllBookings();
         
         // Sort by created_at date, most recent first
-        bookings.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        bookings.sort((a, b) => {
+            const dateA = new Date(b.created_at || b.dateSubmitted || b.timestamp || 0);
+            const dateB = new Date(a.created_at || a.dateSubmitted || a.timestamp || 0);
+            return dateA - dateB;
+        });
         
         res.status(200).json({ 
             success: true, 
@@ -297,7 +252,7 @@ app.get('/api/admin/bookings', async (req, res) => {
 // === API: Debug ===
 app.get('/api/debug/bookings', async (req, res) => {
     try {
-        const bookings = bookingsStorage.getAllBookings();
+        const bookings = await bookingsStorage.getAllBookings();
         
         res.status(200).json({
             success: true,
@@ -319,6 +274,68 @@ app.get('/api/debug/bookings', async (req, res) => {
             message: 'Debug endpoint error' 
         });
     }
+});
+
+// === API: Migrate Bookings ===
+app.post('/api/migrate-bookings', async (req, res) => {
+  try {
+    const { bookings } = req.body;
+    
+    if (!bookings || !Array.isArray(bookings) || bookings.length === 0) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'No valid bookings provided for migration'
+      });
+    }
+    
+    console.log(`Received ${bookings.length} bookings for migration`);
+    
+    // Track results
+    const results = {
+      total: bookings.length,
+      migrated: 0,
+      skipped: 0,
+      errors: 0
+    };
+    
+    // Process each booking
+    for (const booking of bookings) {
+      try {
+        // Check if booking already exists
+        const existingBooking = await pool.query(
+          'SELECT id FROM bookings WHERE booking_reference = $1',
+          [booking.bookingReference || booking.booking_reference]
+        );
+        
+        if (existingBooking.rows.length > 0) {
+          console.log(`Skipping existing booking: ${booking.bookingReference || booking.booking_reference}`);
+          results.skipped++;
+          continue;
+        }
+        
+        // Add booking to database using the bookingsStorage helper
+        await bookingsStorage.addBooking(booking);
+        results.migrated++;
+        console.log(`Migrated booking: ${booking.bookingReference || booking.booking_reference}`);
+      } catch (error) {
+        console.error(`Error migrating booking ${booking.bookingReference || booking.booking_reference}:`, error);
+        results.errors++;
+      }
+    }
+    
+    // Return results
+    res.status(200).json({
+      success: true,
+      message: `Migration complete. ${results.migrated} bookings migrated successfully.`,
+      ...results
+    });
+  } catch (error) {
+    console.error('Error in migration endpoint:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Migration failed: ' + error.message 
+    });
+  }
 });
 
 // === Prevent 404 for missing favicon ===
@@ -343,6 +360,86 @@ app.get('/debug/server', (req, res) => {
       }
     }
   });
+});
+
+// Diagnostic endpoint to check database connectivity
+app.get('/api/diagnostic', async (req, res) => {
+  try {
+    const results = {
+      server: {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime() + ' seconds'
+      },
+      database: {
+        status: 'checking'
+      },
+      tables: {},
+      storageStatus: {
+        localStorage: 'N/A (server-side check)',
+        sessionStorage: 'N/A (server-side check)',
+        database: 'checking',
+      }
+    };
+    
+    // Check database connection
+    try {
+      const dbResult = await pool.query('SELECT NOW()');
+      results.database = {
+        status: 'connected',
+        version: 'PostgreSQL',
+        timestamp: dbResult.rows[0].now
+      };
+      results.storageStatus.database = 'connected';
+    } catch (dbError) {
+      results.database = {
+        status: 'error',
+        error: dbError.message
+      };
+      results.storageStatus.database = 'disconnected';
+    }
+    
+    // Check bookings table
+    try {
+      const bookingsCount = await pool.query('SELECT COUNT(*) FROM bookings');
+      results.tables.bookings = {
+        exists: true,
+        count: parseInt(bookingsCount.rows[0].count)
+      };
+    } catch (tableError) {
+      results.tables.bookings = {
+        exists: false,
+        error: tableError.message
+      };
+    }
+    
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({
+      server: {
+        status: 'error',
+        error: error.message
+      }
+    });
+  }
+});
+
+// Database initialization endpoint
+app.get('/api/init-database', async (req, res) => {
+  try {
+    await initDatabase();
+    res.json({
+      success: true,
+      message: 'Database tables initialized successfully',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to initialize database: ' + error.message
+    });
+  }
 });
 
 // Debug endpoint to check image paths
@@ -397,9 +494,18 @@ app.use('/images', express.static(path.join(__dirname, 'images'), {
 // Finally serve from root directory
 app.use(express.static(__dirname));
 
-// Root route
+// Handle root path explicitly
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Handle admin path explicitly
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/admin.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // === PostgreSQL API Routes ===
@@ -566,4 +672,16 @@ async function initDatabase() {
 }
 
 // Call init database
-initDatabase(); 
+initDatabase();
+
+// Handle all other routes by serving index.html
+app.get('*', (req, res) => {
+  // First try to serve a specific file matching the path
+  const filePath = path.join(__dirname, req.path);
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      // If file not found, serve index.html
+      res.sendFile(path.join(__dirname, 'index.html'));
+    }
+  });
+}); 

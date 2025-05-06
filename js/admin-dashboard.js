@@ -108,6 +108,12 @@ const AdminDashboard = {
             refreshButton.addEventListener('click', this.refreshData.bind(this));
         }
         
+        // Migrate button
+        const migrateButton = document.getElementById('migrate-btn');
+        if (migrateButton) {
+            migrateButton.addEventListener('click', this.migrateBookingsToDatabase.bind(this));
+        }
+        
         // Search input and button
         const searchInput = document.getElementById('search-input');
         const searchButton = document.getElementById('search-btn');
@@ -1033,30 +1039,98 @@ const AdminDashboard = {
     
     // Refresh data
     refreshData: function() {
-        console.log('Manual refresh triggered');
-        
-        // Change refresh button appearance
-        const refreshButton = document.getElementById('refresh-btn');
-        if (refreshButton) {
-            refreshButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-            refreshButton.disabled = true;
-        }
-        
-        // Load bookings and update UI
+        console.log('Refreshing data...');
         this.loadBookings();
-        this.updateDashboardStats();
-        this.renderBookings();
-        
-        // Show notification
-        this.showNotification('Data refreshed successfully.', 'success');
-        
-        // Restore refresh button
-        setTimeout(() => {
-            if (refreshButton) {
-                refreshButton.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
-                refreshButton.disabled = false;
+        this.showNotification('Data refreshed successfully', 'success');
+    },
+    
+    // Migrate localStorage bookings to database
+    migrateBookingsToDatabase: async function() {
+        try {
+            console.log('Starting migration of localStorage bookings to database...');
+            this.showNotification('Migration in progress...', 'info');
+            
+            // Load all localStorage bookings
+            const bookings = [];
+            
+            // Get from adminBookings
+            const adminBookingsData = localStorage.getItem('adminBookings');
+            if (adminBookingsData) {
+                try {
+                    const adminBookings = JSON.parse(adminBookingsData);
+                    bookings.push(...adminBookings);
+                    console.log(`Found ${adminBookings.length} bookings in adminBookings`);
+                } catch (e) {
+                    console.error('Error parsing adminBookings:', e);
+                }
             }
-        }, 500);
+            
+            // Get from individual booking_* entries
+            try {
+                const backupBookings = this.loadBackupBookings();
+                if (backupBookings.length > 0) {
+                    // Add only those not already in bookings array
+                    backupBookings.forEach(backup => {
+                        const exists = bookings.some(b => 
+                            b.bookingReference === backup.bookingReference);
+                        if (!exists) {
+                            bookings.push(backup);
+                        }
+                    });
+                    console.log(`Found ${backupBookings.length} individual booking entries`);
+                }
+            } catch (e) {
+                console.error('Error loading backup bookings:', e);
+            }
+            
+            if (bookings.length === 0) {
+                console.log('No bookings found to migrate');
+                this.showNotification('No bookings found to migrate', 'info');
+                return;
+            }
+            
+            console.log(`Found ${bookings.length} total bookings to migrate`);
+            
+            // Save bookings to database via API
+            const apiUrl = window.location.hostname === 'localhost' 
+                ? 'http://localhost:3000/api/migrate-bookings' 
+                : '/api/migrate-bookings';
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ bookings })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`API Error: ${errorData.error || response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            // Show success notification
+            this.showNotification(`Migration complete! ${result.migrated} bookings migrated`, 'success');
+            
+            // Clear localStorage (optional, uncomment if desired)
+            // localStorage.removeItem('adminBookings');
+            // const bookingKeys = [];
+            // for (let i = 0; i < localStorage.length; i++) {
+            //     const key = localStorage.key(i);
+            //     if (key.startsWith('booking_')) {
+            //         bookingKeys.push(key);
+            //     }
+            // }
+            // bookingKeys.forEach(key => localStorage.removeItem(key));
+            
+            // Refresh data
+            this.loadBookings();
+        } catch (error) {
+            console.error('Error migrating bookings:', error);
+            this.showNotification('Error migrating bookings: ' + error.message, 'error');
+        }
     },
     
     // Show notification
