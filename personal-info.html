@@ -901,6 +901,41 @@
   <script src="js/country-selector.js"></script>
   <script src="js/customer-info.js"></script>
   
+  <!-- Debug Script for Country Selector -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Page loaded, checking country selector');
+      
+      // Add click handler to manually show dropdown
+      const input = document.querySelector('.country-search-input');
+      if (input) {
+        console.log('Country input found');
+        
+        // Add test function
+        window.testCountrySelector = function() {
+          const dropdown = document.querySelector('.country-dropdown');
+          console.log('Dropdown element:', dropdown);
+          if (dropdown) {
+            dropdown.style.display = 'block';
+            console.log('Dropdown should be visible now');
+          }
+        };
+        
+        // Add debug click handler
+        input.addEventListener('click', function() {
+          console.log('Country input clicked');
+          const dropdown = document.querySelector('.country-dropdown');
+          console.log('Trying to show dropdown');
+          if (dropdown) {
+            dropdown.style.display = 'block';
+          }
+        });
+      } else {
+        console.log('Country input NOT found');
+      }
+    });
+  </script>
+  
   <!-- Debug Script -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
