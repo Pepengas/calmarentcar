@@ -13,7 +13,7 @@
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    margin: 30px auto 60px !important; /* Increased bottom margin for more space */
+    margin: 30px auto 90px !important; /* Increased bottom margin from 60px to 90px for more space */
     position: relative !important;
     max-width: 450px !important;
 }
@@ -96,14 +96,30 @@
 
 /* Form Progress Wrapper */
 .form-progress {
-    margin-bottom: 40px !important;
+    margin-bottom: 60px !important; /* Increased from 40px */
+    position: relative !important;
+    z-index: 5 !important;
+}
+
+/* Add additional space after the form-progress */
+.form-progress::after {
+    content: '' !important;
+    display: block !important;
+    height: 20px !important; /* Extra spacing after the element */
+}
+
+/* Ensure fields below progress-steps aren't covered */
+.form-group {
+    position: relative !important;
+    z-index: 4 !important;
+    margin-top: 10px !important; /* Ensure some space above form fields */
 }
 
 /* Responsive adjustments */
 @media (max-width: 767px) {
     .progress-steps {
         max-width: 360px !important;
-        margin-bottom: 70px !important; /* Increased bottom margin on smaller screens */
+        margin-bottom: 90px !important; /* Increased bottom margin on smaller screens */
     }
     
     .step {
@@ -113,12 +129,16 @@
     .step::after {
         top: 45px !important; /* Even more space on smaller screens */
     }
+    
+    .form-progress {
+        margin-bottom: 70px !important;
+    }
 }
 
 @media (max-width: 480px) {
     .progress-steps {
         max-width: 300px !important;
-        margin-bottom: 80px !important; /* Even more space on very small screens */
+        margin-bottom: 100px !important; /* Even more space on very small screens */
     }
     
     .step {
@@ -138,5 +158,9 @@
     
     .progress-steps::before {
         top: 12px !important;
+    }
+    
+    .form-progress {
+        margin-bottom: 80px !important;
     }
 } 
