@@ -232,8 +232,8 @@ const CustomerInfo = {
         const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24));
         
         // Update summary elements
-        this.elements.summaryLocation.textContent = pickupLocation;
-        this.elements.summaryDropoffLocation.textContent = dropoffLocation || pickupLocation; // Show same as pickup if not specified
+        this.elements.summaryLocation.textContent = this.getLocationName(pickupLocation);
+        this.elements.summaryDropoffLocation.textContent = this.getLocationName(dropoffLocation || pickupLocation); // Show same as pickup if not specified
         this.elements.summaryPickupDate.textContent = formattedPickupDate;
         this.elements.summaryReturnDate.textContent = formattedReturnDate;
         this.elements.summaryDuration.textContent = `${durationDays} day${durationDays > 1 ? 's' : ''}`;
@@ -242,6 +242,21 @@ const CustomerInfo = {
         
         // Store duration for later calculations
         this.bookingData.durationDays = durationDays;
+    },
+    
+    /**
+     * Get full location name from location code
+     */
+    getLocationName: function(locationCode) {
+        if (!locationCode) return 'Not specified';
+        
+        const locations = {
+            'airport': 'Chania International Airport',
+            'port': 'Chania Port',
+            'city': 'Chania City Center',
+            'hotel': 'Hotel/Villa in Chania'
+        };
+        return locations[locationCode] || locationCode;
     },
     
     /**

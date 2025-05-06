@@ -465,7 +465,7 @@ const AdminDashboard = {
                     <h3>Rental Information</h3>
                     <div class="detail-item">
                         <span class="detail-label">Pickup Location:</span>
-                        <span class="detail-value">${booking.pickupLocation || 'N/A'}</span>
+                        <span class="detail-value">${this.getLocationName(booking.pickupLocation) || 'N/A'}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Pickup Date:</span>
@@ -473,7 +473,7 @@ const AdminDashboard = {
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Return Location:</span>
-                        <span class="detail-value">${booking.dropoffLocation || 'N/A'}</span>
+                        <span class="detail-value">${this.getLocationName(booking.dropoffLocation) || 'N/A'}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Return Date:</span>
@@ -605,5 +605,20 @@ const AdminDashboard = {
         if (this.elements.bookingModal) {
             this.elements.bookingModal.style.display = 'none';
         }
+    },
+    
+    /**
+     * Get location name
+     */
+    getLocationName: function(locationCode) {
+        if (!locationCode) return 'Not specified';
+        
+        const locations = {
+            'airport': 'Chania International Airport',
+            'port': 'Chania Port',
+            'city': 'Chania City Center',
+            'hotel': 'Hotel/Villa in Chania'
+        };
+        return locations[locationCode] || locationCode;
     }
 }; 
