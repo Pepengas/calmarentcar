@@ -1,15 +1,13 @@
 // server.js
 const express = require('express');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
-const fs = require('fs').promises;
 const path = require('path');
 const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const { Pool } = require('pg');
 
 // Load environment variables
-dotenv.config({ path: '.env.local' });
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
