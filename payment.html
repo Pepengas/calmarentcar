@@ -288,7 +288,7 @@
           payButton.innerHTML = '<i class="fas fa-spinner fa-spin payment-icon"></i> Processing...';
           
           // Simulate payment processing
-          setTimeout(function() {
+          setTimeout(async function() {
             // Complete the booking process
             const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
             
@@ -303,7 +303,7 @@
               console.log('Payment processed for booking:', bookingData.bookingReference);
               console.log('Full booking data:', bookingData);
               
-              // Add to admin bookings - using a more robust method
+              // Add to admin bookings - using a more robust method with triple redundancy
               try {
                 // Get existing admin bookings
                 let adminBookings = [];
@@ -340,21 +340,58 @@
                   return new Date(dateB) - new Date(dateA);
                 });
                 
-                // Save updated bookings
-                localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
-                console.log(`Successfully saved ${adminBookings.length} bookings to adminBookings in localStorage`);
+                // Save updated bookings with multiple attempts
+                const maxAttempts = 3;
+                let saveSuccess = false;
                 
-                // Verify the data was saved
-                const verifyData = localStorage.getItem('adminBookings');
-                if (verifyData) {
+                for (let attempt = 1; attempt <= maxAttempts; attempt++) {
                   try {
-                    const verifiedBookings = JSON.parse(verifyData);
-                    console.log(`Verification: ${verifiedBookings.length} bookings saved successfully`);
+                    // Save the data
+                    console.log(`Attempt ${attempt} to save booking data...`);
+                    localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
+                    
+                    // Verify the data was saved
+                    const verifyData = localStorage.getItem('adminBookings');
+                    if (verifyData) {
+                      try {
+                        const verifiedBookings = JSON.parse(verifyData);
+                        console.log(`Verification: ${verifiedBookings.length} bookings saved successfully`);
+                        const foundBooking = verifiedBookings.find(b => b.bookingReference === bookingData.bookingReference);
+                        if (foundBooking) {
+                          console.log(`Verified booking ${bookingData.bookingReference} was saved correctly`);
+                          saveSuccess = true;
+                          break;
+                        } else {
+                          console.error(`Verification failed: Booking ${bookingData.bookingReference} not found in saved data!`);
+                        }
+                      } catch (e) {
+                        console.error('Error verifying saved data:', e);
+                      }
+                    } else {
+                      console.error('Failed to save adminBookings - verification failed!');
+                    }
                   } catch (e) {
-                    console.error('Error verifying saved data:', e);
+                    console.error(`Attempt ${attempt} to save booking failed:`, e);
                   }
-                } else {
-                  console.error('Failed to save adminBookings - verification failed!');
+                  
+                  // Wait a short time before trying again
+                  if (attempt < maxAttempts) {
+                    console.log(`Waiting before attempt ${attempt+1}...`);
+                    // Small delay between attempts (50ms)
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                  }
+                }
+                
+                if (!saveSuccess) {
+                  // Final backup approach - try direct approach
+                  console.log('Trying direct approach to save booking...');
+                  try {
+                    // Add single booking directly
+                    localStorage.setItem(`booking_${bookingData.bookingReference}`, JSON.stringify(bookingData));
+                    console.log(`Saved backup copy of booking ${bookingData.bookingReference}`);
+                  } catch (e) {
+                    console.error('Final backup approach failed:', e);
+                  }
                 }
               } catch (e) {
                 console.error('Error saving to admin bookings:', e);

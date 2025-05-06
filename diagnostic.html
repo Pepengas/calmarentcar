@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calma Rental Booking System Diagnostic</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2 {
+            color: #0066cc;
+        }
+        .section {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        button:hover {
+            background-color: #0055aa;
+        }
+        pre {
+            background: #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <h1>Calma Rental Diagnostic Tool</h1>
+    
+    <div class="section">
+        <h2>Payment Process Test</h2>
+        <p>This tool tests the booking flow from payment to admin dashboard:</p>
+        <div>
+            <button id="test-booking-btn">Create Test Booking</button>
+            <button id="simulate-payment-btn">Simulate Payment Process</button>
+            <button id="verify-admin-storage-btn">Verify Admin Storage</button>
+            <button id="clear-all-btn">Clear All Test Data</button>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Current Test Booking</h2>
+        <pre id="current-booking">No test booking created yet.</pre>
+    </div>
+    
+    <div class="section">
+        <h2>Admin Bookings</h2>
+        <pre id="admin-bookings">No admin bookings found.</pre>
+    </div>
+    
+    <div class="section">
+        <h2>Log</h2>
+        <div class="log-container">
+            <div id="log"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Utility functions
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function updateCurrentBooking() {
+            const currentBooking = localStorage.getItem('currentBooking');
+            const displayElement = document.getElementById('current-booking');
+            
+            if (currentBooking) {
+                try {
+                    const bookingData = JSON.parse(currentBooking);
+                    displayElement.textContent = JSON.stringify(bookingData, null, 2);
+                } catch (e) {
+                    displayElement.textContent = 'Error parsing currentBooking: ' + e.message + '\n\nRaw data: ' + currentBooking;
+                }
+            } else {
+                displayElement.textContent = 'No current booking found in localStorage.';
+            }
+        }
+        
+        function updateAdminBookings() {
+            const adminBookings = localStorage.getItem('adminBookings');
+            const displayElement = document.getElementById('admin-bookings');
+            
+            if (adminBookings) {
+                try {
+                    const bookingsArray = JSON.parse(adminBookings);
+                    displayElement.textContent = `Found ${bookingsArray.length} bookings:\n\n` + 
+                        JSON.stringify(bookingsArray, null, 2);
+                } catch (e) {
+                    displayElement.textContent = 'Error parsing adminBookings: ' + e.message + '\n\nRaw data: ' + adminBookings;
+                }
+            } else {
+                displayElement.textContent = 'No admin bookings found in localStorage.';
+            }
+        }
+        
+        // Test functions
+        function testLocalStorage() {
+            log('Testing localStorage access...');
+            
+            try {
+                const testKey = 'calma_diagnostic_test_' + Date.now();
+                const testValue = JSON.stringify({timestamp: Date.now(), test: 'data'});
+                
+                // Test write
+                localStorage.setItem(testKey, testValue);
+                log('Successfully wrote to localStorage', 'success');
+                
+                // Test read
+                const readValue = localStorage.getItem(testKey);
+                if (readValue === testValue) {
+                    log('Successfully read from localStorage', 'success');
+                } else {
+                    log('Read value does not match written value!', 'error');
+                    return false;
+                }
+                
+                // Test delete
+                localStorage.removeItem(testKey);
+                log('Successfully removed test item from localStorage', 'success');
+                
+                return true;
+            } catch (e) {
+                log('localStorage test failed: ' + e.message, 'error');
+                return false;
+            }
+        }
+        
+        function createTestBooking() {
+            log('Creating test booking...');
+            
+            try {
+                const bookingReference = 'TEST-' + Date.now().toString().substring(7);
+                const testBooking = {
+                    bookingReference: bookingReference,
+                    status: 'pending',
+                    dateSubmitted: new Date().toISOString(),
+                    customer: {
+                        firstName: 'Test',
+                        lastName: 'Customer',
+                        email: 'test@example.com',
+                        phone: '+1234567890',
+                        additionalOptions: {
+                            fullInsurance: true
+                        }
+                    },
+                    selectedCar: {
+                        make: 'Toyota',
+                        model: 'Corolla',
+                        price: 45
+                    },
+                    pickupLocation: 'airport',
+                    pickupDate: new Date().toISOString(),
+                    returnDate: new Date(Date.now() + 3*24*60*60*1000).toISOString(),
+                    durationDays: 3,
+                    totalPrice: 135
+                };
+                
+                localStorage.setItem('currentBooking', JSON.stringify(testBooking));
+                log(`Test booking ${bookingReference} created successfully`, 'success');
+                updateCurrentBooking();
+                
+                return testBooking;
+            } catch (e) {
+                log('Error creating test booking: ' + e.message, 'error');
+                return null;
+            }
+        }
+        
+        function simulatePaymentProcess() {
+            log('Simulating payment process...');
+            
+            try {
+                // Get current booking
+                const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+                
+                if (!bookingData || !bookingData.bookingReference) {
+                    log('No valid booking found! Please create a test booking first.', 'error');
+                    return false;
+                }
+                
+                log(`Processing payment for booking ${bookingData.bookingReference}...`);
+                
+                // Update booking status to confirmed
+                bookingData.status = 'confirmed';
+                bookingData.paymentDate = new Date().toISOString();
+                bookingData.timestamp = new Date().toISOString();
+                localStorage.setItem('currentBooking', JSON.stringify(bookingData));
+                
+                // Get existing admin bookings
+                let adminBookings = [];
+                const existingData = localStorage.getItem('adminBookings');
+                
+                if (existingData) {
+                    try {
+                        adminBookings = JSON.parse(existingData);
+                        log(`Found ${adminBookings.length} existing admin bookings`);
+                    } catch (e) {
+                        log('Error parsing existing admin bookings, creating new array: ' + e.message, 'error');
+                        adminBookings = [];
+                    }
+                } else {
+                    log('No existing admin bookings found, creating new array');
+                }
+                
+                // Check if booking already exists
+                const existingIndex = adminBookings.findIndex(b => b.bookingReference === bookingData.bookingReference);
+                
+                if (existingIndex >= 0) {
+                    log(`Updating existing booking #${bookingData.bookingReference}`, 'success');
+                    adminBookings[existingIndex] = bookingData;
+                } else {
+                    log(`Adding new booking #${bookingData.bookingReference} to admin bookings`, 'success');
+                    adminBookings.push(bookingData);
+                }
+                
+                // Save updated bookings
+                localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
+                log('Payment process completed successfully', 'success');
+                
+                // Update displays
+                updateCurrentBooking();
+                updateAdminBookings();
+                
+                return true;
+            } catch (e) {
+                log('Error simulating payment: ' + e.message, 'error');
+                return false;
+            }
+        }
+        
+        function verifyAdminStorage() {
+            log('Verifying admin storage...');
+            
+            try {
+                const currentBooking = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+                
+                if (!currentBooking || !currentBooking.bookingReference) {
+                    log('No valid current booking to verify!', 'error');
+                    return false;
+                }
+                
+                const adminBookings = JSON.parse(localStorage.getItem('adminBookings') || '[]');
+                const foundBooking = adminBookings.find(b => b.bookingReference === currentBooking.bookingReference);
+                
+                if (foundBooking) {
+                    log(`Successfully verified booking ${currentBooking.bookingReference} exists in admin bookings!`, 'success');
+                    return true;
+                } else {
+                    log(`Booking ${currentBooking.bookingReference} NOT FOUND in admin bookings!`, 'error');
+                    return false;
+                }
+            } catch (e) {
+                log('Error verifying admin storage: ' + e.message, 'error');
+                return false;
+            }
+        }
+        
+        function clearAllTestData() {
+            if (confirm('Are you sure you want to clear all test data? This will remove currentBooking and ALL admin bookings.')) {
+                try {
+                    localStorage.removeItem('currentBooking');
+                    localStorage.removeItem('adminBookings');
+                    log('All test data cleared successfully', 'success');
+                    updateCurrentBooking();
+                    updateAdminBookings();
+                    return true;
+                } catch (e) {
+                    log('Error clearing test data: ' + e.message, 'error');
+                    return false;
+                }
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Diagnostic tool loaded');
+            
+            // Initial tests
+            testLocalStorage();
+            updateCurrentBooking();
+            updateAdminBookings();
+            
+            // Set up event listeners
+            document.getElementById('test-booking-btn').addEventListener('click', createTestBooking);
+            document.getElementById('simulate-payment-btn').addEventListener('click', simulatePaymentProcess);
+            document.getElementById('verify-admin-storage-btn').addEventListener('click', verifyAdminStorage);
+            document.getElementById('clear-all-btn').addEventListener('click', clearAllTestData);
+        });
+    </script>
+</body>
+</html> 
