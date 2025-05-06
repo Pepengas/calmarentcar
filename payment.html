@@ -256,6 +256,29 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('Payment page loaded');
       
+      // Check if booking already exists in admin bookings
+      function checkExistingAdminBooking() {
+        const currentBooking = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+        
+        if (currentBooking && currentBooking.bookingReference) {
+          const adminBookings = JSON.parse(localStorage.getItem('adminBookings') || '[]');
+          const existingBooking = adminBookings.find(b => b.bookingReference === currentBooking.bookingReference);
+          
+          if (existingBooking) {
+            console.log('Booking already exists in admin bookings:', existingBooking);
+            return true;
+          } else {
+            console.log('Booking does not exist in admin bookings yet');
+            return false;
+          }
+        }
+        
+        return false;
+      }
+      
+      // Check existence on page load
+      checkExistingAdminBooking();
+      
       // Add event listener to the payment button
       const payButton = document.getElementById('pay-button');
       if (payButton) {
@@ -273,12 +296,26 @@
             if (bookingData) {
               bookingData.status = 'confirmed';
               bookingData.paymentDate = new Date().toISOString();
+              bookingData.timestamp = new Date().toISOString(); // Add timestamp for sorting
               localStorage.setItem('currentBooking', JSON.stringify(bookingData));
               
               // Add to admin bookings
               const adminBookings = JSON.parse(localStorage.getItem('adminBookings') || '[]');
-              adminBookings.push(bookingData);
+              
+              // Check if booking already exists and update it, or add it if new
+              const existingIndex = adminBookings.findIndex(b => b.bookingReference === bookingData.bookingReference);
+              if (existingIndex >= 0) {
+                adminBookings[existingIndex] = bookingData;
+              } else {
+                adminBookings.push(bookingData);
+              }
+              
+              // Sort bookings by timestamp (newest first)
+              adminBookings.sort((a, b) => new Date(b.timestamp || '1970-01-01') - new Date(a.timestamp || '1970-01-01'));
+              
+              // Save updated bookings
               localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
+              console.log(`Booking ${bookingData.bookingReference} added to admin bookings.`);
             }
             
             // Redirect to confirmation page (or show success message)

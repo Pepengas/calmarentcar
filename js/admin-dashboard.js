@@ -29,11 +29,23 @@ const AdminDashboard = {
      * Initialize the admin dashboard
      */
     init: function() {
-        this.loadBookings();
+        // Cache DOM elements
         this.cacheElements();
+        
+        // Load bookings data
+        this.loadBookings();
+        
+        // Sanitize bookings data
+        this.sanitizeBookingsData();
+        
+        // Bind event listeners
         this.bindEvents();
-        this.updateDashboardStats();
+        
+        // Apply filters to show all bookings initially
         this.applyFilters();
+        
+        // Update dashboard stats
+        this.updateDashboardStats();
     },
     
     /**
@@ -43,10 +55,27 @@ const AdminDashboard = {
         try {
             // Get bookings from localStorage
             const storedBookings = localStorage.getItem('adminBookings');
-            this.bookings = storedBookings ? JSON.parse(storedBookings) : [];
+            
+            if (storedBookings) {
+                console.log('Raw adminBookings data:', storedBookings);
+                this.bookings = JSON.parse(storedBookings);
+                console.log(`Parsed ${this.bookings.length} bookings:`, this.bookings);
+            } else {
+                console.log('No adminBookings found in localStorage');
+                this.bookings = [];
+            }
+            
             this.filteredBookings = [...this.bookings];
             
-            console.log(`Loaded ${this.bookings.length} bookings`);
+            // Log specific booking details for debugging
+            if (this.bookings.length > 0) {
+                this.bookings.forEach((booking, index) => {
+                    console.log(`Booking ${index + 1}:`, 
+                        `Ref: ${booking.bookingReference || 'N/A'}`, 
+                        `Status: ${booking.status || 'N/A'}`,
+                        `Customer: ${booking.customer ? booking.customer.firstName + ' ' + booking.customer.lastName : 'N/A'}`);
+                });
+            }
         } catch (error) {
             console.error('Error loading bookings:', error);
             this.bookings = [];
@@ -166,10 +195,32 @@ const AdminDashboard = {
      * Refresh data from localStorage
      */
     refreshData: function() {
+        console.log('Refreshing data...');
+        
         // Show loading indicator if available
         if (this.elements.refreshDataBtn) {
             this.elements.refreshDataBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
             this.elements.refreshDataBtn.disabled = true;
+        }
+        
+        // Check localStorage first to verify data is actually there
+        try {
+            const rawData = localStorage.getItem('adminBookings');
+            console.log('Current adminBookings in localStorage:', rawData);
+            
+            if (rawData) {
+                const parsedData = JSON.parse(rawData);
+                console.log(`Found ${parsedData.length} bookings in localStorage`);
+                
+                // If there are bookings, log the first one for debugging
+                if (parsedData.length > 0) {
+                    console.log('First booking:', parsedData[0]);
+                }
+            } else {
+                console.warn('No adminBookings found in localStorage during refresh');
+            }
+        } catch (error) {
+            console.error('Error checking localStorage:', error);
         }
         
         // Reload bookings from localStorage
@@ -178,6 +229,21 @@ const AdminDashboard = {
         // Update UI
         this.updateDashboardStats();
         this.applyFilters();
+        
+        // Show notification if available
+        const notificationContainer = document.getElementById('notification-container');
+        if (notificationContainer) {
+            notificationContainer.innerHTML = `
+                <div class="notification success">
+                    <i class="fas fa-check-circle"></i> Data refreshed successfully
+                </div>
+            `;
+            
+            // Auto-hide notification after 3 seconds
+            setTimeout(() => {
+                notificationContainer.innerHTML = '';
+            }, 3000);
+        }
         
         // Restore button text after a short delay
         setTimeout(() => {
@@ -765,5 +831,41 @@ const AdminDashboard = {
             'hotel': 'Hotel/Villa in Chania'
         };
         return locations[locationCode] || locationCode;
+    },
+    
+    /**
+     * Sanitize bookings data to ensure it's valid
+     */
+    sanitizeBookingsData: function() {
+        if (!this.bookings || !Array.isArray(this.bookings)) {
+            console.warn('Bookings data is not an array, resetting to empty array');
+            this.bookings = [];
+            this.filteredBookings = [];
+            localStorage.setItem('adminBookings', JSON.stringify([]));
+            return;
+        }
+        
+        // Filter out invalid bookings
+        const validBookings = this.bookings.filter(booking => {
+            if (!booking || typeof booking !== 'object') {
+                console.warn('Found invalid booking (not an object):', booking);
+                return false;
+            }
+            
+            if (!booking.bookingReference) {
+                console.warn('Found booking without reference:', booking);
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Check if any invalid bookings were found and removed
+        if (validBookings.length < this.bookings.length) {
+            console.warn(`Removed ${this.bookings.length - validBookings.length} invalid bookings`);
+            this.bookings = validBookings;
+            this.filteredBookings = [...validBookings];
+            localStorage.setItem('adminBookings', JSON.stringify(validBookings));
+        }
     }
 }; 
