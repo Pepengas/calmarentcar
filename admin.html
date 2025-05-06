@@ -201,6 +201,10 @@
             margin-bottom: 15px;
         }
         
+        .additional-details {
+            margin-bottom: 15px;
+        }
+        
         .section-title {
             font-weight: bold;
             margin-bottom: 8px;
@@ -695,6 +699,41 @@
                     const carName = booking.selectedCar 
                         ? `${booking.selectedCar.make} ${booking.selectedCar.model}`
                         : (booking.carName || 'N/A');
+
+                    // Get additional options data
+                    let additionalOptionsHTML = '';
+                    if (booking.customer && booking.customer.additionalOptions) {
+                        const options = [];
+                        
+                        if (booking.customer.additionalOptions.additionalDriver) {
+                            options.push('Additional Driver (+€15/day)');
+                        }
+                        if (booking.customer.additionalOptions.fullInsurance) {
+                            options.push('Full Insurance (+€25/day)');
+                        }
+                        if (booking.customer.additionalOptions.gpsNavigation) {
+                            options.push('GPS Navigation (+€8/day)');
+                        }
+                        if (booking.customer.additionalOptions.childSeat) {
+                            options.push('Child Seat (+€5/day)');
+                        }
+                        
+                        if (options.length > 0) {
+                            additionalOptionsHTML = options.join(', ');
+                        } else {
+                            additionalOptionsHTML = 'None';
+                        }
+                    } else {
+                        additionalOptionsHTML = 'None';
+                    }
+                    
+                    // Get special requests
+                    const specialRequests = booking.customer && booking.customer.specialRequests
+                        ? booking.customer.specialRequests
+                        : (booking.specialRequests || 'None');
+                    
+                    // Get drop-off location
+                    const dropoffLocation = booking.dropoffLocation || booking.pickupLocation || 'N/A';
                     
                     bookingsHTML += `
                         <div class="booking-card" data-index="${index}">
@@ -718,8 +757,8 @@
                                     <span class="detail-value">${booking.pickupLocation || 'N/A'} - ${booking.pickupDate || 'N/A'} ${booking.pickupTime || ''}</span>
                                 </div>
                                 <div class="detail-row">
-                                    <span class="detail-label">Return:</span>
-                                    <span class="detail-value">${booking.returnDate || 'N/A'} ${booking.returnTime || ''}</span>
+                                    <span class="detail-label">Drop-off:</span>
+                                    <span class="detail-value">${dropoffLocation} - ${booking.returnDate || 'N/A'} ${booking.returnTime || ''}</span>
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">Duration:</span>
@@ -744,6 +783,18 @@
                                 <div class="detail-row">
                                     <span class="detail-label">Phone:</span>
                                     <span class="detail-value">${phone}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="additional-details">
+                                <div class="section-title">Additional Services</div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Add-ons:</span>
+                                    <span class="detail-value">${additionalOptionsHTML}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Special Requests:</span>
+                                    <span class="detail-value">${specialRequests}</span>
                                 </div>
                             </div>
                             
