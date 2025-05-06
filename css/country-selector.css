@@ -5,6 +5,7 @@
 .country-selector-wrapper {
   position: relative;
   width: 100%;
+  z-index: 9999;
 }
 
 .country-search-input {
@@ -37,7 +38,11 @@
   border-top: none;
   border-radius: 0 0 4px 4px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  z-index: 100;
+  z-index: 9999;
+}
+
+.country-dropdown.show {
+  display: block !important;
 }
 
 .country-option {

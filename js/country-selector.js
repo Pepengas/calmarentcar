@@ -63,7 +63,7 @@ function initCountrySelector() {
     option.addEventListener('click', function() {
       nationalityInput.value = country;
       searchInput.value = country;
-      dropdown.style.display = 'none';
+      closeDropdown();
       
       // Trigger validation if any
       const event = new Event('change', { bubbles: true });
@@ -72,9 +72,51 @@ function initCountrySelector() {
     dropdown.appendChild(option);
   });
   
+  // Function to show dropdown
+  function showDropdown() {
+    dropdown.classList.add('show');
+    dropdown.style.display = 'block';
+    
+    // Force reflow to ensure proper positioning
+    dropdown.style.opacity = '0.99';
+    setTimeout(() => {
+      dropdown.style.opacity = '1';
+    }, 0);
+    
+    // Move dropdown to body to avoid any positioning issues with parent containers
+    document.body.appendChild(dropdown);
+    
+    // Position the dropdown relative to the input
+    const rect = searchInput.getBoundingClientRect();
+    dropdown.style.position = 'fixed';
+    dropdown.style.width = rect.width + 'px';
+    dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+    dropdown.style.left = rect.left + 'px';
+  }
+  
+  // Function to close dropdown
+  function closeDropdown() {
+    dropdown.classList.remove('show');
+    dropdown.style.display = 'none';
+    
+    // Move dropdown back to original container if it was moved
+    if (dropdown.parentElement === document.body) {
+      wrapper.appendChild(dropdown);
+      dropdown.style.position = '';
+      dropdown.style.width = '';
+      dropdown.style.top = '';
+      dropdown.style.left = '';
+    }
+  }
+  
   // Add event listeners for the search input
   searchInput.addEventListener('focus', function() {
-    dropdown.style.display = 'block';
+    showDropdown();
+  });
+  
+  searchInput.addEventListener('click', function(e) {
+    e.stopPropagation();
+    showDropdown();
   });
   
   searchInput.addEventListener('input', function() {
@@ -106,8 +148,8 @@ function initCountrySelector() {
   
   // Close dropdown when clicking outside
   document.addEventListener('click', function(e) {
-    if (!wrapper.contains(e.target)) {
-      dropdown.style.display = 'none';
+    if (!wrapper.contains(e.target) && e.target !== dropdown && !dropdown.contains(e.target)) {
+      closeDropdown();
     }
   });
   
