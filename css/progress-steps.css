@@ -13,7 +13,7 @@
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    margin: 30px auto 90px !important; /* Increased bottom margin from 60px to 90px for more space */
+    margin: 20px auto 60px !important; /* Reduced from 90px to 60px */
     position: relative !important;
     max-width: 450px !important;
 }
@@ -96,30 +96,30 @@
 
 /* Form Progress Wrapper */
 .form-progress {
-    margin-bottom: 60px !important; /* Increased from 40px */
+    margin-bottom: 30px !important; /* Reduced from 60px to 30px */
     position: relative !important;
     z-index: 5 !important;
 }
 
-/* Add additional space after the form-progress */
+/* Add additional space after the form-progress but less than before */
 .form-progress::after {
     content: '' !important;
     display: block !important;
-    height: 20px !important; /* Extra spacing after the element */
+    height: 10px !important; /* Reduced from 20px to 10px */
 }
 
 /* Ensure fields below progress-steps aren't covered */
 .form-group {
     position: relative !important;
     z-index: 4 !important;
-    margin-top: 10px !important; /* Ensure some space above form fields */
+    margin-top: 5px !important; /* Reduced from 10px to 5px */
 }
 
 /* Responsive adjustments */
 @media (max-width: 767px) {
     .progress-steps {
         max-width: 360px !important;
-        margin-bottom: 90px !important; /* Increased bottom margin on smaller screens */
+        margin-bottom: 60px !important; /* Reduced from 90px to 60px */
     }
     
     .step {
@@ -127,18 +127,18 @@
     }
     
     .step::after {
-        top: 45px !important; /* Even more space on smaller screens */
+        top: 45px !important;
     }
     
     .form-progress {
-        margin-bottom: 70px !important;
+        margin-bottom: 40px !important; /* Reduced from 70px to 40px */
     }
 }
 
 @media (max-width: 480px) {
     .progress-steps {
         max-width: 300px !important;
-        margin-bottom: 100px !important; /* Even more space on very small screens */
+        margin-bottom: 70px !important; /* Reduced from 100px to 70px */
     }
     
     .step {
@@ -152,7 +152,7 @@
         top: 35px !important;
         font-size: 11px !important;
         width: 80px !important;
-        white-space: normal !important; /* Allow text wrapping on very small screens */
+        white-space: normal !important;
         line-height: 1.2 !important;
     }
     
@@ -161,6 +161,6 @@
     }
     
     .form-progress {
-        margin-bottom: 80px !important;
+        margin-bottom: 50px !important; /* Reduced from 80px to 50px */
     }
 } 
