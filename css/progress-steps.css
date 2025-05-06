@@ -10,113 +10,133 @@
 
 /* Container for the progress steps */
 .progress-steps {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 30px auto;
-    position: relative;
-    max-width: 450px;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 30px auto 60px !important; /* Increased bottom margin for more space */
+    position: relative !important;
+    max-width: 450px !important;
 }
 
 /* Horizontal line connecting the steps */
 .progress-steps::before {
-    content: '';
-    position: absolute;
-    top: 14px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background-color: #0066cc;
-    z-index: 1;
+    content: '' !important;
+    position: absolute !important;
+    top: 14px !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 2px !important;
+    background-color: #0066cc !important;
+    z-index: 1 !important;
 }
 
 /* Individual step circle */
 .step {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    margin: 0 40px;
-    position: relative;
-    z-index: 2;
-    border: 2px solid #ddd;
-    color: #666;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% !important;
+    background-color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 600 !important;
+    margin: 0 40px !important;
+    position: relative !important;
+    z-index: 2 !important;
+    border: 2px solid #ddd !important;
+    color: #666 !important;
 }
 
 /* Active step styling */
 .step.active {
-    background-color: #0066cc;
-    color: white;
-    border-color: #0066cc;
-    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+    background-color: #0066cc !important;
+    color: white !important;
+    border-color: #0066cc !important;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2) !important;
 }
 
 /* Completed step styling */
 .step.completed {
-    background-color: #0066cc;
-    color: white;
-    border-color: #0066cc;
+    background-color: #0066cc !important;
+    color: white !important;
+    border-color: #0066cc !important;
 }
 
 /* Text below steps */
 .step::after {
-    content: attr(data-title);
-    position: absolute;
-    top: 35px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    text-align: center;
-    font-size: 12px;
-    color: #666;
-    font-weight: normal;
+    content: attr(data-title) !important;
+    position: absolute !important;
+    top: 40px !important; /* Increased for better spacing */
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100px !important; 
+    text-align: center !important;
+    font-size: 13px !important;
+    color: #666 !important;
+    font-weight: normal !important;
+    white-space: nowrap !important; /* Prevent text wrapping */
+    background-color: rgba(255, 255, 255, 0.95) !important; /* Semi-transparent background */
+    padding: 3px 6px !important; /* Add padding around the text */
+    border-radius: 3px !important; /* Slight rounding of corners */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; /* Subtle shadow for better visibility */
+    z-index: 3 !important; /* Ensure text appears above other elements */
 }
 
 /* Active step text styling */
 .step.active::after {
-    font-weight: 600;
-    color: #0066cc;
+    font-weight: 600 !important;
+    color: #0066cc !important;
+    background-color: rgba(255, 255, 255, 1) !important; /* Fully opaque background for active step */
 }
 
 /* Completed step text styling */
 .step.completed::after {
-    color: #0066cc;
+    color: #0066cc !important;
+}
+
+/* Form Progress Wrapper */
+.form-progress {
+    margin-bottom: 40px !important;
 }
 
 /* Responsive adjustments */
 @media (max-width: 767px) {
     .progress-steps {
-        max-width: 360px;
+        max-width: 360px !important;
+        margin-bottom: 70px !important; /* Increased bottom margin on smaller screens */
     }
     
     .step {
-        margin: 0 20px;
+        margin: 0 20px !important;
+    }
+    
+    .step::after {
+        top: 45px !important; /* Even more space on smaller screens */
     }
 }
 
 @media (max-width: 480px) {
     .progress-steps {
-        max-width: 300px;
+        max-width: 300px !important;
+        margin-bottom: 80px !important; /* Even more space on very small screens */
     }
     
     .step {
-        margin: 0 12px;
-        width: 25px;
-        height: 25px;
-        font-size: 12px;
+        margin: 0 12px !important;
+        width: 25px !important;
+        height: 25px !important;
+        font-size: 12px !important;
     }
     
     .step::after {
-        top: 30px;
-        font-size: 10px;
-        width: 60px;
+        top: 35px !important;
+        font-size: 11px !important;
+        width: 80px !important;
+        white-space: normal !important; /* Allow text wrapping on very small screens */
+        line-height: 1.2 !important;
     }
     
     .progress-steps::before {
-        top: 12px;
+        top: 12px !important;
     }
 } 
