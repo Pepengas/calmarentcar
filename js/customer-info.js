@@ -116,6 +116,7 @@ const CustomerInfo = {
         
         // Summary elements
         this.elements.summaryLocation = document.getElementById('summary-location');
+        this.elements.summaryDropoffLocation = document.getElementById('summary-dropoff-location');
         this.elements.summaryPickupDate = document.getElementById('summary-pickup-date');
         this.elements.summaryReturnDate = document.getElementById('summary-return-date');
         this.elements.summaryDuration = document.getElementById('summary-duration');
@@ -203,7 +204,7 @@ const CustomerInfo = {
      * Populate the booking summary with data from session storage
      */
     populateBookingSummary: function() {
-        const { pickupLocation, pickupDate, returnDate, selectedCar } = this.bookingData;
+        const { pickupLocation, dropoffLocation, pickupDate, returnDate, selectedCar } = this.bookingData;
         
         // Format dates
         const formattedPickupDate = new Date(pickupDate).toLocaleDateString('en-US', {
@@ -232,6 +233,7 @@ const CustomerInfo = {
         
         // Update summary elements
         this.elements.summaryLocation.textContent = pickupLocation;
+        this.elements.summaryDropoffLocation.textContent = dropoffLocation || pickupLocation; // Show same as pickup if not specified
         this.elements.summaryPickupDate.textContent = formattedPickupDate;
         this.elements.summaryReturnDate.textContent = formattedReturnDate;
         this.elements.summaryDuration.textContent = `${durationDays} day${durationDays > 1 ? 's' : ''}`;
