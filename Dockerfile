@@ -11,10 +11,6 @@ RUN npm install --production
 # Copy source code
 COPY . .
 
-# Build static assets
-RUN npm install --no-save esbuild clean-css-cli terser && \
-    npm run build
-
 # Expose port
 EXPOSE 3000
 
@@ -25,4 +21,4 @@ ENV NODE_ENV=production
 RUN mkdir -p /app/data
 
 # Start the server
-CMD ["node", "server.js"] 
+CMD ["node", "server-new.js"] 

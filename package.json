@@ -5,7 +5,8 @@
   "main": "server-new.js",
   "scripts": {
     "start": "node server-new.js",
-    "dev": "nodemon server-new.js"
+    "dev": "nodemon server-new.js",
+    "build": "echo \"No build step required\""
   },
   "keywords": [
     "car rental",
