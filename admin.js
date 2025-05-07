@@ -600,30 +600,61 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
-        // Get bookings from localStorage instead of API
-        const storedBookings = localStorage.getItem('calma_bookings');
-        
-        // Small delay to simulate loading
-        setTimeout(() => {
-            try {
-                const bookings = storedBookings ? JSON.parse(storedBookings) : [];
-                
-                // Store for filtering
-                window.allBookings = bookings;
-                
-                // Update stats
-                updateBookingStats(bookings);
-                
-                if (bookings.length > 0) {
-                    displayBookings(bookings);
-                } else {
-                    displayEmptyBookingsState();
+        // First try to get bookings from API
+        fetch('/api/admin/bookings')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to load bookings from server');
                 }
-            } catch (error) {
-                console.error('Error parsing bookings from localStorage:', error);
-                displayErrorState(bookingsContainer, 'Failed to load booking data. Please try again.');
-            }
-        }, 500);
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.bookings) {
+                    // Store the bookings in localStorage for offline use
+                    localStorage.setItem('calma_bookings', JSON.stringify(data.bookings));
+                    
+                    // Store for filtering
+                    window.allBookings = data.bookings;
+                    
+                    // Update stats
+                    updateBookingStats(data.bookings);
+                    
+                    // Display the bookings
+                    if (data.bookings.length > 0) {
+                        displayBookings(data.bookings);
+                    } else {
+                        displayEmptyBookingsState();
+                    }
+                } else {
+                    throw new Error('Invalid data format from server');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching bookings from server:', error);
+                showNotification('Error loading bookings from server. Using local data instead.', 'error');
+                
+                // Fallback to localStorage if API fails
+                const storedBookings = localStorage.getItem('calma_bookings');
+                
+                try {
+                    const bookings = storedBookings ? JSON.parse(storedBookings) : [];
+                    
+                    // Store for filtering
+                    window.allBookings = bookings;
+                    
+                    // Update stats
+                    updateBookingStats(bookings);
+                    
+                    if (bookings.length > 0) {
+                        displayBookings(bookings);
+                    } else {
+                        displayEmptyBookingsState();
+                    }
+                } catch (parseError) {
+                    console.error('Error parsing bookings from localStorage:', parseError);
+                    displayErrorState(bookingsContainer, 'Failed to load booking data. Please try refreshing.');
+                }
+            });
     }
     
     // Function to initialize cars page
@@ -1238,7 +1269,10 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
-        // Add event listeners to close buttons
+        // Show the modal
+        modal.style.display = 'block';
+        
+        // Add event listeners to close the modal
         closeBtn.addEventListener('click', () => {
             modal.style.display = 'none';
         });
@@ -1247,8 +1281,12 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.style.display = 'none';
         });
         
-        // Show the modal
-        modal.style.display = 'block';
+        // Close the modal when clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
         
         // Add status update functionality
         const statusBtn = document.getElementById('modal-status-btn');
