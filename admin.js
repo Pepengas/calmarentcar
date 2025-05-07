@@ -4,6 +4,34 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Admin dashboard initializing');
+    
+    // Check if we're on the main admin page by looking for bookings-container
+    const bookingsContainer = document.getElementById('bookings-container');
+    if (bookingsContainer) {
+        console.log('Loading bookings dashboard');
+        
+        // Set up refresh button event
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                console.log('Manual refresh triggered');
+                loadBookings();
+            });
+        }
+        
+        // Set up migrate button event
+        const migrateBtn = document.getElementById('migrate-btn');
+        if (migrateBtn) {
+            migrateBtn.addEventListener('click', function() {
+                migrateLocalBookings();
+            });
+        }
+        
+        // Load bookings automatically
+        loadBookings();
+    }
+    
     // Get navigation links
     const navLinks = document.querySelectorAll('.nav-link');
     const mainContent = document.querySelector('.main-content');
@@ -600,6 +628,9 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
+        // Initialize variable to track if we're in a retry loop
+        let usingLocalFallback = false;
+        
         // First try to get bookings from API
         fetch('/api/admin/bookings')
             .then(response => {
@@ -609,9 +640,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                if (data.success && data.bookings) {
-                    // Store the bookings in localStorage for offline use
-                    localStorage.setItem('calma_bookings', JSON.stringify(data.bookings));
+                if (data.success && Array.isArray(data.bookings)) {
+                    console.log("Successfully loaded bookings from server:", data.source);
+                    
+                    // If we got bookings from the server, store them in localStorage
+                    if (data.bookings.length > 0) {
+                        localStorage.setItem('calma_bookings', JSON.stringify(data.bookings));
+                    }
                     
                     // Store for filtering
                     window.allBookings = data.bookings;
@@ -623,7 +658,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.bookings.length > 0) {
                         displayBookings(data.bookings);
                     } else {
-                        displayEmptyBookingsState();
+                        // Try to load from localStorage if server returned empty array
+                        fallbackToLocalStorage();
                     }
                 } else {
                     throw new Error('Invalid data format from server');
@@ -634,34 +670,114 @@ document.addEventListener('DOMContentLoaded', function() {
                 showNotification('Error loading bookings from server. Using local data instead.', 'error');
                 
                 // Fallback to localStorage if API fails
-                const storedBookings = localStorage.getItem('calma_bookings');
-                
-                try {
-                    const bookings = storedBookings ? JSON.parse(storedBookings) : [];
-                    
-                    // Store for filtering
-                    window.allBookings = bookings;
-                    
-                    // Update stats
-                    updateBookingStats(bookings);
-                    
-                    if (bookings.length > 0) {
-                        displayBookings(bookings);
-                        
-                        // Save to server's local file for backup
-                        saveLocalBookingsToServer(bookings);
-                    } else {
-                        displayEmptyBookingsState();
-                    }
-                } catch (parseError) {
-                    console.error('Error parsing bookings from localStorage:', parseError);
-                    displayErrorState(bookingsContainer, 'Failed to load booking data. Please try refreshing.');
-                }
+                fallbackToLocalStorage();
             });
+        
+        // Function to handle fallback to localStorage
+        function fallbackToLocalStorage() {
+            if (usingLocalFallback) {
+                // We're already in a fallback state, don't try again
+                displayEmptyBookingsState();
+                return;
+            }
+            
+            usingLocalFallback = true;
+            
+            // Check several formats of stored bookings
+            let bookings = [];
+            let foundBookings = false;
+            
+            // Try calma_bookings first (our primary storage)
+            const storedBookings = localStorage.getItem('calma_bookings');
+            if (storedBookings) {
+                try {
+                    const parsedBookings = JSON.parse(storedBookings);
+                    if (Array.isArray(parsedBookings) && parsedBookings.length > 0) {
+                        bookings = parsedBookings;
+                        foundBookings = true;
+                        console.log("Found bookings in calma_bookings:", bookings.length);
+                    }
+                } catch (error) {
+                    console.error("Error parsing calma_bookings:", error);
+                }
+            }
+            
+            // If we didn't find any bookings, check for adminBookings (legacy format)
+            if (!foundBookings) {
+                const adminBookings = localStorage.getItem('adminBookings');
+                if (adminBookings) {
+                    try {
+                        const parsedBookings = JSON.parse(adminBookings);
+                        if (Array.isArray(parsedBookings) && parsedBookings.length > 0) {
+                            bookings = parsedBookings;
+                            foundBookings = true;
+                            console.log("Found bookings in adminBookings:", bookings.length);
+                            
+                            // Also store these in the primary location
+                            localStorage.setItem('calma_bookings', JSON.stringify(bookings));
+                        }
+                    } catch (error) {
+                        console.error("Error parsing adminBookings:", error);
+                    }
+                }
+            }
+            
+            // If we still don't have bookings, check individual booking_* entries
+            if (!foundBookings) {
+                const individualBookings = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('booking_')) {
+                        try {
+                            const booking = JSON.parse(localStorage.getItem(key));
+                            if (booking) {
+                                individualBookings.push(booking);
+                            }
+                        } catch (error) {
+                            console.error(`Error parsing booking ${key}:`, error);
+                        }
+                    }
+                }
+                
+                if (individualBookings.length > 0) {
+                    bookings = individualBookings;
+                    foundBookings = true;
+                    console.log("Found individual bookings:", bookings.length);
+                    
+                    // Store these in the primary location too
+                    localStorage.setItem('calma_bookings', JSON.stringify(bookings));
+                }
+            }
+            
+            // Display the bookings we found
+            if (foundBookings && bookings.length > 0) {
+                // Store for filtering
+                window.allBookings = bookings;
+                
+                // Update stats
+                updateBookingStats(bookings);
+                
+                // Display
+                displayBookings(bookings);
+                
+                // Save to server's local file for backup
+                saveLocalBookingsToServer(bookings);
+            } else {
+                displayEmptyBookingsState();
+                showNotification('No bookings found in local storage.', 'info');
+            }
+        }
     }
     
     // Function to save local bookings to server file
     function saveLocalBookingsToServer(bookings) {
+        if (!Array.isArray(bookings) || bookings.length === 0) {
+            console.error('No valid bookings to save to server');
+            return;
+        }
+        
+        console.log(`Attempting to save ${bookings.length} bookings to server file`);
+        
         fetch('/api/bookings/save-local', {
             method: 'POST',
             headers: {
@@ -669,16 +785,29 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({ bookings: bookings })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Server responded with ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
-                console.log('Successfully saved local bookings to server file');
+                console.log(`Successfully saved ${data.count} bookings to server file`);
             } else {
-                console.error('Failed to save local bookings:', data.message);
+                throw new Error(data.message || 'Unknown error');
             }
         })
         .catch(error => {
-            console.error('Error saving local bookings:', error);
+            console.error('Error saving local bookings to server:', error);
+            
+            // Since the server couldn't save the bookings, let's make sure they're at least in localStorage
+            try {
+                localStorage.setItem('calma_bookings', JSON.stringify(bookings));
+                console.log('Bookings saved to localStorage as fallback');
+            } catch (localError) {
+                console.error('Failed to save bookings to localStorage:', localError);
+            }
         });
     }
     
@@ -1384,55 +1513,65 @@ document.addEventListener('DOMContentLoaded', function() {
     const migrateBtn = document.getElementById('migrate-btn');
     if (migrateBtn) {
         migrateBtn.addEventListener('click', function() {
-            // Get bookings from localStorage
-            const storedBookings = localStorage.getItem('calma_bookings');
-            if (!storedBookings) {
-                showNotification('No bookings found in localStorage to migrate', 'error');
-                return;
-            }
-            
-            try {
-                const bookings = JSON.parse(storedBookings);
-                if (bookings.length === 0) {
-                    showNotification('No bookings to migrate', 'error');
-                    return;
-                }
-                
-                // Confirm before migration
-                if (confirm(`Are you sure you want to migrate ${bookings.length} bookings to the database?`)) {
-                    // Show notification
-                    showNotification(`Migrating ${bookings.length} bookings...`, 'info');
-                    
-                    // Call migration endpoint
-                    fetch('/api/migrate-bookings', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ bookings: bookings })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showNotification(`Migration complete: ${data.migrated} migrated, ${data.skipped} skipped, ${data.errors} errors`, 'success');
-                            // Refresh bookings after migration
-                            loadBookings();
-                        } else {
-                            showNotification(`Migration failed: ${data.error}`, 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error during migration:', error);
-                        showNotification('Migration failed due to a network error', 'error');
-                    });
-                }
-            } catch (error) {
-                console.error('Error parsing bookings:', error);
-                showNotification('Failed to parse bookings from localStorage', 'error');
-            }
+            migrateLocalBookings();
         });
     }
     
     // Load bookings automatically when the page loads
     loadBookings();
-}); 
+});
+
+// Function to migrate local bookings to database
+function migrateLocalBookings() {
+    // Get bookings from localStorage
+    const storedBookings = localStorage.getItem('calma_bookings');
+    if (!storedBookings) {
+        showNotification('No bookings found in localStorage to migrate', 'error');
+        return;
+    }
+    
+    try {
+        const bookings = JSON.parse(storedBookings);
+        if (!Array.isArray(bookings) || bookings.length === 0) {
+            showNotification('No bookings to migrate', 'error');
+            return;
+        }
+        
+        // Confirm before migration
+        if (confirm(`Are you sure you want to migrate ${bookings.length} bookings to the database?`)) {
+            // Show notification
+            showNotification(`Migrating ${bookings.length} bookings...`, 'info');
+            
+            // Call migration endpoint
+            fetch('/api/migrate-bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ bookings: bookings })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server responded with ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showNotification(`Migration complete: ${data.migrated} migrated, ${data.skipped} skipped, ${data.errors} errors`, 'success');
+                    // Refresh bookings after migration
+                    loadBookings();
+                } else {
+                    showNotification(`Migration failed: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error during migration:', error);
+                showNotification('Migration failed due to a network error', 'error');
+            });
+        }
+    } catch (error) {
+        console.error('Error parsing bookings:', error);
+        showNotification('Failed to parse bookings from localStorage', 'error');
+    }
+} 

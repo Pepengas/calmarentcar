@@ -127,19 +127,42 @@ app.use(bodyParser.json());
 app.use(express.static('.')); // Serve static files from current directory
 
 // === PostgreSQL connection ===
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
-
-// Test the database connection
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('Error connecting to the database:', err);
-  } else {
-    console.log('Successfully connected to PostgreSQL database at:', res.rows[0].now);
+let pool;
+try {
+  // Check if we have a valid DATABASE_URL
+  if (!process.env.DATABASE_URL) {
+    console.warn('No DATABASE_URL provided in environment variables. Using mock database.');
+    throw new Error('No DATABASE_URL provided');
   }
-});
+
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  });
+
+  // Add error handler to prevent crashes
+  pool.on('error', (err) => {
+    console.error('Unexpected database error:', err);
+    // Don't crash the application on connection errors
+  });
+
+  // Test the database connection
+  pool.query('SELECT NOW()', (err, res) => {
+    if (err) {
+      console.error('Error connecting to the database:', err);
+    } else {
+      console.log('Successfully connected to PostgreSQL database at:', res.rows[0].now);
+    }
+  });
+} catch (error) {
+  console.error('Failed to initialize database pool:', error);
+  
+  // Create a mock pool that won't crash the application
+  pool = {
+    query: () => Promise.reject(new Error('Database connection unavailable: ' + error.message)),
+    on: () => this
+  };
+}
 
 // === API Routes ===
 // NOTE: Checkout routes disabled until Stripe is properly configured
