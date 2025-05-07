@@ -276,221 +276,289 @@
                 }
             }
             
-            // Load diagnostic data
-            async function loadDiagnosticData() {
-                try {
-                    // Show loading state
-                    serverInfo.innerHTML = '<div class="data-row"><div class="data-label">Status</div><div class="data-value">Loading...</div></div>';
-                    databaseInfo.innerHTML = '<div class="data-row"><div class="data-label">Connection</div><div class="data-value">Checking...</div></div>';
-                    tablesInfo.innerHTML = '<div class="data-row"><div class="data-label">Tables</div><div class="data-value">Loading...</div></div>';
-                    
-                    // Get API URL based on environment
-                    const apiUrl = window.location.hostname === 'localhost' 
-                        ? 'http://localhost:3000/api/diagnostic' 
-                        : '/api/diagnostic';
-                    
-                    // Fetch diagnostic data
-                    const response = await fetch(apiUrl);
-                    if (!response.ok) {
-                        throw new Error(`Server error: ${response.status}`);
-                    }
-                    
-                    const data = await response.json();
-                    
-                    // Update server info
-                    let serverHtml = '';
-                    if (data.server) {
-                        const server = data.server;
-                        const statusClass = server.status === 'ok' ? 'success' : 'error';
+            // Function to fetch diagnostic data
+            function fetchDiagnosticData() {
+                // Set loading states
+                serverInfo.innerHTML = '<div class="data-row"><div class="data-label">Status</div><div class="data-value">Loading...</div></div>';
+                databaseInfo.innerHTML = '<div class="data-row"><div class="data-label">Connection</div><div class="data-value">Checking...</div></div>';
+                tablesInfo.innerHTML = '<div class="data-row"><div class="data-label">Tables</div><div class="data-value">Loading...</div></div>';
+                
+                // Fetch diagnostic data
+                fetch('/api/diagnostic')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Display raw data
+                        rawData.textContent = JSON.stringify(data, null, 2);
                         
-                        serverHtml += `
-                            <div class="data-row">
-                                <div class="data-label">Status</div>
-                                <div class="data-value">
-                                    <span class="status ${statusClass}">
-                                        ${server.status.toUpperCase()}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="data-row">
-                                <div class="data-label">Timestamp</div>
-                                <div class="data-value">${server.timestamp}</div>
-                            </div>
-                            <div class="data-row">
-                                <div class="data-label">Uptime</div>
-                                <div class="data-value">${server.uptime}</div>
-                            </div>
-                        `;
-                    } else {
-                        serverHtml = '<div class="data-row"><div class="data-label">Status</div><div class="data-value"><span class="status error">ERROR</span></div></div>';
-                    }
-                    serverInfo.innerHTML = serverHtml;
-                    
-                    // Update database info
-                    let dbHtml = '';
-                    if (data.database) {
-                        const db = data.database;
-                        const statusClass = db.status === 'connected' ? 'success' : 'error';
-                        
-                        dbHtml += `
-                            <div class="data-row">
-                                <div class="data-label">Connection</div>
-                                <div class="data-value">
-                                    <span class="status ${statusClass}">
-                                        ${db.status.toUpperCase()}
-                                    </span>
-                                </div>
-                            </div>
-                        `;
-                        
-                        if (db.status === 'connected') {
-                            dbHtml += `
+                        // Update server info
+                        let serverHtml = '';
+                        if (data.server) {
+                            serverHtml += `
                                 <div class="data-row">
-                                    <div class="data-label">Type</div>
-                                    <div class="data-value">${db.version}</div>
+                                    <div class="data-label">Status</div>
+                                    <div class="data-value"><span class="status success">OK</span></div>
                                 </div>
                                 <div class="data-row">
-                                    <div class="data-label">Server Time</div>
-                                    <div class="data-value">${db.timestamp}</div>
+                                    <div class="data-label">Timestamp</div>
+                                    <div class="data-value">${data.server.timestamp}</div>
                                 </div>
-                            `;
-                        } else if (db.error) {
-                            dbHtml += `
                                 <div class="data-row">
-                                    <div class="data-label">Error</div>
-                                    <div class="data-value">${db.error}</div>
+                                    <div class="data-label">Uptime</div>
+                                    <div class="data-value">${data.server.uptime}</div>
                                 </div>
                             `;
                         }
-                    } else {
-                        dbHtml = '<div class="data-row"><div class="data-label">Connection</div><div class="data-value"><span class="status error">ERROR</span></div></div>';
-                    }
-                    databaseInfo.innerHTML = dbHtml;
-                    
-                    // Update tables info
-                    let tablesHtml = '';
-                    if (data.tables) {
-                        const tables = data.tables;
+                        serverInfo.innerHTML = serverHtml;
                         
-                        if (tables.bookings) {
-                            const statusClass = tables.bookings.exists ? 'success' : 'error';
-                            tablesHtml += `
+                        // Update database info
+                        let dbHtml = '';
+                        let dbStatus = 'error';
+                        let dbStatusMessage = 'Error';
+                        let errorDetails = '';
+                        
+                        if (data.database) {
+                            if (data.database.status === 'connected') {
+                                dbStatus = 'success';
+                                dbStatusMessage = 'Connected';
+                            } else if (data.database.error && data.database.error.includes('Cannot find module')) {
+                                errorDetails = 'PostgreSQL module is missing. Run "npm install pg" to install it.';
+                            } else if (data.database.error) {
+                                errorDetails = data.database.error;
+                            }
+                            
+                            dbHtml += `
                                 <div class="data-row">
-                                    <div class="data-label">Bookings Table</div>
-                                    <div class="data-value">
-                                        <span class="status ${statusClass}">
-                                            ${tables.bookings.exists ? 'EXISTS' : 'MISSING'}
-                                        </span>
-                                    </div>
+                                    <div class="data-label">Connection</div>
+                                    <div class="data-value"><span class="status ${dbStatus}">${dbStatusMessage}</span></div>
                                 </div>
                             `;
                             
-                            if (tables.bookings.exists) {
-                                tablesHtml += `
+                            if (data.database.version) {
+                                dbHtml += `
                                     <div class="data-row">
-                                        <div class="data-label">Records Count</div>
-                                        <div class="data-value">${tables.bookings.count}</div>
-                                    </div>
-                                `;
-                            } else if (tables.bookings.error) {
-                                tablesHtml += `
-                                    <div class="data-row">
-                                        <div class="data-label">Error</div>
-                                        <div class="data-value">${tables.bookings.error}</div>
+                                        <div class="data-label">Database</div>
+                                        <div class="data-value">${data.database.version}</div>
                                     </div>
                                 `;
                             }
-                        } else {
+                            
+                            if (errorDetails) {
+                                dbHtml += `
+                                    <div class="data-row">
+                                        <div class="data-label">Error</div>
+                                        <div class="data-value" style="color: #e74c3c;">${errorDetails}</div>
+                                    </div>
+                                    <div class="data-row">
+                                        <div class="data-label">Solution</div>
+                                        <div class="data-value">
+                                            <ol style="margin-left: 20px;">
+                                                <li>Run <code>npm install pg</code> to install PostgreSQL</li>
+                                                <li>Check your DATABASE_URL environment variable</li>
+                                                <li>Restart the server after installing dependencies</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+                        databaseInfo.innerHTML = dbHtml;
+                        
+                        // Update tables info
+                        let tablesHtml = '';
+                        if (data.tables) {
+                            if (data.tables.bookings) {
+                                const status = data.tables.bookings.exists ? 'success' : 'error';
+                                const statusLabel = data.tables.bookings.exists ? 'Available' : 'Missing';
+                                const count = data.tables.bookings.count || 0;
+                                
+                                tablesHtml += `
+                                    <div class="data-row">
+                                        <div class="data-label">Bookings Table</div>
+                                        <div class="data-value"><span class="status ${status}">${statusLabel}</span></div>
+                                    </div>
+                                `;
+                                
+                                if (data.tables.bookings.exists) {
+                                    tablesHtml += `
+                                        <div class="data-row">
+                                            <div class="data-label">Bookings Count</div>
+                                            <div class="data-value">${count}</div>
+                                        </div>
+                                    `;
+                                } else if (data.tables.bookings.error) {
+                                    tablesHtml += `
+                                        <div class="data-row">
+                                            <div class="data-label">Error</div>
+                                            <div class="data-value" style="color: #e74c3c;">${data.tables.bookings.error}</div>
+                                        </div>
+                                    `;
+                                }
+                            } else {
+                                tablesHtml += `
+                                    <div class="data-row">
+                                        <div class="data-label">Tables</div>
+                                        <div class="data-value"><span class="status warning">Unknown</span></div>
+                                    </div>
+                                `;
+                            }
+                        }
+                        
+                        // Add fallback information when DB is not available
+                        if (!data.tables || !data.tables.bookings || !data.tables.bookings.exists) {
                             tablesHtml += `
                                 <div class="data-row">
-                                    <div class="data-label">Bookings Table</div>
-                                    <div class="data-value"><span class="status warning">UNKNOWN</span></div>
+                                    <div class="data-label">Fallback Status</div>
+                                    <div class="data-value"><span class="status info">LocalStorage Mode Active</span></div>
+                                </div>
+                                <div class="data-row">
+                                    <div class="data-label">Solution</div>
+                                    <div class="data-value">
+                                        Your site is operating in fallback mode with LocalStorage. 
+                                        When database connectivity is restored, you can migrate your data.
+                                    </div>
                                 </div>
                             `;
                         }
-                    } else {
-                        tablesHtml = '<div class="data-row"><div class="data-label">Tables</div><div class="data-value"><span class="status error">ERROR</span></div></div>';
-                    }
-                    tablesInfo.innerHTML = tablesHtml;
-                    
-                    // Update storage info
-                    const isLocalStorageAvailable = checkLocalStorage();
-                    const localStorageCount = isLocalStorageAvailable ? countLocalStorageBookings() : 'N/A';
-                    
-                    let storageHtml = `
-                        <div class="data-row">
-                            <div class="data-label">LocalStorage</div>
-                            <div class="data-value">
-                                <span class="status ${isLocalStorageAvailable ? 'success' : 'error'}">
-                                    ${isLocalStorageAvailable ? 'AVAILABLE' : 'UNAVAILABLE'}
-                                </span>
-                            </div>
-                        </div>
-                    `;
-                    
-                    if (isLocalStorageAvailable) {
-                        storageHtml += `
-                            <div class="data-row">
-                                <div class="data-label">Stored Bookings</div>
-                                <div class="data-value">${localStorageCount}</div>
-                            </div>
-                        `;
-                    }
-                    
-                    if (data.storageStatus && data.storageStatus.database) {
-                        const dbStatus = data.storageStatus.database;
-                        const statusClass = dbStatus === 'connected' ? 'success' : 'error';
+                        tablesInfo.innerHTML = tablesHtml;
                         
-                        storageHtml += `
+                        // Update storage info
+                        updateStorageInfo(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching diagnostic data:', error);
+                        rawData.textContent = JSON.stringify({ error: error.message }, null, 2);
+                        
+                        // Show error states
+                        serverInfo.innerHTML = `
                             <div class="data-row">
-                                <div class="data-label">Database Storage</div>
-                                <div class="data-value">
-                                    <span class="status ${statusClass}">
-                                        ${dbStatus.toUpperCase()}
-                                    </span>
-                                </div>
+                                <div class="data-label">Status</div>
+                                <div class="data-value"><span class="status error">Error</span></div>
+                            </div>
+                            <div class="data-row">
+                                <div class="data-label">Error</div>
+                                <div class="data-value">${error.message}</div>
                             </div>
                         `;
-                    }
-                    
-                    storageInfo.innerHTML = storageHtml;
-                    
-                    // Update raw data
-                    rawData.textContent = JSON.stringify({
-                        ...data,
-                        clientStorage: {
-                            localStorage: {
-                                available: isLocalStorageAvailable,
-                                bookingsCount: localStorageCount
-                            }
-                        }
-                    }, null, 2);
-                    
-                } catch (error) {
-                    console.error('Error loading diagnostic data:', error);
-                    
-                    serverInfo.innerHTML = `
-                        <div class="data-row">
-                            <div class="data-label">Status</div>
-                            <div class="data-value"><span class="status error">ERROR</span></div>
+                        
+                        databaseInfo.innerHTML = `
+                            <div class="data-row">
+                                <div class="data-label">Connection</div>
+                                <div class="data-value"><span class="status error">Disconnected</span></div>
+                            </div>
+                            <div class="data-row">
+                                <div class="data-label">Error</div>
+                                <div class="data-value">Could not check database status</div>
+                            </div>
+                        `;
+                        
+                        tablesInfo.innerHTML = `
+                            <div class="data-row">
+                                <div class="data-label">Tables</div>
+                                <div class="data-value"><span class="status error">Unknown</span></div>
+                            </div>
+                        `;
+                        
+                        // Update storage info even on error
+                        updateStorageInfo();
+                    });
+            }
+            
+            // Function to update storage info
+            function updateStorageInfo(data) {
+                // Check localStorage
+                const isLocalStorageAvailable = checkLocalStorage();
+                const localStorageCount = isLocalStorageAvailable ? countLocalStorageBookings() : 'N/A';
+                
+                let storageHtml = `
+                    <div class="data-row">
+                        <div class="data-label">LocalStorage</div>
+                        <div class="data-value">
+                            <span class="status ${isLocalStorageAvailable ? 'success' : 'error'}">
+                                ${isLocalStorageAvailable ? 'AVAILABLE' : 'UNAVAILABLE'}
+                            </span>
                         </div>
+                    </div>
+                `;
+                
+                if (isLocalStorageAvailable) {
+                    storageHtml += `
                         <div class="data-row">
-                            <div class="data-label">Error</div>
-                            <div class="data-value">${error.message}</div>
+                            <div class="data-label">Stored Bookings</div>
+                            <div class="data-value">${localStorageCount}</div>
+                        </div>
+                    `;
+                }
+                
+                // Database storage status
+                let dbStatus = 'disconnected';
+                let statusClass = 'error';
+                
+                if (data && data.storageStatus && data.storageStatus.database) {
+                    dbStatus = data.storageStatus.database;
+                    statusClass = dbStatus === 'connected' ? 'success' : 'error';
+                }
+                
+                storageHtml += `
+                    <div class="data-row">
+                        <div class="data-label">Database Storage</div>
+                        <div class="data-value">
+                            <span class="status ${statusClass}">
+                                ${dbStatus}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                
+                // Add backup file status
+                try {
+                    // Check if local_bookings.json exists
+                    const backupFileExists = document.getElementById('local-backup-exists');
+                    
+                    storageHtml += `
+                        <div class="data-row">
+                            <div class="data-label">Local Backup File</div>
+                            <div class="data-value" id="local-backup-exists">
+                                <span class="status info">Checking...</span>
+                            </div>
                         </div>
                     `;
                     
-                    databaseInfo.innerHTML = '<div class="data-row"><div class="data-label">Connection</div><div class="data-value"><span class="status error">UNKNOWN</span></div></div>';
-                    tablesInfo.innerHTML = '<div class="data-row"><div class="data-label">Tables</div><div class="data-value"><span class="status error">UNKNOWN</span></div></div>';
-                    rawData.textContent = JSON.stringify({ error: error.message }, null, 2);
+                    // We'll check this via a separate API endpoint
+                    setTimeout(() => {
+                        fetch('/api/bookings/backup-status')
+                            .then(response => response.json())
+                            .then(data => {
+                                const statusElem = document.getElementById('local-backup-exists');
+                                if (statusElem) {
+                                    if (data.exists) {
+                                        statusElem.innerHTML = `
+                                            <span class="status success">Available</span>
+                                            <div style="margin-top: 5px;">${data.count} bookings, Last modified: ${data.modified}</div>
+                                        `;
+                                    } else {
+                                        statusElem.innerHTML = `<span class="status warning">Not Found</span>`;
+                                    }
+                                }
+                            })
+                            .catch(error => {
+                                const statusElem = document.getElementById('local-backup-exists');
+                                if (statusElem) {
+                                    statusElem.innerHTML = `<span class="status warning">Unknown</span>`;
+                                }
+                            });
+                    }, 500);
+                } catch (e) {
+                    console.error('Error checking backup file status:', e);
                 }
+                
+                storageInfo.innerHTML = storageHtml;
             }
             
             // Initialize
-            loadDiagnosticData();
+            fetchDiagnosticData();
             
             // Add event listeners
-            refreshBtn.addEventListener('click', loadDiagnosticData);
+            refreshBtn.addEventListener('click', fetchDiagnosticData);
             
             runMigrationsBtn.addEventListener('click', async function() {
                 try {
@@ -515,7 +583,7 @@
                     alert(data.message || 'Database initialized successfully');
                     
                     // Reload diagnostic data
-                    loadDiagnosticData();
+                    fetchDiagnosticData();
                 } catch (error) {
                     alert('Error initializing database: ' + error.message);
                     console.error('Error initializing database:', error);

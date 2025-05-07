@@ -4,7 +4,26 @@ const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
-const { Pool } = require('pg');
+let Pool;
+try {
+  const pg = require('pg');
+  Pool = pg.Pool;
+} catch (error) {
+  console.warn('PostgreSQL module not found. Running in fallback mode.');
+  Pool = class MockPool {
+    constructor() {
+      console.log('Using mock database pool');
+    }
+    
+    query() {
+      return Promise.reject(new Error('Database connection unavailable'));
+    }
+    
+    on() {
+      return this;
+    }
+  };
+}
 const fs = require('fs').promises;
 
 // Load environment variables
@@ -21,6 +40,20 @@ const bookingsStorage = {
       return result.rows.map(row => row.booking_data);
     } catch (error) {
       console.error('Error getting bookings from database:', error);
+      
+      // Fall back to localStorage format in case of database error
+      try {
+        const localBookingsPath = path.join(__dirname, 'local_bookings.json');
+        const exists = await fs.access(localBookingsPath).then(() => true).catch(() => false);
+        
+        if (exists) {
+          const data = await fs.readFile(localBookingsPath, 'utf8');
+          return JSON.parse(data);
+        }
+      } catch (fsError) {
+        console.error('Error reading local bookings file:', fsError);
+      }
+      
       return [];
     }
   },
@@ -227,7 +260,38 @@ app.post('/api/book', async (req, res) => {
 // === API: Admin Bookings ===
 app.get('/api/admin/bookings', async (req, res) => {
     try {
+        // Get bookings from storage (with fallback)
         const bookings = await bookingsStorage.getAllBookings();
+        
+        // If we didn't get any bookings and the database is in error state,
+        // try to load from a local backup file
+        if (bookings.length === 0) {
+            try {
+                // Try to load from local backup
+                const localBookingsPath = path.join(__dirname, 'local_bookings.json');
+                const exists = await fs.access(localBookingsPath).then(() => true).catch(() => false);
+                
+                if (exists) {
+                    const data = await fs.readFile(localBookingsPath, 'utf8');
+                    const localBookings = JSON.parse(data);
+                    
+                    // Sort by created_at date, most recent first
+                    localBookings.sort((a, b) => {
+                        const dateA = new Date(b.created_at || b.dateSubmitted || b.timestamp || 0);
+                        const dateB = new Date(a.created_at || a.dateSubmitted || a.timestamp || 0);
+                        return dateA - dateB;
+                    });
+                    
+                    return res.status(200).json({ 
+                        success: true, 
+                        bookings: localBookings,
+                        source: 'local_file'
+                    });
+                }
+            } catch (localError) {
+                console.error('Error loading local bookings backup:', localError);
+            }
+        }
         
         // Sort by created_at date, most recent first
         bookings.sort((a, b) => {
@@ -238,10 +302,38 @@ app.get('/api/admin/bookings', async (req, res) => {
         
         res.status(200).json({ 
             success: true, 
-            bookings: bookings
+            bookings: bookings,
+            source: 'database'
         });
     } catch (error) {
         console.error('Error retrieving bookings:', error);
+        
+        // In case of any error, try to load from localStorage backup
+        try {
+            const localBookingsPath = path.join(__dirname, 'local_bookings.json');
+            const exists = await fs.access(localBookingsPath).then(() => true).catch(() => false);
+            
+            if (exists) {
+                const data = await fs.readFile(localBookingsPath, 'utf8');
+                const localBookings = JSON.parse(data);
+                
+                // Sort by created_at date, most recent first
+                localBookings.sort((a, b) => {
+                    const dateA = new Date(b.created_at || b.dateSubmitted || b.timestamp || 0);
+                    const dateB = new Date(a.created_at || a.dateSubmitted || a.timestamp || 0);
+                    return dateA - dateB;
+                });
+                
+                return res.status(200).json({ 
+                    success: true, 
+                    bookings: localBookings,
+                    source: 'local_file_fallback'
+                });
+            }
+        } catch (backupError) {
+            console.error('Error loading backup:', backupError);
+        }
+        
         res.status(500).json({ 
             success: false, 
             message: 'Failed to load bookings data.' 
@@ -632,6 +724,76 @@ app.delete('/api/bookings/:reference', async (req, res) => {
   } catch (err) {
     console.error('Error deleting booking:', err);
     res.status(500).json({ error: 'Failed to delete booking' });
+  }
+});
+
+// === API: Save Local Bookings to File ===
+app.post('/api/bookings/save-local', async (req, res) => {
+  try {
+    const { bookings } = req.body;
+    
+    if (!bookings || !Array.isArray(bookings)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid bookings data'
+      });
+    }
+    
+    // Save to local file
+    const localBookingsPath = path.join(__dirname, 'local_bookings.json');
+    await fs.writeFile(localBookingsPath, JSON.stringify(bookings, null, 2));
+    
+    console.log(`Saved ${bookings.length} bookings to local backup file`);
+    
+    res.status(200).json({
+      success: true,
+      message: `Successfully saved ${bookings.length} bookings to local backup file`,
+      count: bookings.length
+    });
+  } catch (error) {
+    console.error('Error saving local bookings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save bookings to local file',
+      error: error.message
+    });
+  }
+});
+
+// === API: Check Backup File Status ===
+app.get('/api/bookings/backup-status', async (req, res) => {
+  try {
+    // Check if backup file exists
+    const localBookingsPath = path.join(__dirname, 'local_bookings.json');
+    const exists = await fs.access(localBookingsPath).then(() => true).catch(() => false);
+    
+    if (exists) {
+      // Get file stats
+      const stats = await fs.stat(localBookingsPath);
+      const modified = new Date(stats.mtime).toLocaleString();
+      
+      // Read file to get count of bookings
+      const data = await fs.readFile(localBookingsPath, 'utf8');
+      const bookings = JSON.parse(data);
+      const count = Array.isArray(bookings) ? bookings.length : 0;
+      
+      res.status(200).json({
+        exists: true,
+        modified,
+        count,
+        size: stats.size,
+      });
+    } else {
+      res.status(200).json({
+        exists: false
+      });
+    }
+  } catch (error) {
+    console.error('Error checking backup file status:', error);
+    res.status(500).json({
+      exists: false,
+      error: error.message
+    });
   }
 });
 
