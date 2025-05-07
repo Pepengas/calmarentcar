@@ -11,6 +11,29 @@ document.addEventListener('DOMContentLoaded', function() {
     if (bookingsContainer) {
         console.log('Loading bookings dashboard');
         
+        // Add a debug button to the header actions
+        const headerActions = document.querySelector('.header-actions');
+        if (headerActions) {
+            const debugBtn = document.createElement('button');
+            debugBtn.className = 'refresh-btn';
+            debugBtn.innerHTML = '<i class="fas fa-bug"></i> Debug';
+            debugBtn.title = 'Run diagnostics and create sample booking';
+            debugBtn.addEventListener('click', function() {
+                if (confirm('This will create a sample booking for testing. Continue?')) {
+                    debugAdminPanel();
+                    createSampleBooking();
+                }
+            });
+            
+            // Insert after the migrate button
+            const migrateBtn = document.getElementById('migrate-btn');
+            if (migrateBtn) {
+                headerActions.insertBefore(debugBtn, migrateBtn.nextSibling);
+            } else {
+                headerActions.appendChild(debugBtn);
+            }
+        }
+        
         // Set up refresh button event
         const refreshBtn = document.getElementById('refresh-btn');
         if (refreshBtn) {
@@ -618,7 +641,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to load bookings data
     function loadBookings() {
         const bookingsContainer = document.getElementById('bookings-container');
-        if (!bookingsContainer) return;
+        if (!bookingsContainer) {
+            console.error('Bookings container not found in the DOM');
+            return;
+        }
+        
+        console.log('Starting to load bookings...');
         
         bookingsContainer.innerHTML = `
             <div class="loading-state">
@@ -628,24 +656,54 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
+        // Diagnostic: Check localStorage directly
+        console.log('==== LOCALSTORAGE DIAGNOSTIC ====');
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                console.log(`Key ${i}: ${key}, Length: ${localStorage.getItem(key)?.length || 0} chars`);
+            }
+        } catch (e) {
+            console.error('Error accessing localStorage:', e);
+        }
+
         // Initialize variable to track if we're in a retry loop
         let usingLocalFallback = false;
         
         // First try to get bookings from API
+        console.log('Fetching from /api/admin/bookings...');
+        
+        // Set a timeout to switch to fallback if the API takes too long
+        const apiTimeout = setTimeout(() => {
+            console.log('API request timeout - switching to fallback');
+            if (!usingLocalFallback) {
+                fallbackToLocalStorage();
+            }
+        }, 5000); // 5 second timeout
+        
         fetch('/api/admin/bookings')
             .then(response => {
+                console.log('API response received, status:', response.status);
+                clearTimeout(apiTimeout); // Clear the timeout once we get a response
+                
                 if (!response.ok) {
-                    throw new Error('Failed to load bookings from server');
+                    throw new Error(`Failed to load bookings from server: ${response.status} ${response.statusText}`);
                 }
                 return response.json();
             })
             .then(data => {
+                console.log('API data received:', data);
                 if (data.success && Array.isArray(data.bookings)) {
-                    console.log("Successfully loaded bookings from server:", data.source);
+                    console.log(`Successfully loaded ${data.bookings.length} bookings from server:`, data.source);
                     
                     // If we got bookings from the server, store them in localStorage
                     if (data.bookings.length > 0) {
-                        localStorage.setItem('calma_bookings', JSON.stringify(data.bookings));
+                        try {
+                            localStorage.setItem('calma_bookings', JSON.stringify(data.bookings));
+                            console.log('Saved bookings to localStorage');
+                        } catch (storageError) {
+                            console.error('Error saving to localStorage:', storageError);
+                        }
                     }
                     
                     // Store for filtering
@@ -658,14 +716,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.bookings.length > 0) {
                         displayBookings(data.bookings);
                     } else {
+                        console.log('No bookings returned from API, trying localStorage...');
                         // Try to load from localStorage if server returned empty array
                         fallbackToLocalStorage();
                     }
                 } else {
+                    console.error('Invalid data format from server:', data);
                     throw new Error('Invalid data format from server');
                 }
             })
             .catch(error => {
+                clearTimeout(apiTimeout); // Clear the timeout in case of error
                 console.error('Error fetching bookings from server:', error);
                 showNotification('Error loading bookings from server. Using local data instead.', 'error');
                 
@@ -675,7 +736,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Function to handle fallback to localStorage
         function fallbackToLocalStorage() {
+            console.log('Attempting to load bookings from localStorage...');
             if (usingLocalFallback) {
+                console.log('Already in fallback mode, not trying again');
                 // We're already in a fallback state, don't try again
                 displayEmptyBookingsState();
                 return;
@@ -687,84 +750,164 @@ document.addEventListener('DOMContentLoaded', function() {
             let bookings = [];
             let foundBookings = false;
             
-            // Try calma_bookings first (our primary storage)
-            const storedBookings = localStorage.getItem('calma_bookings');
-            if (storedBookings) {
-                try {
-                    const parsedBookings = JSON.parse(storedBookings);
-                    if (Array.isArray(parsedBookings) && parsedBookings.length > 0) {
-                        bookings = parsedBookings;
-                        foundBookings = true;
-                        console.log("Found bookings in calma_bookings:", bookings.length);
-                    }
-                } catch (error) {
-                    console.error("Error parsing calma_bookings:", error);
-                }
-            }
-            
-            // If we didn't find any bookings, check for adminBookings (legacy format)
-            if (!foundBookings) {
-                const adminBookings = localStorage.getItem('adminBookings');
-                if (adminBookings) {
+            try {
+                // Try calma_bookings first (our primary storage)
+                const storedBookings = localStorage.getItem('calma_bookings');
+                console.log('calma_bookings exists in localStorage:', !!storedBookings);
+                if (storedBookings) {
                     try {
-                        const parsedBookings = JSON.parse(adminBookings);
+                        const parsedBookings = JSON.parse(storedBookings);
+                        console.log('Parsed calma_bookings:', parsedBookings?.length || 0, 'bookings');
                         if (Array.isArray(parsedBookings) && parsedBookings.length > 0) {
                             bookings = parsedBookings;
                             foundBookings = true;
-                            console.log("Found bookings in adminBookings:", bookings.length);
-                            
-                            // Also store these in the primary location
-                            localStorage.setItem('calma_bookings', JSON.stringify(bookings));
+                            console.log("Found bookings in calma_bookings:", bookings.length);
                         }
                     } catch (error) {
-                        console.error("Error parsing adminBookings:", error);
+                        console.error("Error parsing calma_bookings:", error);
                     }
                 }
-            }
-            
-            // If we still don't have bookings, check individual booking_* entries
-            if (!foundBookings) {
-                const individualBookings = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('booking_')) {
+                
+                // If we didn't find any bookings, check for adminBookings (legacy format)
+                if (!foundBookings) {
+                    const adminBookings = localStorage.getItem('adminBookings');
+                    console.log('adminBookings exists in localStorage:', !!adminBookings);
+                    if (adminBookings) {
                         try {
-                            const booking = JSON.parse(localStorage.getItem(key));
-                            if (booking) {
-                                individualBookings.push(booking);
+                            const parsedBookings = JSON.parse(adminBookings);
+                            console.log('Parsed adminBookings:', parsedBookings?.length || 0, 'bookings');
+                            if (Array.isArray(parsedBookings) && parsedBookings.length > 0) {
+                                bookings = parsedBookings;
+                                foundBookings = true;
+                                console.log("Found bookings in adminBookings:", bookings.length);
+                                
+                                // Also store these in the primary location
+                                try {
+                                    localStorage.setItem('calma_bookings', JSON.stringify(bookings));
+                                } catch (storageError) {
+                                    console.error('Error saving to localStorage:', storageError);
+                                }
                             }
                         } catch (error) {
-                            console.error(`Error parsing booking ${key}:`, error);
+                            console.error("Error parsing adminBookings:", error);
                         }
                     }
                 }
                 
-                if (individualBookings.length > 0) {
-                    bookings = individualBookings;
-                    foundBookings = true;
-                    console.log("Found individual bookings:", bookings.length);
+                // If we still don't have bookings, check individual booking_* entries
+                if (!foundBookings) {
+                    console.log('Checking for individual booking_* entries...');
+                    const individualBookings = [];
                     
-                    // Store these in the primary location too
-                    localStorage.setItem('calma_bookings', JSON.stringify(bookings));
+                    try {
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key && key.startsWith('booking_')) {
+                                console.log(`Found booking key: ${key}`);
+                                try {
+                                    const booking = JSON.parse(localStorage.getItem(key));
+                                    if (booking) {
+                                        individualBookings.push(booking);
+                                    }
+                                } catch (error) {
+                                    console.error(`Error parsing booking ${key}:`, error);
+                                }
+                            }
+                        }
+                        
+                        if (individualBookings.length > 0) {
+                            bookings = individualBookings;
+                            foundBookings = true;
+                            console.log("Found individual bookings:", bookings.length);
+                            
+                            // Store these in the primary location too
+                            try {
+                                localStorage.setItem('calma_bookings', JSON.stringify(bookings));
+                            } catch (storageError) {
+                                console.error('Error saving to localStorage:', storageError);
+                            }
+                        }
+                    } catch (lsError) {
+                        console.error('Error iterating localStorage:', lsError);
+                    }
                 }
-            }
-            
-            // Display the bookings we found
-            if (foundBookings && bookings.length > 0) {
-                // Store for filtering
-                window.allBookings = bookings;
                 
-                // Update stats
-                updateBookingStats(bookings);
+                // Try loading from local_bookings.json as a last resort
+                if (!foundBookings) {
+                    console.log('Attempting to load from server backup file...');
+                    
+                    fetch('/api/bookings/backup-status')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Backup status check failed');
+                            }
+                            return response.json();
+                        })
+                        .then(statusData => {
+                            if (statusData.exists && statusData.count > 0) {
+                                // We have a backup file, try to use it
+                                return fetch('/api/admin/bookings');
+                            } else {
+                                throw new Error('No valid backup file found');
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to load from backup');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success && Array.isArray(data.bookings) && data.bookings.length > 0) {
+                                bookings = data.bookings;
+                                foundBookings = true;
+                                console.log("Loaded bookings from server backup:", bookings.length);
+                                
+                                // Store these in localStorage
+                                try {
+                                    localStorage.setItem('calma_bookings', JSON.stringify(bookings));
+                                } catch (storageError) {
+                                    console.error('Error saving to localStorage:', storageError);
+                                }
+                                
+                                // Display the bookings
+                                displayBookings(bookings);
+                            } else {
+                                displayEmptyBookingsState();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Failed to load from backup:', error);
+                            displayEmptyBookingsState();
+                        });
+                    
+                    // Return here since we're handling display asynchronously
+                    return;
+                }
                 
-                // Display
-                displayBookings(bookings);
-                
-                // Save to server's local file for backup
-                saveLocalBookingsToServer(bookings);
-            } else {
-                displayEmptyBookingsState();
-                showNotification('No bookings found in local storage.', 'info');
+                // Display the bookings we found
+                if (foundBookings && bookings.length > 0) {
+                    console.log(`Displaying ${bookings.length} bookings from localStorage`);
+                    // Store for filtering
+                    window.allBookings = bookings;
+                    
+                    // Update stats
+                    updateBookingStats(bookings);
+                    
+                    // Display
+                    displayBookings(bookings);
+                    
+                    // Save to server's local file for backup
+                    saveLocalBookingsToServer(bookings);
+                } else {
+                    console.log('No bookings found in any localStorage location');
+                    displayEmptyBookingsState();
+                    showNotification('No bookings found in local storage.', 'info');
+                }
+            } catch (fallbackError) {
+                console.error('Critical error in fallback procedure:', fallbackError);
+                displayErrorState(bookingsContainer, 'Failed to load bookings from any source');
+                showNotification('Error loading bookings. Please check browser storage settings.', 'error');
             }
         }
     }
@@ -876,14 +1019,37 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Helper functions for displaying data
     function displayBookings(bookings) {
+        console.log('displayBookings called with', bookings?.length || 0, 'bookings');
+        
         const bookingsContainer = document.getElementById('bookings-container');
-        if (!bookingsContainer) return;
+        if (!bookingsContainer) {
+            console.error('Bookings container not found in displayBookings');
+            return;
+        }
+        
+        // Validate bookings data
+        if (!Array.isArray(bookings)) {
+            console.error('Invalid bookings data (not an array):', bookings);
+            displayErrorState(bookingsContainer, 'Invalid bookings data format');
+            return;
+        }
+        
+        // Filter out null/undefined bookings
+        const validBookings = bookings.filter(booking => booking !== null && booking !== undefined);
+        
+        if (validBookings.length === 0) {
+            console.error('Empty bookings array or all entries are invalid:', bookings);
+            displayEmptyBookingsState();
+            return;
+        }
         
         // Update count
         const bookingsCount = document.getElementById('bookings-count');
         if (bookingsCount) {
-            bookingsCount.textContent = `${bookings.length} booking${bookings.length !== 1 ? 's' : ''} found`;
+            bookingsCount.textContent = `${validBookings.length} booking${validBookings.length !== 1 ? 's' : ''} found`;
         }
+        
+        console.log('Generating table HTML for', validBookings.length, 'bookings');
         
         let tableHtml = `
             <table class="bookings-table">
@@ -902,195 +1068,227 @@ document.addEventListener('DOMContentLoaded', function() {
                 <tbody>
         `;
         
-        bookings.forEach(booking => {
-            // Format dates
-            const pickupDate = booking.pickup_date ? new Date(booking.pickup_date).toLocaleDateString() : 'N/A';
-            const dropoffDate = booking.dropoff_date ? new Date(booking.dropoff_date).toLocaleDateString() : 'N/A';
-            const createdAt = booking.created_at ? new Date(booking.created_at).toLocaleString() : 'N/A';
-            
-            // Calculate duration if possible
-            let duration = '';
-            if (booking.pickup_date && booking.dropoff_date) {
-                const pickup = new Date(booking.pickup_date);
-                const dropoff = new Date(booking.dropoff_date);
-                const days = Math.ceil((dropoff - pickup) / (1000 * 60 * 60 * 24));
-                duration = `(${days} day${days !== 1 ? 's' : ''})`;
+        validBookings.forEach((booking, index) => {
+            try {
+                console.log(`Processing booking ${index}:`, booking.id || booking.booking_reference || 'No ID');
+                
+                // Format dates - handle multiple possible property names 
+                let pickupDate = 'N/A';
+                let dropoffDate = 'N/A';
+                let createdAt = 'N/A';
+                
+                try {
+                    // Handle different date property naming conventions
+                    if (booking.pickup_date || booking.pickupDate) {
+                        pickupDate = new Date(booking.pickup_date || booking.pickupDate).toLocaleDateString();
+                    }
+                    if (booking.dropoff_date || booking.returnDate || booking.return_date || booking.dropoffDate) {
+                        dropoffDate = new Date(booking.dropoff_date || booking.returnDate || booking.return_date || booking.dropoffDate).toLocaleDateString();
+                    }
+                    if (booking.created_at || booking.dateSubmitted || booking.timestamp || booking.date_submitted) {
+                        createdAt = new Date(booking.created_at || booking.dateSubmitted || booking.timestamp || booking.date_submitted).toLocaleString();
+                    }
+                } catch (dateError) {
+                    console.error('Error formatting dates:', dateError, booking);
+                }
+                
+                // Calculate duration if possible
+                let duration = '';
+                try {
+                    const pickup = new Date(booking.pickup_date || booking.pickupDate);
+                    const dropoff = new Date(booking.dropoff_date || booking.returnDate || booking.return_date || booking.dropoffDate);
+                    
+                    if (!isNaN(pickup) && !isNaN(dropoff)) {
+                        const days = Math.ceil((dropoff - pickup) / (1000 * 60 * 60 * 24));
+                        if (days > 0) {
+                            duration = `(${days} day${days !== 1 ? 's' : ''})`;
+                        }
+                    }
+                } catch (durationError) {
+                    console.error('Error calculating duration:', durationError);
+                }
+                
+                // Format status with appropriate class - use lowercase for consistency
+                const status = (booking.status || 'pending').toLowerCase();
+                const statusClass = status === 'confirmed' ? 'status-confirmed' : 
+                                   status === 'pending' ? 'status-pending' : 
+                                   status === 'completed' ? 'status-completed' :
+                                   'status-cancelled';
+                
+                // Format price - handle different property names
+                const price = booking.total_price || booking.totalPrice 
+                    ? `€${booking.total_price || booking.totalPrice}` 
+                    : 'N/A';
+                
+                // Get customer name components safely - handle multiple formats
+                let customerFirstName = 'N/A';
+                let customerLastName = '';
+                let customerFullName = 'N/A';
+                
+                try {
+                    // Structured customer data
+                    if (booking.customer_first_name || (booking.customer && booking.customer.firstName)) {
+                        customerFirstName = booking.customer_first_name || (booking.customer && booking.customer.firstName) || '';
+                    }
+                    
+                    if (booking.customer_last_name || (booking.customer && booking.customer.lastName)) {
+                        customerLastName = booking.customer_last_name || (booking.customer && booking.customer.lastName) || '';
+                    }
+                    
+                    // Full name string
+                    if (booking.customer_name) {
+                        const nameParts = booking.customer_name.split(' ');
+                        if (nameParts.length > 0) {
+                            customerFirstName = nameParts[0];
+                            customerLastName = nameParts.slice(1).join(' ');
+                        }
+                    }
+                    
+                    // Get email from different possible structures
+                    const email = booking.customer_email || (booking.customer && booking.customer.email) || 'N/A';
+                    const phone = booking.customer_phone || (booking.customer && booking.customer.phone) || 'N/A';
+                    
+                    customerFullName = customerFirstName + (customerLastName ? ` ${customerLastName}` : '');
+                    if (customerFullName === 'N/A' || customerFullName.trim() === '') {
+                        customerFullName = 'Unknown Customer';
+                    }
+                    
+                    // Add row to the table
+                    tableHtml += `
+                        <tr data-booking-id="${booking.id || booking.booking_reference || ''}">
+                            <td class="booking-id-cell">
+                                <div class="booking-id">#${booking.booking_reference || booking.bookingReference || booking.id || 'N/A'}</div>
+                                <div class="booking-date" style="font-size: 0.8rem; color: #666;">
+                                    <i class="fas fa-calendar-alt" style="margin-right: 3px;"></i> ${createdAt.split(',')[0]}
+                                </div>
+                            </td>
+                            
+                            <td class="customer-cell">
+                                <div class="customer-name" style="font-weight: 500;">${customerFullName}</div>
+                                <div class="customer-email" style="font-size: 0.8rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">
+                                    <i class="fas fa-envelope" style="margin-right: 3px;"></i> ${email}
+                                </div>
+                                <div class="customer-phone" style="font-size: 0.8rem; color: #666;">
+                                    <i class="fas fa-phone" style="margin-right: 3px;"></i> ${phone}
+                                </div>
+                            </td>
+                            
+                            <td class="vehicle-cell">
+                                <div class="car-name" style="font-weight: 500;">${getCarName(booking)}</div>
+                                <div class="car-type" style="font-size: 0.8rem; color: #666;">
+                                    ${booking.car_category || booking.carCategory || 'Standard Vehicle'}
+                                </div>
+                            </td>
+                            
+                            <td class="dates-cell">
+                                <div class="pickup-date" style="margin-bottom: 3px;">
+                                    <span style="color: #0066cc;"><i class="fas fa-arrow-right" style="margin-right: 3px;"></i> Pick-up:</span> 
+                                    <div>${pickupDate}</div>
+                                    <div style="font-size: 0.8rem; color: #666;">${booking.pickup_time || booking.pickupTime || ''}</div>
+                                </div>
+                                <div class="dropoff-date">
+                                    <span style="color: #e74c3c;"><i class="fas fa-arrow-left" style="margin-right: 3px;"></i> Drop-off:</span>
+                                    <div>${dropoffDate}</div>
+                                    <div style="font-size: 0.8rem; color: #666;">${booking.dropoff_time || booking.dropoffTime || ''}</div>
+                                </div>
+                                <div style="font-size: 0.8rem; color: #666; margin-top: 3px; font-style: italic;">
+                                    ${duration}
+                                </div>
+                            </td>
+                            
+                            <td class="locations-cell">
+                                <div class="pickup-location" style="margin-bottom: 5px;">
+                                    <div style="font-size: 0.8rem; color: #0066cc; font-weight: 500;">Pick-up location:</div>
+                                    <div style="font-size: 0.85rem;">${booking.pickup_location || booking.pickupLocation || 'N/A'}</div>
+                                </div>
+                                <div class="dropoff-location">
+                                    <div style="font-size: 0.8rem; color: #e74c3c; font-weight: 500;">Drop-off location:</div>
+                                    <div style="font-size: 0.85rem;">${booking.dropoff_location || booking.dropoffLocation || booking.pickup_location || booking.pickupLocation || 'N/A'}</div>
+                                </div>
+                            </td>
+                            
+                            <td class="price-cell">
+                                <div class="total-price" style="font-weight: bold; font-size: 1.1rem; color: #2c3e50;">${price}</div>
+                                <div class="price-status" style="font-size: 0.8rem; color: ${booking.payment_date || booking.paymentDate ? '#27ae60' : '#f39c12'};">
+                                    <i class="fas ${booking.payment_date || booking.paymentDate ? 'fa-check-circle' : 'fa-clock'}" style="margin-right: 3px;"></i>
+                                    ${booking.payment_date || booking.paymentDate ? 'Paid' : 'Pending'}
+                                </div>
+                            </td>
+                            
+                            <td class="status-cell">
+                                <span class="status-badge ${statusClass}">
+                                    ${status || 'N/A'}
+                                </span>
+                            </td>
+                            
+                            <td class="actions-cell">
+                                <button class="btn btn-view" title="View details" onclick="viewBookingDetails(${booking.id || "'" + (booking.booking_reference || booking.bookingReference || '') + "'"})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-edit" title="Edit booking" onclick="alert('Edit feature coming soon!')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                } catch (nameError) {
+                    console.error('Error processing booking:', nameError, booking);
+                }
+            } catch (rowError) {
+                console.error(`Error generating row for booking ${index}:`, rowError);
+                // Continue with next booking instead of failing the entire table
             }
-            
-            // Format status with appropriate class
-            const statusClass = booking.status === 'confirmed' ? 'status-confirmed' : 
-                               booking.status === 'pending' ? 'status-pending' : 
-                               booking.status === 'completed' ? 'status-completed' :
-                               'status-cancelled';
-            
-            // Format price
-            const price = booking.total_price ? `€${booking.total_price}` : 'N/A';
-            
-            // Get customer name components
-            const customerFirstName = booking.customer_first_name || booking.customer_name?.split(' ')[0] || 'N/A';
-            const customerLastName = booking.customer_last_name || (booking.customer_name?.split(' ').slice(1).join(' ')) || '';
-            const customerFullName = customerFirstName + (customerLastName ? ` ${customerLastName}` : '');
-            
-            // Get car details
-            const carMake = booking.car_make || '';
-            const carModel = booking.car_model || '';
-            const carName = booking.car_name || (carMake && carModel ? `${carMake} ${carModel}` : 'Unknown Vehicle');
-            
-            tableHtml += `
-                <tr>
-                    <td class="booking-id-cell">
-                        <div class="booking-id">#${booking.booking_reference || booking.id || 'N/A'}</div>
-                        <div class="booking-date" style="font-size: 0.8rem; color: #666;">
-                            <i class="fas fa-calendar-alt" style="margin-right: 3px;"></i> ${createdAt.split(',')[0]}
-                        </div>
-                    </td>
-                    
-                    <td class="customer-cell">
-                        <div class="customer-name" style="font-weight: 500;">${customerFullName}</div>
-                        <div class="customer-email" style="font-size: 0.8rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">
-                            <i class="fas fa-envelope" style="margin-right: 3px;"></i> ${booking.customer_email || 'N/A'}
-                        </div>
-                        <div class="customer-phone" style="font-size: 0.8rem; color: #666;">
-                            <i class="fas fa-phone" style="margin-right: 3px;"></i> ${booking.customer_phone || 'N/A'}
-                        </div>
-                    </td>
-                    
-                    <td class="vehicle-cell">
-                        <div class="car-name" style="font-weight: 500;">${carName}</div>
-                        <div class="car-type" style="font-size: 0.8rem; color: #666;">
-                            ${booking.car_category || 'Standard Vehicle'}
-                        </div>
-                    </td>
-                    
-                    <td class="dates-cell">
-                        <div class="pickup-date" style="margin-bottom: 3px;">
-                            <span style="color: #0066cc;"><i class="fas fa-arrow-right" style="margin-right: 3px;"></i> Pick-up:</span> 
-                            <div>${pickupDate}</div>
-                            <div style="font-size: 0.8rem; color: #666;">${booking.pickup_time || ''}</div>
-                        </div>
-                        <div class="dropoff-date">
-                            <span style="color: #e74c3c;"><i class="fas fa-arrow-left" style="margin-right: 3px;"></i> Drop-off:</span>
-                            <div>${dropoffDate}</div>
-                            <div style="font-size: 0.8rem; color: #666;">${booking.dropoff_time || ''}</div>
-                        </div>
-                        <div style="font-size: 0.8rem; color: #666; margin-top: 3px; font-style: italic;">
-                            ${duration}
-                        </div>
-                    </td>
-                    
-                    <td class="locations-cell">
-                        <div class="pickup-location" style="margin-bottom: 5px;">
-                            <div style="font-size: 0.8rem; color: #0066cc; font-weight: 500;">Pick-up location:</div>
-                            <div style="font-size: 0.85rem;">${booking.pickup_location || 'N/A'}</div>
-                        </div>
-                        <div class="dropoff-location">
-                            <div style="font-size: 0.8rem; color: #e74c3c; font-weight: 500;">Drop-off location:</div>
-                            <div style="font-size: 0.85rem;">${booking.dropoff_location || booking.pickup_location || 'N/A'}</div>
-                        </div>
-                    </td>
-                    
-                    <td class="price-cell">
-                        <div class="total-price" style="font-weight: bold; font-size: 1.1rem; color: #2c3e50;">${price}</div>
-                        <div class="price-status" style="font-size: 0.8rem; color: ${booking.payment_date ? '#27ae60' : '#f39c12'};">
-                            <i class="fas ${booking.payment_date ? 'fa-check-circle' : 'fa-clock'}" style="margin-right: 3px;"></i>
-                            ${booking.payment_date ? 'Paid' : 'Pending'}
-                        </div>
-                    </td>
-                    
-                    <td class="status-cell">
-                        <span class="status-badge ${statusClass}">
-                            ${booking.status || 'N/A'}
-                        </span>
-                    </td>
-                    
-                    <td class="actions-cell">
-                        <button class="btn btn-view" title="View details" onclick="viewBookingDetails(${booking.id})">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-edit" title="Edit booking" onclick="alert('Edit feature coming soon!')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
         });
         
         tableHtml += `
                 </tbody>
             </table>
-            <div class="pagination">
-                <div class="pagination-info">
-                    Showing ${bookings.length} booking${bookings.length !== 1 ? 's' : ''}
-                </div>
-            </div>
         `;
         
         bookingsContainer.innerHTML = tableHtml;
         
-        // Add some enhanced styles for the new table layout
-        const style = document.createElement('style');
-        style.textContent = `
-            .bookings-table th, .bookings-table td {
-                padding: 12px 15px;
-                text-align: left;
-                border-bottom: 1px solid #eee;
-                vertical-align: top;
+        // Update stats based on valid bookings only
+        updateBookingStats(validBookings);
+        
+        // Show empty state if no rows were rendered despite having data
+        if (validBookings.length === 0) {
+            displayEmptyBookingsState();
+        }
+    }
+    
+    // Helper function to get car name from various possible property structures
+    function getCarName(booking) {
+        try {
+            // Try to get from direct properties first
+            if (booking.car_name) {
+                return booking.car_name;
             }
             
-            .bookings-table th {
-                background-color: #f8f9fa;
-                font-weight: 600;
-                color: #2c3e50;
+            // Try to build from make and model
+            let carMake = booking.car_make || (booking.car && booking.car.make) || 
+                          (booking.selectedCar && booking.selectedCar.make) || '';
+            let carModel = booking.car_model || (booking.car && booking.car.model) || 
+                           (booking.selectedCar && booking.selectedCar.model) || '';
+            
+            if (carMake && carModel) {
+                return `${carMake} ${carModel}`;
+            } 
+            
+            // Try nested car object
+            if (booking.car && booking.car.name) {
+                return booking.car.name;
             }
             
-            .btn-view, .btn-edit {
-                background: none;
-                border: none;
-                cursor: pointer;
-                color: #95a5a6;
-                transition: color 0.2s;
-                padding: 5px;
-                margin-right: 5px;
+            if (booking.selectedCar && booking.selectedCar.name) {
+                return booking.selectedCar.name;
             }
             
-            .btn-view:hover {
-                color: #0066cc;
-            }
-            
-            .btn-edit:hover {
-                color: #f39c12;
-            }
-            
-            .status-badge {
-                display: inline-block;
-                padding: 5px 10px;
-                border-radius: 15px;
-                font-size: 0.8rem;
-                font-weight: 500;
-                text-transform: capitalize;
-            }
-            
-            .status-confirmed {
-                background-color: #e8f5e9;
-                color: #27ae60;
-            }
-            
-            .status-pending {
-                background-color: #fff8e1;
-                color: #f39c12;
-            }
-            
-            .status-cancelled {
-                background-color: #ffebee;
-                color: #e74c3c;
-            }
-            
-            .status-completed {
-                background-color: #e3f2fd;
-                color: #2196f3;
-            }
-        `;
-        document.head.appendChild(style);
+            // Fallback
+            return 'Unknown Vehicle';
+        } catch (error) {
+            console.error('Error getting car name:', error);
+            return 'Unknown Vehicle';
+        }
     }
     
     function displayEmptyBookingsState() {
@@ -1573,5 +1771,228 @@ function migrateLocalBookings() {
     } catch (error) {
         console.error('Error parsing bookings:', error);
         showNotification('Failed to parse bookings from localStorage', 'error');
+    }
+}
+
+// Function to create a sample booking for testing
+function createSampleBooking() {
+    console.log('Creating sample booking for testing');
+    
+    // Generate a unique booking reference
+    const bookingRef = 'BK' + Date.now().toString().substring(6);
+    const timestamp = new Date().toISOString();
+    const futureDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    
+    // Create a comprehensive sample booking with all possible fields
+    const sampleBooking = {
+        id: 'test-' + Date.now(),
+        booking_reference: bookingRef,
+        bookingReference: bookingRef, // Include both formats
+        customer: {
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john.doe@example.com',
+            phone: '+30 123 456 7890'
+        },
+        // Also include flat customer fields for compatibility
+        customer_name: 'John Doe',
+        customer_first_name: 'John',
+        customer_last_name: 'Doe',
+        customer_email: 'john.doe@example.com',
+        customer_phone: '+30 123 456 7890',
+        
+        // Dates in multiple formats
+        pickup_date: timestamp,
+        pickupDate: timestamp,
+        pickupTime: '10:00 AM',
+        pickup_time: '10:00 AM',
+        
+        dropoff_date: futureDate,
+        dropoffDate: futureDate,
+        returnDate: futureDate,
+        return_date: futureDate,
+        dropoff_time: '10:00 AM',
+        dropoffTime: '10:00 AM',
+        
+        // Locations
+        pickup_location: 'Chania Airport',
+        pickupLocation: 'Chania Airport',
+        dropoff_location: 'Chania Airport',
+        dropoffLocation: 'Chania Airport',
+        
+        // Car information in multiple formats
+        car: {
+            make: 'Toyota',
+            model: 'Corolla',
+            category: 'Economy',
+            name: 'Toyota Corolla'
+        },
+        // Also include flat car fields
+        car_name: 'Toyota Corolla',
+        car_make: 'Toyota',
+        car_model: 'Corolla',
+        car_category: 'Economy',
+        
+        // Status and payment
+        status: 'confirmed',
+        total_price: 150,
+        totalPrice: 150,
+        
+        // Timestamps in multiple formats
+        created_at: timestamp,
+        dateSubmitted: timestamp,
+        timestamp: timestamp,
+        date_submitted: timestamp
+    };
+    
+    console.log('Created sample booking data:', sampleBooking);
+    
+    // Get existing bookings or create a new array
+    let bookings = [];
+    try {
+        const storedBookings = localStorage.getItem('calma_bookings');
+        if (storedBookings) {
+            bookings = JSON.parse(storedBookings);
+            if (!Array.isArray(bookings)) {
+                bookings = [];
+            }
+        }
+    } catch (error) {
+        console.error('Error reading existing bookings:', error);
+    }
+    
+    // Add the new booking
+    bookings.push(sampleBooking);
+    
+    // Save to localStorage
+    try {
+        localStorage.setItem('calma_bookings', JSON.stringify(bookings));
+        console.log('Saved updated bookings to localStorage');
+    } catch (storageError) {
+        console.error('Error saving to localStorage:', storageError);
+        // Try to save at least the new booking individually
+        try {
+            localStorage.setItem('booking_' + bookingRef, JSON.stringify(sampleBooking));
+            console.log('Saved individual booking to localStorage');
+        } catch (e) {
+            console.error('Failed to save individual booking:', e);
+        }
+    }
+    
+    // Try to save to the server too
+    saveLocalBookingsToServer(bookings);
+    
+    // Also save individually in case the array is too large
+    saveLocalBookingsToServer([sampleBooking]);
+    
+    // Reload the bookings display
+    showNotification('Sample booking created successfully! Refreshing list...', 'success');
+    setTimeout(() => loadBookings(), 1000);
+    
+    console.log('Sample booking created:', sampleBooking);
+    
+    return sampleBooking;
+}
+
+// Debugging function for the admin panel
+function debugAdminPanel() {
+    console.log('Running admin panel diagnostics');
+    
+    // 1. Check the DOM structure
+    const bookingsContainer = document.getElementById('bookings-container');
+    console.log('Bookings container exists:', !!bookingsContainer);
+    
+    // 2. Check localStorage
+    console.log('LocalStorage keys:');
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        console.log(`- ${key}: ${value?.length || 0} chars`);
+    }
+    
+    // 3. Check global variables
+    console.log('window.allBookings exists:', !!window.allBookings);
+    if (window.allBookings) {
+        console.log('window.allBookings length:', window.allBookings.length);
+    }
+    
+    // 4. Add a reset button to the header if it doesn't exist
+    const headerActions = document.querySelector('.header-actions');
+    if (headerActions && !document.getElementById('reset-storage-btn')) {
+        const resetBtn = document.createElement('button');
+        resetBtn.id = 'reset-storage-btn';
+        resetBtn.className = 'refresh-btn';
+        resetBtn.style.backgroundColor = '#e74c3c';
+        resetBtn.innerHTML = '<i class="fas fa-trash"></i> Reset Data';
+        resetBtn.title = 'Reset local storage data';
+        resetBtn.addEventListener('click', function() {
+            if (confirm('WARNING: This will delete all bookings from localStorage. This cannot be undone. Continue?')) {
+                resetLocalStorage();
+            }
+        });
+        
+        // Insert near the debug button
+        headerActions.appendChild(resetBtn);
+    }
+    
+    // 5. Try loading again
+    console.log('Attempting to reload bookings:');
+    loadBookings();
+    
+    // 6. Return diagnostic info
+    return {
+        containerExists: !!bookingsContainer,
+        localStorageKeys: Object.keys(localStorage),
+        hasAllBookings: !!window.allBookings,
+        allBookingsLength: window.allBookings ? window.allBookings.length : 0
+    };
+}
+
+// Function to reset localStorage
+function resetLocalStorage() {
+    try {
+        console.log('Resetting localStorage...');
+        
+        // Save the keys we want to delete
+        const bookingKeys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key === 'calma_bookings' || key === 'adminBookings' || key.startsWith('booking_'))) {
+                bookingKeys.push(key);
+            }
+        }
+        
+        // Delete all booking related keys
+        bookingKeys.forEach(key => {
+            console.log(`Removing key: ${key}`);
+            localStorage.removeItem(key);
+        });
+        
+        console.log(`Removed ${bookingKeys.length} keys from localStorage`);
+        
+        // Also try to clear the server's local file
+        fetch('/api/bookings/save-local', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ bookings: [] })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Server response to clearing local backup:', data);
+            showNotification('All local booking data has been reset', 'success');
+            // Reload the bookings display
+            loadBookings();
+        })
+        .catch(error => {
+            console.error('Error clearing server local backup:', error);
+            showNotification('Local data cleared, but could not reset server backup', 'warning');
+            // Still reload the bookings display
+            loadBookings();
+        });
+    } catch (error) {
+        console.error('Error resetting localStorage:', error);
+        showNotification('Error resetting local data: ' + error.message, 'error');
     }
 } 
