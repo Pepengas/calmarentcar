@@ -694,17 +694,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const bookingsContainer = document.getElementById('bookings-container');
         if (!bookingsContainer) return;
         
+        // Update count
+        const bookingsCount = document.getElementById('bookings-count');
+        if (bookingsCount) {
+            bookingsCount.textContent = `${bookings.length} booking${bookings.length !== 1 ? 's' : ''} found`;
+        }
+        
         let tableHtml = `
             <table class="bookings-table">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Customer</th>
-                        <th>Car</th>
-                        <th>Pickup</th>
-                        <th>Dropoff</th>
+                        <th>Vehicle</th>
+                        <th>Dates</th>
+                        <th>Locations</th>
+                        <th>Price</th>
                         <th>Status</th>
-                        <th>Booked On</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -712,41 +718,112 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         bookings.forEach(booking => {
+            // Format dates
             const pickupDate = booking.pickup_date ? new Date(booking.pickup_date).toLocaleDateString() : 'N/A';
             const dropoffDate = booking.dropoff_date ? new Date(booking.dropoff_date).toLocaleDateString() : 'N/A';
             const createdAt = booking.created_at ? new Date(booking.created_at).toLocaleString() : 'N/A';
             
+            // Calculate duration if possible
+            let duration = '';
+            if (booking.pickup_date && booking.dropoff_date) {
+                const pickup = new Date(booking.pickup_date);
+                const dropoff = new Date(booking.dropoff_date);
+                const days = Math.ceil((dropoff - pickup) / (1000 * 60 * 60 * 24));
+                duration = `(${days} day${days !== 1 ? 's' : ''})`;
+            }
+            
+            // Format status with appropriate class
             const statusClass = booking.status === 'confirmed' ? 'status-confirmed' : 
-                               booking.status === 'pending' ? 'status-pending' : 'status-cancelled';
+                               booking.status === 'pending' ? 'status-pending' : 
+                               booking.status === 'completed' ? 'status-completed' :
+                               'status-cancelled';
+            
+            // Format price
+            const price = booking.total_price ? `€${booking.total_price}` : 'N/A';
+            
+            // Get customer name components
+            const customerFirstName = booking.customer_first_name || booking.customer_name?.split(' ')[0] || 'N/A';
+            const customerLastName = booking.customer_last_name || (booking.customer_name?.split(' ').slice(1).join(' ')) || '';
+            const customerFullName = customerFirstName + (customerLastName ? ` ${customerLastName}` : '');
+            
+            // Get car details
+            const carMake = booking.car_make || '';
+            const carModel = booking.car_model || '';
+            const carName = booking.car_name || (carMake && carModel ? `${carMake} ${carModel}` : 'Unknown Vehicle');
             
             tableHtml += `
                 <tr>
-                    <td>#${booking.id || 'N/A'}</td>
-                    <td>
-                        <strong>${booking.customer_name || 'N/A'}</strong><br>
-                        <small>${booking.customer_email || 'N/A'}</small><br>
-                        <small>${booking.customer_phone || 'N/A'}</small>
+                    <td class="booking-id-cell">
+                        <div class="booking-id">#${booking.booking_reference || booking.id || 'N/A'}</div>
+                        <div class="booking-date" style="font-size: 0.8rem; color: #666;">
+                            <i class="fas fa-calendar-alt" style="margin-right: 3px;"></i> ${createdAt.split(',')[0]}
+                        </div>
                     </td>
-                    <td>${booking.car_name || 'Unknown Car'}</td>
-                    <td>
-                        ${pickupDate}<br>
-                        <small>${booking.pickup_time || 'N/A'}</small><br>
-                        <small>${booking.pickup_location || 'N/A'}</small>
+                    
+                    <td class="customer-cell">
+                        <div class="customer-name" style="font-weight: 500;">${customerFullName}</div>
+                        <div class="customer-email" style="font-size: 0.8rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">
+                            <i class="fas fa-envelope" style="margin-right: 3px;"></i> ${booking.customer_email || 'N/A'}
+                        </div>
+                        <div class="customer-phone" style="font-size: 0.8rem; color: #666;">
+                            <i class="fas fa-phone" style="margin-right: 3px;"></i> ${booking.customer_phone || 'N/A'}
+                        </div>
                     </td>
-                    <td>
-                        ${dropoffDate}<br>
-                        <small>${booking.dropoff_time || 'N/A'}</small><br>
-                        <small>${booking.dropoff_location || 'N/A'}</small>
+                    
+                    <td class="vehicle-cell">
+                        <div class="car-name" style="font-weight: 500;">${carName}</div>
+                        <div class="car-type" style="font-size: 0.8rem; color: #666;">
+                            ${booking.car_category || 'Standard Vehicle'}
+                        </div>
                     </td>
-                    <td>
+                    
+                    <td class="dates-cell">
+                        <div class="pickup-date" style="margin-bottom: 3px;">
+                            <span style="color: #0066cc;"><i class="fas fa-arrow-right" style="margin-right: 3px;"></i> Pick-up:</span> 
+                            <div>${pickupDate}</div>
+                            <div style="font-size: 0.8rem; color: #666;">${booking.pickup_time || ''}</div>
+                        </div>
+                        <div class="dropoff-date">
+                            <span style="color: #e74c3c;"><i class="fas fa-arrow-left" style="margin-right: 3px;"></i> Drop-off:</span>
+                            <div>${dropoffDate}</div>
+                            <div style="font-size: 0.8rem; color: #666;">${booking.dropoff_time || ''}</div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 3px; font-style: italic;">
+                            ${duration}
+                        </div>
+                    </td>
+                    
+                    <td class="locations-cell">
+                        <div class="pickup-location" style="margin-bottom: 5px;">
+                            <div style="font-size: 0.8rem; color: #0066cc; font-weight: 500;">Pick-up location:</div>
+                            <div style="font-size: 0.85rem;">${booking.pickup_location || 'N/A'}</div>
+                        </div>
+                        <div class="dropoff-location">
+                            <div style="font-size: 0.8rem; color: #e74c3c; font-weight: 500;">Drop-off location:</div>
+                            <div style="font-size: 0.85rem;">${booking.dropoff_location || booking.pickup_location || 'N/A'}</div>
+                        </div>
+                    </td>
+                    
+                    <td class="price-cell">
+                        <div class="total-price" style="font-weight: bold; font-size: 1.1rem; color: #2c3e50;">${price}</div>
+                        <div class="price-status" style="font-size: 0.8rem; color: ${booking.payment_date ? '#27ae60' : '#f39c12'};">
+                            <i class="fas ${booking.payment_date ? 'fa-check-circle' : 'fa-clock'}" style="margin-right: 3px;"></i>
+                            ${booking.payment_date ? 'Paid' : 'Pending'}
+                        </div>
+                    </td>
+                    
+                    <td class="status-cell">
                         <span class="status-badge ${statusClass}">
                             ${booking.status || 'N/A'}
                         </span>
                     </td>
-                    <td>${createdAt}</td>
-                    <td>
-                        <button class="btn btn-outline" title="View details" onclick="viewBookingDetails(${booking.id})">
+                    
+                    <td class="actions-cell">
+                        <button class="btn btn-view" title="View details" onclick="viewBookingDetails(${booking.id})">
                             <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-edit" title="Edit booking" onclick="alert('Edit feature coming soon!')">
+                            <i class="fas fa-edit"></i>
                         </button>
                     </td>
                 </tr>
@@ -758,12 +835,77 @@ document.addEventListener('DOMContentLoaded', function() {
             </table>
             <div class="pagination">
                 <div class="pagination-info">
-                    Showing ${bookings.length} booking(s)
+                    Showing ${bookings.length} booking${bookings.length !== 1 ? 's' : ''}
                 </div>
             </div>
         `;
         
         bookingsContainer.innerHTML = tableHtml;
+        
+        // Add some enhanced styles for the new table layout
+        const style = document.createElement('style');
+        style.textContent = `
+            .bookings-table th, .bookings-table td {
+                padding: 12px 15px;
+                text-align: left;
+                border-bottom: 1px solid #eee;
+                vertical-align: top;
+            }
+            
+            .bookings-table th {
+                background-color: #f8f9fa;
+                font-weight: 600;
+                color: #2c3e50;
+            }
+            
+            .btn-view, .btn-edit {
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #95a5a6;
+                transition: color 0.2s;
+                padding: 5px;
+                margin-right: 5px;
+            }
+            
+            .btn-view:hover {
+                color: #0066cc;
+            }
+            
+            .btn-edit:hover {
+                color: #f39c12;
+            }
+            
+            .status-badge {
+                display: inline-block;
+                padding: 5px 10px;
+                border-radius: 15px;
+                font-size: 0.8rem;
+                font-weight: 500;
+                text-transform: capitalize;
+            }
+            
+            .status-confirmed {
+                background-color: #e8f5e9;
+                color: #27ae60;
+            }
+            
+            .status-pending {
+                background-color: #fff8e1;
+                color: #f39c12;
+            }
+            
+            .status-cancelled {
+                background-color: #ffebee;
+                color: #e74c3c;
+            }
+            
+            .status-completed {
+                background-color: #e3f2fd;
+                color: #2196f3;
+            }
+        `;
+        document.head.appendChild(style);
     }
     
     function displayEmptyBookingsState() {
@@ -889,8 +1031,266 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Global function to view booking details
     window.viewBookingDetails = function(bookingId) {
-        alert(`Viewing details for booking #${bookingId} - This feature is coming soon!`);
+        // Find booking by ID
+        const booking = window.allBookings.find(b => b.id == bookingId);
+        if (!booking) {
+            showNotification('Booking not found', 'error');
+            return;
+        }
+        
+        // Format dates
+        const pickupDate = booking.pickup_date ? new Date(booking.pickup_date).toLocaleDateString() : 'N/A';
+        const dropoffDate = booking.dropoff_date ? new Date(booking.dropoff_date).toLocaleDateString() : 'N/A';
+        const createdAt = booking.created_at ? new Date(booking.created_at).toLocaleString() : 'N/A';
+        
+        // Calculate duration if possible
+        let duration = 'N/A';
+        if (booking.pickup_date && booking.dropoff_date) {
+            const pickup = new Date(booking.pickup_date);
+            const dropoff = new Date(booking.dropoff_date);
+            const days = Math.ceil((dropoff - pickup) / (1000 * 60 * 60 * 24));
+            duration = `${days} day${days !== 1 ? 's' : ''}`;
+        }
+        
+        // Format status with appropriate color
+        let statusColor;
+        switch (booking.status) {
+            case 'confirmed':
+                statusColor = '#27ae60'; // Green
+                break;
+            case 'pending':
+                statusColor = '#f39c12'; // Orange
+                break;
+            case 'cancelled':
+                statusColor = '#e74c3c'; // Red
+                break;
+            default:
+                statusColor = '#95a5a6'; // Gray
+        }
+        
+        // Format price if available
+        const price = booking.total_price ? `€${booking.total_price}` : 'N/A';
+        
+        // Build special requests HTML
+        let specialRequestsHtml = '<p>None</p>';
+        if (booking.additional_requests && booking.additional_requests.trim()) {
+            specialRequestsHtml = `<p>${booking.additional_requests}</p>`;
+        }
+        
+        // Additional services
+        const additionalServices = [];
+        if (booking.gps) additionalServices.push('GPS Navigation System (+€5/day)');
+        if (booking.baby_seat) additionalServices.push('Baby/Child Seat (+€3/day)');
+        if (booking.additional_driver) additionalServices.push('Additional Driver (+€7/day)');
+        if (booking.full_insurance) additionalServices.push('Full Insurance Coverage (+€10/day)');
+        
+        let additionalServicesHtml = '';
+        if (additionalServices.length > 0) {
+            additionalServicesHtml = `
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    ${additionalServices.map(service => `<li>${service}</li>`).join('')}
+                </ul>
+            `;
+            specialRequestsHtml = additionalServicesHtml + specialRequestsHtml;
+        }
+        
+        // Get modal elements
+        const modal = document.getElementById('booking-modal');
+        const modalBody = document.getElementById('modal-body');
+        const closeBtn = document.querySelector('.modal-close');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        
+        // Build the modal content
+        modalBody.innerHTML = `
+            <div class="booking-details">
+                <div class="booking-header">
+                    <div class="booking-id">Booking Reference: <strong>${booking.booking_reference || booking.id}</strong></div>
+                    <div class="booking-status" style="color: ${statusColor}">Status: <strong>${booking.status || 'N/A'}</strong></div>
+                </div>
+                
+                <div class="details-container">
+                    <!-- Two-column layout -->
+                    <div class="details-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <!-- Left column: Personal Information -->
+                        <div class="details-section">
+                            <h3 style="margin: 0 0 15px 0; padding-bottom: 8px; border-bottom: 1px solid #eee;">Personal Information</h3>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">First Name:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${booking.customer_first_name || booking.customer_name?.split(' ')[0] || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Last Name:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${booking.customer_last_name || (booking.customer_name?.split(' ').slice(1).join(' ')) || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Email Address:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${booking.customer_email || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Phone Number:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${booking.customer_phone || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Age:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${booking.customer_age || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Driver's License Number:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${booking.license_number || 'Not provided'}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Country:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${booking.country || 'Not provided'}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right column: Trip Information -->
+                        <div class="details-section">
+                            <h3 style="margin: 0 0 15px 0; padding-bottom: 8px; border-bottom: 1px solid #eee;">Trip Information</h3>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Pick-up Location:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${booking.pickup_location || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Pick-up Date & Time:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${pickupDate} ${booking.pickup_time || ''}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Drop-off Location:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${booking.dropoff_location || booking.pickup_location || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Drop-off Date & Time:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${dropoffDate} ${booking.dropoff_time || ''}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Duration:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${duration}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Selected Car:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                                    ${booking.car_name || booking.car_model || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px;">Total Price:</label>
+                                <div style="padding: 8px; background: #f9f9f9; border-radius: 4px; font-weight: bold; color: #2c3e50;">
+                                    ${price}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Special Requests -->
+                    <div class="details-section" style="margin-top: 15px;">
+                        <h3 style="margin: 0 0 15px 0; padding-bottom: 8px; border-bottom: 1px solid #eee;">Special Requests & Additional Services</h3>
+                        ${specialRequestsHtml}
+                    </div>
+                    
+                    <!-- Booking Meta -->
+                    <div class="details-section" style="margin-top: 20px; background: #f5f5f5; padding: 15px; border-radius: 6px;">
+                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                            <div style="margin-bottom: 8px;"><strong>Booking Created:</strong> ${createdAt}</div>
+                            <div style="margin-bottom: 8px;"><strong>Last Updated:</strong> ${booking.updated_at ? new Date(booking.updated_at).toLocaleString() : 'N/A'}</div>
+                            ${booking.payment_date ? `<div style="margin-bottom: 8px;"><strong>Payment Date:</strong> ${new Date(booking.payment_date).toLocaleString()}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add event listeners to close buttons
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        
+        modalCloseBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        
+        // Show the modal
+        modal.style.display = 'block';
+        
+        // Add status update functionality
+        const statusBtn = document.getElementById('modal-status-btn');
+        statusBtn.textContent = booking.status === 'confirmed' ? 'Mark as Completed' : 'Confirm Booking';
+        
+        statusBtn.addEventListener('click', function() {
+            // Here you would update the booking status in the database
+            // For now, we'll just show a notification
+            showNotification(`Booking status would be updated. This feature is coming soon!`, 'info');
+        });
+        
+        // Add delete functionality
+        const deleteBtn = document.getElementById('modal-delete-btn');
+        deleteBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
+                // Here you would delete the booking from the database
+                // For now, we'll just show a notification
+                showNotification(`Booking deletion coming soon!`, 'info');
+            }
+        });
     };
+    
+    // Helper function to show notifications
+    function showNotification(message, type = 'success') {
+        const container = document.getElementById('notification-container');
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 5000);
+    }
     
     // Set up navigation event listeners
     navLinks.forEach(link => {
