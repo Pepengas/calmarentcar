@@ -96,12 +96,41 @@ async function createTables() {
     }
 }
 
+// Simple admin auth middleware
+function requireAdminAuth(req, res, next) {
+    // Get the token from the request headers
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN format
+
+    // Check if token exists
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            error: 'Authentication required'
+        });
+    }
+
+    // Simple token validation (in production, use a more secure method)
+    // Use environment variable for token or a default for development
+    const validToken = process.env.ADMIN_API_TOKEN || 'calma-admin-token-2023';
+    
+    if (token !== validToken) {
+        return res.status(403).json({
+            success: false,
+            error: 'Invalid or expired token'
+        });
+    }
+
+    // If token is valid, proceed
+    next();
+}
+
 /**
  * API Routes
  */
 
 // Admin API - Get database status
-app.get('/api/admin/db-status', async (req, res) => {
+app.get('/api/admin/db-status', requireAdminAuth, async (req, res) => {
     try {
         if (!pool) {
             return res.json({
@@ -140,7 +169,7 @@ app.get('/api/admin/db-status', async (req, res) => {
 });
 
 // Admin API - Get all bookings
-app.get('/api/admin/bookings', async (req, res) => {
+app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
     try {
         let bookings = [];
         
@@ -199,83 +228,8 @@ app.get('/api/admin/bookings', async (req, res) => {
     }
 });
 
-// Admin API - Create a booking
-app.post('/api/admin/bookings/create', async (req, res) => {
-    try {
-        const booking = req.body;
-        
-        // Validate required fields
-        if (!booking.booking_reference) {
-            return res.json({
-                success: false,
-                error: 'Booking reference is required'
-            });
-        }
-        
-        if (dbConnected && pool) {
-            // Save to database
-            const result = await pool.query(`
-                INSERT INTO bookings (
-                    booking_reference, customer_first_name, customer_last_name, customer_email, 
-                    customer_phone, customer_age, driver_license, license_expiration, country,
-                    pickup_date, return_date, pickup_location, dropoff_location, 
-                    car_make, car_model, daily_rate, total_price, status, 
-                    payment_date, date_submitted, additional_driver, full_insurance, 
-                    gps_navigation, child_seat, special_requests, booking_data
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
-                RETURNING *
-            `, [
-                booking.booking_reference,
-                booking.customer?.firstName,
-                booking.customer?.lastName,
-                booking.customer?.email,
-                booking.customer?.phone,
-                booking.customer?.age,
-                booking.customer?.driverLicense,
-                booking.customer?.licenseExpiration,
-                booking.customer?.country,
-                booking.pickup_date,
-                booking.return_date,
-                booking.pickup_location,
-                booking.dropoff_location,
-                booking.car_make,
-                booking.car_model,
-                booking.daily_rate,
-                booking.total_price,
-                booking.status || 'pending',
-                booking.payment_date,
-                booking.date_submitted || new Date(),
-                booking.additional_driver,
-                booking.full_insurance,
-                booking.gps_navigation,
-                booking.child_seat,
-                booking.special_requests,
-                JSON.stringify(booking)
-            ]);
-            
-            return res.json({
-                success: true,
-                booking: result.rows[0]
-            });
-        } else {
-            // Fallback to localStorage (server-side implementation)
-            return res.json({
-                success: false,
-                error: 'Database is not connected, use client-side localStorage for now'
-            });
-        }
-    } catch (error) {
-        console.error('Error creating booking:', error);
-        
-        return res.json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
 // Admin API - Update booking status
-app.put('/api/admin/bookings/:id/status', async (req, res) => {
+app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -315,73 +269,6 @@ app.put('/api/admin/bookings/:id/status', async (req, res) => {
         }
     } catch (error) {
         console.error('Error updating booking status:', error);
-        
-        return res.json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Admin API - Delete booking
-app.delete('/api/admin/bookings/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        if (dbConnected && pool) {
-            // Delete from database
-            const result = await pool.query(`
-                DELETE FROM bookings
-                WHERE id = $1
-                RETURNING *
-            `, [id]);
-            
-            if (result.rows.length === 0) {
-                return res.json({
-                    success: false,
-                    error: 'Booking not found'
-                });
-            }
-            
-            return res.json({
-                success: true,
-                booking: result.rows[0]
-            });
-        } else {
-            return res.json({
-                success: false,
-                error: 'Database is not connected'
-            });
-        }
-    } catch (error) {
-        console.error('Error deleting booking:', error);
-        
-        return res.json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Admin API - Clear database
-app.post('/api/admin/db/clear', async (req, res) => {
-    try {
-        if (!dbConnected || !pool) {
-            return res.json({
-                success: false,
-                error: 'Database is not connected'
-            });
-        }
-        
-        // Delete all bookings
-        await pool.query('DELETE FROM bookings');
-        
-        return res.json({
-            success: true,
-            message: 'All bookings deleted successfully'
-        });
-    } catch (error) {
-        console.error('Error clearing database:', error);
         
         return res.json({
             success: false,
@@ -511,8 +398,8 @@ app.post('/api/bookings', async (req, res) => {
 });
 
 // Admin pages
-app.get('/admin-new', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin-new.html'));
+app.get('/admin-login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin-login.html'));
 });
 
 app.get('/admin', (req, res) => {

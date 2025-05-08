@@ -364,6 +364,55 @@ app.get('/api/admin/bookings', async (req, res) => {
     }
 });
 
+// Admin API - Update booking status
+app.put('/api/admin/bookings/:id/status', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        if (!status) {
+            return res.status(400).json({
+                success: false,
+                error: 'Status is required'
+            });
+        }
+        
+        // Find the booking in the database
+        const result = await pool.query('SELECT * FROM bookings WHERE id = $1', [id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Booking not found'
+            });
+        }
+        
+        // Update the booking status
+        const booking = result.rows[0];
+        const bookingData = booking.booking_data || {};
+        bookingData.status = status;
+        
+        // Update in database
+        const updateResult = await pool.query(`
+            UPDATE bookings
+            SET status = $1, booking_data = $2
+            WHERE id = $3
+            RETURNING *
+        `, [status, bookingData, id]);
+        
+        return res.status(200).json({
+            success: true,
+            booking: updateResult.rows[0]
+        });
+    } catch (error) {
+        console.error('Error updating booking status:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to update booking status: ' + error.message
+        });
+    }
+});
+
 // === API: Debug ===
 app.get('/api/debug/bookings', async (req, res) => {
     try {
@@ -614,15 +663,6 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Handle admin path explicitly
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
-});
-
-app.get('/admin.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
-});
-
 // === PostgreSQL API Routes ===
 // Get all bookings
 app.get('/api/bookings', async (req, res) => {
@@ -869,4 +909,17 @@ app.get('*', (req, res) => {
       res.sendFile(path.join(__dirname, 'index.html'));
     }
   });
+});
+
+// Handle admin path explicitly
+app.get('/admin-login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin-login.html'));
+});
+
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/admin.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
 }); 
