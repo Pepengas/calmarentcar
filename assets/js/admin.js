@@ -10,6 +10,18 @@ let carModels = new Set();
 // Get admin API token from localStorage (set during login)
 const API_TOKEN = localStorage.getItem('adminToken');
 
+// Log token presence on load (without revealing the actual token)
+console.log('[Admin] Token in localStorage:', API_TOKEN ? 'Present' : 'Missing');
+
+// Set token in cookie if missing from cookies but present in localStorage
+// This helps with authentication as the server checks both
+if (API_TOKEN && !document.cookie.includes('adminToken=')) {
+    console.log('[Admin] Setting adminToken cookie from localStorage');
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 1);
+    document.cookie = `adminToken=${API_TOKEN}; expires=${expiryDate.toUTCString()}; path=/`;
+}
+
 // DOM Elements
 const pageLoader = document.getElementById('pageLoader');
 const bookingsTableBody = document.getElementById('bookingsTableBody');
@@ -63,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadBookings() {
     showLoader();
     console.log('[Admin] loadBookings: Starting to load bookings...');
-
+    
     bookingsTableBody.innerHTML = `
         <tr>
             <td colspan="12" class="text-center">
@@ -76,26 +88,39 @@ async function loadBookings() {
             </td>
         </tr>
     `;
-
+    
     try {
-        const headers = {};
-        if (API_TOKEN) {
-            headers['Authorization'] = `Bearer ${API_TOKEN}`;
+        // Ensure we have the most up-to-date token
+        const currentToken = localStorage.getItem('adminToken');
+        
+        // Create headers object
+        const headers = {
+            'Accept': 'application/json'
+        };
+        
+        // Add Authorization header if token exists
+        if (currentToken) {
+            console.log('[Admin] loadBookings: Using token from localStorage');
+            // Properly format with Bearer prefix
+            headers['Authorization'] = `Bearer ${currentToken}`;
         } else {
-            console.warn('[Admin] loadBookings: API_TOKEN is missing. User might not be authenticated.');
-            // Optionally redirect or show an error immediately
-            // window.location.href = 'admin-login.html';
-            // return;
+            console.warn('[Admin] loadBookings: No API_TOKEN found in localStorage. Authentication might fail.');
+            // Try redirect to login preemptively
+            window.location.href = 'admin-login.html';
+            return;
         }
 
-        console.log('[Admin] loadBookings: Fetching from /api/admin/bookings with headers:', headers);
+        console.log('[Admin] loadBookings: Fetching from /api/admin/bookings with headers:', 
+                    {Authorization: headers.Authorization ? 'Bearer [TOKEN HIDDEN]' : 'Missing'});
+        
         const response = await fetch('/api/admin/bookings', {
-            headers: headers
+            headers: headers,
+            credentials: 'include' // Send cookies as well
         });
 
         console.log(`[Admin] loadBookings: Response status: ${response.status}`);
         console.log('[Admin] loadBookings: Response headers:', Object.fromEntries(response.headers.entries()));
-
+        
         if (response.status === 401 || response.status === 403) {
             console.error('[Admin] loadBookings: Authentication failed (401/403). Redirecting to login.');
             localStorage.removeItem('adminToken'); // Ensure token is cleared

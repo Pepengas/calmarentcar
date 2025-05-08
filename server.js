@@ -192,16 +192,22 @@ app.get('/api/admin/db-status', requireAdminAuth, async (req, res) => {
 });
 
 // Admin API - Get all bookings
-app.get('/api/admin/bookings', async (req, res) => {
+app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
     // Log message to confirm route is being accessed
     console.log('📊 Admin API - Get all bookings route accessed', new Date().toISOString());
+    console.log('🔑 Auth headers:', req.headers.authorization ? 'Present' : 'Missing');
+    console.log('🍪 Admin cookie:', req.cookies?.adminToken ? 'Present' : 'Missing');
     
     try {
         let bookings = [];
         
         if (dbConnected && pool) {
             // Fetch from database
+            console.log('💾 Database connected, fetching bookings...');
             const result = await pool.query('SELECT * FROM bookings ORDER BY date_submitted DESC');
+            console.log(`📋 Found ${result.rows.length} bookings in database`);
+            
+            // Map the bookings to the expected format
             bookings = result.rows.map(booking => {
                 // Convert DB structure to expected format
                 return {
@@ -236,6 +242,8 @@ app.get('/api/admin/bookings', async (req, res) => {
                     booking_data: booking.booking_data
                 };
             });
+        } else {
+            console.error('❌ Database not connected. Cannot fetch bookings.');
         }
         
         return res.json({
