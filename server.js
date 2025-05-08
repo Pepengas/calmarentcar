@@ -185,6 +185,9 @@ app.get('/api/admin/db-status', requireAdminAuth, async (req, res) => {
 
 // Admin API - Get all bookings
 app.get('/api/admin/bookings', async (req, res) => {
+    // Log message to confirm route is being accessed
+    console.log('📊 Admin API - Get all bookings route accessed', new Date().toISOString());
+    
     try {
         let bookings = [];
         
