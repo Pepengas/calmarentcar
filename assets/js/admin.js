@@ -311,6 +311,20 @@ function renderBookings(bookings) {
             </td>
         `;
         
+        // Add click handlers for the row and view button
+        row.addEventListener('click', (event) => {
+            // Only trigger if not clicking the button itself (to avoid double events)
+            if (!event.target.closest('.view-details')) {
+                showBookingDetails(booking);
+            }
+        });
+        
+        // Add click handler for the View button
+        row.querySelector('.view-details').addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent row click from also firing
+            showBookingDetails(booking);
+        });
+        
         bookingsTableBody.appendChild(row);
     });
     
@@ -392,6 +406,202 @@ function applyFilters() {
 function resetFilters() {
     filteredBookings = [...allBookings];
     renderBookings(filteredBookings);
+}
+
+/**
+ * Show booking details in the modal
+ * @param {Object} booking - The booking to display
+ */
+function showBookingDetails(booking) {
+    // Extract customer info
+    const customer = booking.customer || {};
+    const firstName = customer.firstName || booking.customer_first_name || '';
+    const lastName = customer.lastName || booking.customer_last_name || '';
+    const email = customer.email || booking.customer_email || '';
+    const phone = customer.phone || booking.customer_phone || '';
+    
+    // Extract location info
+    const pickupLocation = booking.pickup_location || '';
+    const dropoffLocation = booking.dropoff_location || '';
+    
+    // Extract date info
+    const pickupDate = formatDate(booking.pickup_date);
+    const returnDate = formatDate(booking.return_date);
+    const duration = calculateDuration(booking.pickup_date, booking.return_date);
+    
+    // Extract car info
+    const carMake = booking.car_make || '';
+    const carModel = booking.car_model || '';
+    const car = carMake && carModel ? `${carMake} ${carModel}` : 'N/A';
+    
+    // Extract pricing
+    const dailyRate = booking.daily_rate || 0;
+    const totalPrice = booking.total_price || 0;
+    
+    // Extra options
+    const additionalDriver = booking.additional_driver || false;
+    const fullInsurance = booking.full_insurance || false;
+    const gpsNavigation = booking.gps_navigation || false;
+    const childSeat = booking.child_seat || false;
+    const specialRequests = booking.special_requests || '';
+    
+    // Create modal content
+    bookingDetailsContent.innerHTML = `
+        <div class="booking-details-header">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h4 class="mb-0">Booking #${booking.booking_reference || booking.id}</h4>
+                <span class="badge bg-${getStatusClass(booking.status)}">
+                    ${booking.status || 'pending'}
+                </span>
+            </div>
+            <div class="text-white-50">Created: ${formatDate(booking.date_submitted)}</div>
+        </div>
+        
+        <div class="booking-details-body">
+            <!-- Customer Information -->
+            <div class="detail-section">
+                <h5 class="mb-3"><i class="fas fa-user me-2"></i>Customer Information</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <strong>Name:</strong> ${firstName} ${lastName}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Email:</strong> <a href="mailto:${email}">${email}</a>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Phone:</strong> <a href="tel:${phone}">${phone}</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Rental Details -->
+            <div class="detail-section">
+                <h5 class="mb-3"><i class="fas fa-calendar-alt me-2"></i>Rental Details</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <strong>Pickup Location:</strong> ${pickupLocation}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Drop-off Location:</strong> ${dropoffLocation}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Pickup Date:</strong> ${pickupDate}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Return Date:</strong> ${returnDate}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Duration:</strong> ${duration}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Car Details -->
+            <div class="detail-section">
+                <h5 class="mb-3"><i class="fas fa-car me-2"></i>Car Details</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <strong>Car:</strong> ${car}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Daily Rate:</strong> ${formatCurrency(dailyRate)}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Total Price:</strong> ${formatCurrency(totalPrice)}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add-ons -->
+            <div class="detail-section">
+                <h5 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add-ons</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <strong>Additional Driver:</strong> ${additionalDriver ? 'Yes' : 'No'}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Full Insurance:</strong> ${fullInsurance ? 'Yes' : 'No'}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>GPS Navigation:</strong> ${gpsNavigation ? 'Yes' : 'No'}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Child Seat:</strong> ${childSeat ? 'Yes' : 'No'}
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <strong>Special Requests:</strong>
+                    <p class="mb-0 mt-2">${specialRequests || 'None'}</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Store booking ID in update button for later use
+    updateStatusBtn.dataset.bookingId = booking.id;
+    
+    // Show the modal
+    bookingDetailsModal.show();
+}
+
+/**
+ * Update booking status
+ * Called when the "Update Status" button is clicked in the booking details modal
+ */
+function updateBookingStatus() {
+    const bookingId = updateStatusBtn.dataset.bookingId;
+    
+    if (!bookingId) {
+        alert('No booking selected');
+        return;
+    }
+    
+    // Get new status from user
+    const newStatus = prompt('Enter new status (pending, confirmed, completed, cancelled):');
+    
+    if (!newStatus) return; // User cancelled
+    
+    showLoader();
+    
+    // Send update request to API
+    fetch(`/api/admin/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_TOKEN}`
+        },
+        body: JSON.stringify({ status: newStatus.toLowerCase() })
+    })
+    .then(response => {
+        if (response.status === 401 || response.status === 403) {
+            // Auth failed - redirect to login
+            localStorage.removeItem('adminToken');
+            window.location.href = 'admin-login.html';
+            throw new Error('Authentication failed');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            bookingDetailsModal.hide();
+            
+            // Reload bookings to get fresh data
+            loadBookings();
+            
+            alert('Booking status updated successfully!');
+        } else {
+            alert('Failed to update booking status: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error updating booking status:', error);
+        alert('Error updating status: ' + error.message);
+    })
+    .finally(() => {
+        hideLoader();
+    });
 }
 
        
