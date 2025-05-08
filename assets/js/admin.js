@@ -62,8 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 async function loadBookings() {
     showLoader();
-    
-    // Show loading indicator in the table
+    console.log('[Admin] loadBookings: Starting to load bookings...');
+
     bookingsTableBody.innerHTML = `
         <tr>
             <td colspan="12" class="text-center">
@@ -76,37 +76,61 @@ async function loadBookings() {
             </td>
         </tr>
     `;
-    
+
     try {
-        // Add token to headers if available
         const headers = {};
         if (API_TOKEN) {
             headers['Authorization'] = `Bearer ${API_TOKEN}`;
+        } else {
+            console.warn('[Admin] loadBookings: API_TOKEN is missing. User might not be authenticated.');
+            // Optionally redirect or show an error immediately
+            // window.location.href = 'admin-login.html';
+            // return;
         }
 
+        console.log('[Admin] loadBookings: Fetching from /api/admin/bookings with headers:', headers);
         const response = await fetch('/api/admin/bookings', {
             headers: headers
         });
-        
+
+        console.log(`[Admin] loadBookings: Response status: ${response.status}`);
+        console.log('[Admin] loadBookings: Response headers:', Object.fromEntries(response.headers.entries()));
+
         if (response.status === 401 || response.status === 403) {
-            // Redirect to login page if authentication fails
-            localStorage.removeItem('adminToken');
+            console.error('[Admin] loadBookings: Authentication failed (401/403). Redirecting to login.');
+            localStorage.removeItem('adminToken'); // Ensure token is cleared
             window.location.href = 'admin-login.html';
             return;
         }
-        
+
+        const responseText = await response.text(); // Get raw text first
         if (!response.ok) {
-            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+            console.error(`[Admin] loadBookings: Server error ${response.status}. Raw response:`, responseText);
+            throw new Error(`Server error: ${response.status} ${response.statusText}. Response: ${responseText}`);
+        }
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+            console.log('[Admin] loadBookings: Parsed API response data:', data);
+        } catch (jsonError) {
+            console.error('[Admin] loadBookings: Failed to parse JSON response. Raw text:', responseText, 'Error:', jsonError);
+            showErrorMessage('Failed to understand server response. Please check console.');
+            hideLoader();
+            return;
         }
         
-        const data = await response.json();
-        
         if (data.success) {
-            // Store all bookings
+            console.log('[Admin] loadBookings: API call successful. Bookings received:', data.bookings);
             allBookings = data.bookings || [];
+            if (!data.bookings) {
+                console.warn('[Admin] loadBookings: data.bookings is undefined or null, defaulting to empty array.');
+            } else if (data.bookings.length === 0) {
+                console.info('[Admin] loadBookings: Received 0 bookings from the API.');
+            }
             filteredBookings = [...allBookings];
             
-            // Extract car models for filter dropdown 
+            carModels.clear(); // Clear previous models
             allBookings.forEach(booking => {
                 if (booking.car_make && booking.car_model) {
                     carModels.add(`${booking.car_make} ${booking.car_model}`);
@@ -117,14 +141,25 @@ async function loadBookings() {
             renderBookings(filteredBookings);
             updateDashboardStats();
         } else {
-            console.error('Failed to load bookings:', data.error);
-            showErrorMessage('Failed to load bookings from server: ' + (data.error || 'Unknown error'));
+            console.error('[Admin] loadBookings: API call returned success:false. Error:', data.error);
+            showErrorMessage('Failed to load bookings from server: ' + (data.error || 'Unknown error from server'));
         }
     } catch (error) {
-        console.error('Error loading bookings:', error);
-        showErrorMessage('Error loading bookings: ' + error.message);
+        console.error('[Admin] loadBookings: General error during fetch or processing:', error);
+        showErrorMessage('Error loading bookings: ' + error.message + '. Check console for details.');
+        // Display error in table as well
+        bookingsTableBody.innerHTML = `
+            <tr>
+                <td colspan="12" class="text-center py-5 text-danger">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <p class="mb-2">Error loading bookings.</p>
+                    <p class="text-muted small">${error.message}</p>
+                </td>
+            </tr>
+        `;
     } finally {
         hideLoader();
+        console.log('[Admin] loadBookings: Finished loading bookings attempt.');
     }
 }
 
@@ -195,27 +230,31 @@ function formatCurrency(amount) {
  * Update the dashboard statistics
  */
 function updateDashboardStats() {
-    // Total bookings count
-    totalBookings.textContent = allBookings.length;
+    if (totalBookings) totalBookings.textContent = allBookings.length;
     
-    // Calculate total revenue
     const revenue = allBookings.reduce((total, booking) => {
-        const price = parseFloat(booking.total_price || 0);
-        return total + price;
+        // Ensure total_price is treated as a number, default to 0 if invalid
+        const price = parseFloat(booking.total_price);
+        return total + (isNaN(price) ? 0 : price);
     }, 0);
     
-    totalRevenue.textContent = formatCurrency(revenue);
+    if (totalRevenue) totalRevenue.textContent = formatCurrency(revenue);
     
-    // Count bookings made today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     const todayBookings = allBookings.filter(booking => {
-        const bookingDate = new Date(booking.date_submitted);
-        return bookingDate >= today;
+        try {
+            const bookingDate = new Date(booking.date_submitted);
+            return bookingDate >= today;
+        } catch (e) {
+            console.warn('[Admin] updateDashboardStats: Invalid date_submitted for booking:', booking, e);
+            return false;
+        }
     });
     
-    carsBookedToday.textContent = todayBookings.length;
+    if (carsBookedToday) carsBookedToday.textContent = todayBookings.length;
+    console.log('[Admin] updateDashboardStats: Dashboard stats updated.');
 }
 
 /**
@@ -223,171 +262,129 @@ function updateDashboardStats() {
  * @param {Array} bookings - The bookings to display
  */
 function renderBookings(bookings) {
+    console.log(`[Admin] renderBookings: Called with ${bookings ? bookings.length : 'null/undefined'} bookings.`);
+
+    if (!bookingsTableBody) {
+        console.error("[Admin] renderBookings: bookingsTableBody element not found in DOM. Cannot render.");
+        return;
+    }
+
     if (!bookings || bookings.length === 0) {
+        console.info('[Admin] renderBookings: No bookings to display or bookings array is empty.');
         bookingsTableBody.innerHTML = `
             <tr>
                 <td colspan="12" class="text-center py-5">
                     <div class="my-4">
                         <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
                         <p class="mb-2">No bookings found</p>
-                        <p class="text-muted small">Try changing your filter criteria or add new bookings</p>
+                        <p class="text-muted small">Try changing your filter criteria or add new bookings. If you just added a booking, it might take a moment to appear.</p>
                     </div>
                 </td>
             </tr>
         `;
-        bookingsCount.textContent = 0;
+        if (bookingsCount) bookingsCount.textContent = 0;
         return;
     }
     
-    // Clear table
-    bookingsTableBody.innerHTML = '';
+    bookingsTableBody.innerHTML = ''; // Clear table
     
-    // Add each booking to the table
-    bookings.forEach(booking => {
-        // Extract customer info from booking
+    console.log('[Admin] renderBookings: Starting to render each booking.');
+    bookings.forEach((booking, index) => {
+        console.log(`[Admin] renderBookings: Processing booking ${index + 1}:`, JSON.parse(JSON.stringify(booking))); // Log a deep copy
+
         const customer = booking.customer || {};
-        const firstName = customer.firstName || booking.customer_first_name || '';
+        // Fallback for customer names if not nested
+        const firstName = customer.firstName || booking.customer_first_name || 'N/A';
         const lastName = customer.lastName || booking.customer_last_name || '';
+        const customerName = `${firstName} ${lastName}`.trim();
+
+        const carName = (booking.car_make && booking.car_model) ? `${booking.car_make} ${booking.car_model}` : 'N/A';
         
-        // Extract location info
-        const pickupLocation = booking.pickup_location || '';
-        const dropoffLocation = booking.dropoff_location || '';
-        
-        // Extract date info
-        const pickupDate = formatDate(booking.pickup_date);
-        const returnDate = formatDate(booking.return_date);
-        
-        // Calculate duration
-        const duration = calculateDuration(booking.pickup_date, booking.return_date);
-        
-        // Extract car info
-        const carMake = booking.car_make || '';
-        const carModel = booking.car_model || '';
-        const car = carMake && carModel ? `${carMake} ${carModel}` : 'N/A';
-        
-        // Create table row
         const row = document.createElement('tr');
-        row.className = 'booking-row';
-        row.style.cursor = 'pointer';
-        row.dataset.bookingId = booking.id || '';
         row.innerHTML = `
-            <td>${booking.booking_reference || 'N/A'}</td>
-            <td>${firstName}</td>
-            <td>${lastName}</td>
-            <td>${pickupLocation}</td>
-            <td>${dropoffLocation}</td>
-            <td>${pickupDate}</td>
-            <td>${returnDate}</td>
-            <td>${duration}</td>
-            <td>${car}</td>
-            <td>${formatCurrency(booking.daily_rate)}</td>
+            <td>${booking.booking_reference || booking.id || 'N/A'}</td>
             <td>
-                <span class="badge bg-${getStatusClass(booking.status)}">
-                    ${booking.status || 'pending'}
-                </span>
+                <div>${customerName}</div>
+                <small class="text-muted">${customer.email || booking.customer_email || 'N/A'}</small>
             </td>
+            <td>${carName}</td>
+            <td>${formatDate(booking.pickup_date)}</td>
+            <td>${formatDate(booking.return_date)}</td>
+            <td>${formatCurrency(booking.total_price)}</td>
+            <td><span class="booking-status ${getStatusClass(booking.status)}">${booking.status || 'N/A'}</span></td>
+            <td>${formatDate(booking.date_submitted)}</td>
             <td>
-                <button class="btn btn-sm btn-primary view-details" data-booking-id="${booking.id}">
-                    <i class="fas fa-eye"></i> View
+                <button class="btn btn-sm btn-outline-primary me-1 view-details-btn" title="View Details" data-booking-id="${booking.id}">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary edit-status-btn" title="Edit Status" data-booking-id="${booking.id}" data-current-status="${booking.status}">
+                    <i class="fas fa-edit"></i>
                 </button>
             </td>
         `;
         
-        // Add click handlers for the row and view button
-        row.addEventListener('click', (event) => {
-            // Only trigger if not clicking the button itself (to avoid double events)
-            if (!event.target.closest('.view-details')) {
-                showBookingDetails(booking);
-            }
-        });
-        
-        // Add click handler for the View button
-        row.querySelector('.view-details').addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevent row click from also firing
-            showBookingDetails(booking);
-        });
-        
         bookingsTableBody.appendChild(row);
     });
-    
-    // Update total count
-    bookingsCount.textContent = bookings.length;
+    console.log('[Admin] renderBookings: Finished rendering all bookings.');
+
+    if (bookingsCount) bookingsCount.textContent = bookings.length;
+
+    // Re-attach event listeners for view/edit buttons if necessary, or use event delegation
+    attachActionListeners(); 
 }
 
-/**
- * Calculate the duration between two dates in days
- * @param {string} start - Start date string
- * @param {string} end - End date string
- * @returns {string} - Duration as a string (e.g., "3 days")
- */
-function calculateDuration(start, end) {
-    if (!start || !end) return 'N/A';
+function attachActionListeners() {
+    // Remove existing listeners to prevent duplicates if called multiple times
+    bookingsTableBody.querySelectorAll('.view-details-btn').forEach(btn => {
+        btn.removeEventListener('click', handleViewDetailsClick); // Avoid adding multiple listeners
+        btn.addEventListener('click', handleViewDetailsClick);
+    });
+    bookingsTableBody.querySelectorAll('.edit-status-btn').forEach(btn => {
+        btn.removeEventListener('click', handleEditStatusClick); // Avoid adding multiple listeners
+        btn.addEventListener('click', handleEditStatusClick);
+    });
+    console.log('[Admin] attachActionListeners: Event listeners for action buttons re-attached.');
+}
+
+function handleViewDetailsClick(event) {
+    const bookingId = event.currentTarget.dataset.bookingId;
+    console.log(`[Admin] handleViewDetailsClick: View details for booking ID: ${bookingId}`);
+    const booking = allBookings.find(b => b.id.toString() === bookingId.toString());
+    if (booking) {
+        showBookingDetails(booking);
+    } else {
+        console.error(`[Admin] handleViewDetailsClick: Booking with ID ${bookingId} not found in allBookings.`);
+        showErrorMessage('Could not find booking details.');
+    }
+}
+
+function handleEditStatusClick(event) {
+    const bookingId = event.currentTarget.dataset.bookingId;
+    const currentStatus = event.currentTarget.dataset.currentStatus;
+    console.log(`[Admin] handleEditStatusClick: Edit status for booking ID: ${bookingId}, current status: ${currentStatus}`);
+    // Store booking ID for the modal
+    updateStatusBtn.dataset.bookingId = bookingId; 
+    // Pre-select current status in a dropdown (assuming you add a status dropdown to your modal)
+    // For now, we'll just open the modal. You'll need to implement the status update UI in the modal.
+    // Example: document.getElementById('modalStatusSelect').value = currentStatus;
     
-    try {
-        const startDate = new Date(start);
-        const endDate = new Date(end);
+    // This part needs to be tied to your booking details modal, specifically if you want to edit status there.
+    // For simplicity, let's assume `bookingDetailsModal` is also used for status updates for now,
+    // or you might have a separate modal.
+    // If using the same modal, you might want to show/hide parts of it.
+    const booking = allBookings.find(b => b.id.toString() === bookingId.toString());
+     if (booking) {
+        // Populate some identifier in the modal or a title
+        const modalTitle = document.getElementById('bookingDetailsModalLabel'); // Assuming your modal has a title with this ID
+        if(modalTitle) modalTitle.textContent = `Update Status for Booking: ${booking.booking_reference || booking.id}`;
         
-        const diffTime = Math.abs(endDate - startDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        return diffDays + ` day${diffDays !== 1 ? 's' : ''}`;
-    } catch (e) {
-        console.error('Error calculating duration:', e);
-        return 'N/A';
+        // You'd typically have a form in your modal for status update.
+        // For this example, we're just setting the bookingId on the update button
+        // and showing the modal.
+        bookingDetailsModal.show();
+    } else {
+        showErrorMessage('Could not find booking to update status.');
     }
-}
-
-/**
- * Get the CSS class for a booking status
- * @param {string} status - The booking status
- * @returns {string} - CSS class for the status
- */
-function getStatusClass(status) {
-    switch (status?.toLowerCase()) {
-        case 'completed':
-            return 'success';
-        case 'pending':
-            return 'warning';
-        case 'cancelled':
-            return 'danger';
-        default:
-            return 'secondary';
-    }
-}
-
-/**
- * Apply filters to the bookings list
- */
-function applyFilters() {
-    const status = statusFilter.value;
-    const carModel = carFilter.value;
-    
-    // Start with all bookings
-    let filtered = [...allBookings];
-    
-    // Filter by status
-    if (status) {
-        filtered = filtered.filter(booking => booking.status === status);
-    }
-    
-    // Filter by car model
-    if (carModel) {
-        filtered = filtered.filter(booking => {
-            const bookingCarModel = `${booking.car_make || ''} ${booking.car_model || ''}`.trim();
-            return bookingCarModel === carModel;
-        });
-    }
-    
-    filteredBookings = filtered;
-    renderBookings(filteredBookings);
-}
-
-/**
- * Reset all filters and show all bookings
- */
-function resetFilters() {
-    filteredBookings = [...allBookings];
-    renderBookings(filteredBookings);
 }
 
 /**
@@ -591,19 +588,94 @@ function updateBookingStatus() {
  * @param {string} message - The error message to display
  */
 function showErrorMessage(message) {
-    bookingsTableBody.innerHTML = `
-        <tr>
-            <td colspan="12" class="text-center py-5">
-                <div class="my-4 text-danger">
-                    <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
-                    <p class="mb-2">${message}</p>
-                    <button class="btn btn-outline-primary mt-3" onclick="loadBookings()">
-                        <i class="fas fa-sync-alt me-1"></i> Try Again
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `;
+    console.error('[Admin] showErrorMessage:', message); // Log the error
+    const errorContainer = document.getElementById('adminErrorContainer'); // Assuming you add an error container div
+    if (errorContainer) {
+        errorContainer.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>`;
+        errorContainer.style.display = 'block';
+    } else {
+        // Fallback to alert if no dedicated container
+        alert('Admin Page Error: ' + message);
+    }
+}
+
+/**
+ * Calculate the duration between two dates in days
+ * @param {string} start - Start date string
+ * @param {string} end - End date string
+ * @returns {string} - Duration as a string (e.g., "3 days")
+ */
+function calculateDuration(start, end) {
+    if (!start || !end) return 'N/A';
+    
+    try {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        return diffDays + ` day${diffDays !== 1 ? 's' : ''}`;
+    } catch (e) {
+        console.error('Error calculating duration:', e);
+        return 'N/A';
+    }
+}
+
+/**
+ * Get the CSS class for a booking status
+ * @param {string} status - The booking status
+ * @returns {string} - CSS class for the status
+ */
+function getStatusClass(status) {
+    switch (status?.toLowerCase()) {
+        case 'completed':
+            return 'success';
+        case 'pending':
+            return 'warning';
+        case 'cancelled':
+            return 'danger';
+        default:
+            return 'secondary';
+    }
+}
+
+/**
+ * Apply filters to the bookings list
+ */
+function applyFilters() {
+    const status = statusFilter.value;
+    const carModel = carFilter.value;
+    
+    // Start with all bookings
+    let filtered = [...allBookings];
+    
+    // Filter by status
+    if (status) {
+        filtered = filtered.filter(booking => booking.status === status);
+    }
+    
+    // Filter by car model
+    if (carModel) {
+        filtered = filtered.filter(booking => {
+            const bookingCarModel = `${booking.car_make || ''} ${booking.car_model || ''}`.trim();
+            return bookingCarModel === carModel;
+        });
+    }
+    
+    filteredBookings = filtered;
+    renderBookings(filteredBookings);
+}
+
+/**
+ * Reset all filters and show all bookings
+ */
+function resetFilters() {
+    filteredBookings = [...allBookings];
+    renderBookings(filteredBookings);
 }
 
        
