@@ -129,6 +129,19 @@ function requireAdminAuth(req, res, next) {
  * API Routes
  */
 
+// Get car data
+app.get('/api/cars', async (req, res) => {
+    try {
+        const carsFilePath = path.join(__dirname, 'cars.json');
+        const data = await fs.promises.readFile(carsFilePath, 'utf8');
+        const cars = JSON.parse(data);
+        res.status(200).json(cars);
+    } catch (error) {
+        console.error('Error reading cars data:', error);
+        res.status(500).json({ success: false, message: 'Failed to load car data.' });
+    }
+});
+
 // Admin API - Get database status
 app.get('/api/admin/db-status', requireAdminAuth, async (req, res) => {
     try {
