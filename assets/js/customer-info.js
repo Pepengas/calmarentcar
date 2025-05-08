@@ -311,77 +311,95 @@ const CustomerInfo = {
     },
     
     /**
-     * Handle form submission
+     * Form submit handler
      */
     handleFormSubmit: function(e) {
-        e.preventDefault();
-        console.log('Form submission handler called');
+        if (e) e.preventDefault();
         
-        // Log the current event target and type
-        console.log('Event details:', {
-            target: e.target,
-            type: e.type,
-            currentTarget: e.currentTarget
-        });
-        
-        // Prevent double submissions
-        if (this.elements.completeBookingBtn) {
-            console.log('Complete booking button found:', this.elements.completeBookingBtn);
-            
-            if (this.elements.completeBookingBtn.getAttribute('data-processing') === 'true') {
-                console.log('Form already being processed, ignoring duplicate submission');
-                return;
-            }
-            
-            // Set processing state
-            this.elements.completeBookingBtn.setAttribute('data-processing', 'true');
-            this.elements.completeBookingBtn.disabled = true;
-            this.elements.completeBookingBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-        } else {
-            console.error('Complete booking button not found in DOM elements');
+        if (!this.validateForm()) {
+            return false;
         }
-        
-        // Validate form
-        const isValid = this.validateForm();
-        console.log('Form validation result:', isValid);
-        
-        if (!isValid) {
-            console.log('Form validation failed');
-            // Reset button state if validation fails
-            if (this.elements.completeBookingBtn) {
-                this.elements.completeBookingBtn.removeAttribute('data-processing');
-                this.elements.completeBookingBtn.disabled = false;
-                this.elements.completeBookingBtn.innerHTML = 'Proceed to Payment <i class="fas fa-credit-card"></i>';
-            }
-            return;
-        }
-        
-        console.log('Form validation successful, proceeding with submission');
         
         // Show loading overlay
         if (this.elements.loadingOverlay) {
             this.elements.loadingOverlay.style.display = 'flex';
-        } else {
-            console.error('Loading overlay element not found');
         }
         
-        // Collect form data
+        // Get form data
         const formData = this.collectFormData();
-        console.log('Collected form data:', formData);
         
-        // Combine with booking data
+        // Extract URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Get car selection ID
+        const carId = urlParams.get('car-selection');
+        
+        // Parse car details
+        let carMake = 'Unknown';
+        let carModel = 'Unknown';
+        let carName = '';
+        let dailyRate = 0;
+        
+        // Try to extract car data from a format like "BMW 3 Series-60"
+        if (carId && carId.includes('-')) {
+            const parts = carId.split('-');
+            carName = parts[0];
+            dailyRate = parseFloat(parts[1]);
+            
+            // Try to split into make and model
+            const nameParts = carName.split(' ');
+            if (nameParts.length > 0) {
+                carMake = nameParts[0];
+                if (nameParts.length > 1) {
+                    carModel = nameParts.slice(1).join(' ');
+                }
+            }
+        } else if (carId) {
+            carName = carId;
+        }
+        
+        // Calculate rental period in days
+        const pickupDate = urlParams.get('pickup-date');
+        const returnDate = urlParams.get('dropoff-date');
+        let days = 1;
+        
+        if (pickupDate && returnDate) {
+            const start = new Date(pickupDate);
+            const end = new Date(returnDate);
+            const diffTime = Math.abs(end - start);
+            days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            days = Math.max(1, days);
+        }
+        
+        // Calculate total price
+        const totalPrice = dailyRate * days;
+        
+        // Combine all data
         const completeBookingData = {
-            ...this.bookingData,
+            pickupDate: pickupDate,
+            returnDate: returnDate,
+            pickupLocation: urlParams.get('pickup-location'),
+            dropoffLocation: urlParams.get('dropoff-location'),
+            pickupTime: urlParams.get('pickup-time'),
+            dropoffTime: urlParams.get('dropoff-time'),
+            carId: carId,
+            carName: carName,
+            carMake: carMake,
+            carModel: carModel,
+            dailyRate: dailyRate,
+            rentalDays: days,
+            totalPrice: totalPrice,
+            specialRequests: urlParams.get('special-requests'),
             customer: formData,
             dateSubmitted: new Date().toISOString()
         };
         
         console.log('Complete booking data:', completeBookingData);
         
-        // Simulate API call
-        setTimeout(() => {
-            this.submitBooking(completeBookingData);
-        }, 2000);
+        // Submit immediately
+        this.submitBooking(completeBookingData);
+        
+        return true;
     },
     
     /**
@@ -506,45 +524,87 @@ const CustomerInfo = {
      * Submit the booking
      */
     submitBooking: function(bookingData) {
-        console.log('Booking data submitted:', bookingData);
+        console.log('Submitting booking data to server:', bookingData);
         
-        // Generate booking reference (simulated)
-        const bookingReference = this.generateBookingReference();
+        // Show loading overlay if it exists
+        if (this.elements.loadingOverlay) {
+            this.elements.loadingOverlay.style.display = 'flex';
+        }
         
-        // Prepare data for payment processing
-        const paymentData = {
-            ...bookingData,
-            bookingReference: bookingReference,
-            status: 'pending'
+        // Prepare the booking data for the API
+        const apiBookingData = {
+            firstName: bookingData.customer.firstName,
+            lastName: bookingData.customer.lastName,
+            email: bookingData.customer.email,
+            phone: bookingData.customer.phone,
+            age: bookingData.customer.age,
+            driverLicense: bookingData.customer.driverLicense,
+            licenseExpiration: bookingData.customer.licenseExpiry,
+            country: bookingData.customer.nationality,
+            pickupDate: bookingData.pickupDate,
+            returnDate: bookingData.returnDate,
+            pickupLocation: bookingData.pickupLocation,
+            dropoffLocation: bookingData.dropoffLocation || bookingData.pickupLocation,
+            carMake: this.extractCarMake(bookingData),
+            carModel: this.extractCarModel(bookingData),
+            dailyRate: parseFloat(bookingData.dailyRate || 0),
+            totalPrice: this.calculateTotalPrice(bookingData),
+            additionalDriver: bookingData.customer.additionalOptions?.additionalDriver || false,
+            fullInsurance: bookingData.customer.additionalOptions?.fullInsurance || false,
+            gpsNavigation: bookingData.customer.additionalOptions?.gpsNavigation || false,
+            childSeat: bookingData.customer.additionalOptions?.childSeat || false,
+            specialRequests: bookingData.specialRequests || ''
         };
         
-        // Store the complete booking data in localStorage for the payment page
-        localStorage.setItem('currentBooking', JSON.stringify(paymentData));
-        
-        // Store data for retrieval in booking confirmation
-        sessionStorage.setItem('bookingParams', new URLSearchParams(window.location.search).toString());
-        
-        // Hide loading overlay
-        if (this.elements.loadingOverlay) {
-            this.elements.loadingOverlay.style.display = 'none';
-        }
-        
-        // Redirect to payment page
-        window.location.href = 'payment.html';
-    },
-    
-    /**
-     * Generate a random booking reference
-     */
-    generateBookingReference: function() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let reference = 'PD-';
-        
-        for (let i = 0; i < 8; i++) {
-            reference += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        
-        return reference;
+        // Make the API call to save the booking
+        fetch('/api/bookings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(apiBookingData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Server error: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Booking saved successfully:', data);
+            
+            if (data.success) {
+                // Store the booking reference for confirmation
+                localStorage.setItem('currentBooking', JSON.stringify({
+                    ...bookingData,
+                    bookingReference: data.booking.bookingReference,
+                    status: data.booking.status
+                }));
+                
+                // Store data for retrieval in booking confirmation
+                sessionStorage.setItem('bookingParams', new URLSearchParams(window.location.search).toString());
+                
+                // Redirect to payment page
+                window.location.href = 'payment.html';
+            } else {
+                console.error('Booking save failed:', data.error);
+                alert('Failed to save booking: ' + (data.error || 'Unknown error'));
+                
+                // Hide loading overlay
+                if (this.elements.loadingOverlay) {
+                    this.elements.loadingOverlay.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting booking:', error);
+            alert('Error submitting booking: ' + error.message);
+            
+            // Hide loading overlay
+            if (this.elements.loadingOverlay) {
+                this.elements.loadingOverlay.style.display = 'none';
+            }
+        });
     },
     
     /**
@@ -568,5 +628,85 @@ const CustomerInfo = {
     redirectToMyBookings: function(e) {
         e.preventDefault();
         window.location.href = 'my-bookings.html';
+    },
+    
+    /**
+     * Extract car make from booking data
+     */
+    extractCarMake: function(bookingData) {
+        // Try different possible locations for car make
+        if (bookingData.selectedCar && bookingData.selectedCar.make) {
+            return bookingData.selectedCar.make;
+        }
+        
+        if (bookingData.carMake) {
+            return bookingData.carMake;
+        }
+        
+        if (bookingData.car && typeof bookingData.car === 'string') {
+            // Try to extract make from a string like "Toyota Corolla"
+            const parts = bookingData.car.split(' ');
+            if (parts.length > 0) {
+                return parts[0];
+            }
+        }
+        
+        return 'Unknown';
+    },
+    
+    /**
+     * Extract car model from booking data
+     */
+    extractCarModel: function(bookingData) {
+        // Try different possible locations for car model
+        if (bookingData.selectedCar && bookingData.selectedCar.model) {
+            return bookingData.selectedCar.model;
+        }
+        
+        if (bookingData.carModel) {
+            return bookingData.carModel;
+        }
+        
+        if (bookingData.carName) {
+            return bookingData.carName;
+        }
+        
+        if (bookingData.car && typeof bookingData.car === 'string') {
+            // Try to extract model from a string like "Toyota Corolla"
+            const parts = bookingData.car.split(' ');
+            if (parts.length > 1) {
+                return parts.slice(1).join(' ');
+            }
+        }
+        
+        return 'Unknown';
+    },
+    
+    /**
+     * Calculate total price from booking data
+     */
+    calculateTotalPrice: function(bookingData) {
+        if (bookingData.totalPrice) {
+            return parseFloat(bookingData.totalPrice).toFixed(2);
+        }
+        
+        // If we have daily rate and rental duration, calculate
+        let dailyRate = 0;
+        if (bookingData.dailyRate) {
+            dailyRate = parseFloat(bookingData.dailyRate);
+        } else if (bookingData.selectedCar && bookingData.selectedCar.price) {
+            dailyRate = parseFloat(bookingData.selectedCar.price);
+        }
+        
+        let days = 1;
+        if (bookingData.pickupDate && bookingData.returnDate) {
+            const pickupDate = new Date(bookingData.pickupDate);
+            const returnDate = new Date(bookingData.returnDate);
+            const diffTime = Math.abs(returnDate - pickupDate);
+            days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            days = Math.max(1, days); // At least 1 day
+        }
+        
+        return (dailyRate * days).toFixed(2);
     }
 }; 
