@@ -21,4 +21,4 @@ ENV NODE_ENV=production
 RUN mkdir -p /app/data
 
 # Start the server
-CMD ["node", "server-new.js"] 
+CMD ["node", "server.js"] 
