@@ -464,6 +464,107 @@ app.get('/styles.css', (req, res) => {
     res.sendFile(path.join(__dirname, 'assets/css/styles.css'));
 });
 
+// Temporary route to test booking creation manually
+app.post('/api/test-booking', async (req, res) => {
+  try {
+    const testBooking = {
+      customer_first_name: "Test",
+      customer_last_name: "User",
+      customer_email: "test@example.com",
+      customer_phone: "1234567890",
+      customer_age: "30",
+      driver_license: "ABC123",
+      license_expiration: new Date(),
+      country: "Testland",
+      pickup_date: new Date(),
+      return_date: new Date(),
+      pickup_location: "City A",
+      dropoff_location: "City B",
+      car_make: "Toyota",
+      car_model: "Corolla",
+      daily_rate: 50.0,
+      total_price: 150.0,
+      status: "pending",
+      payment_date: new Date(),
+      date_submitted: new Date(),
+      additional_driver: false,
+      full_insurance: true,
+      gps_navigation: false,
+      child_seat: false,
+      special_requests: "None",
+      booking_data: {}
+    };
+
+    await pool.query(`
+      INSERT INTO bookings (
+        booking_reference,
+        customer_first_name,
+        customer_last_name,
+        customer_email,
+        customer_phone,
+        customer_age,
+        driver_license,
+        license_expiration,
+        country,
+        pickup_date,
+        return_date,
+        pickup_location,
+        dropoff_location,
+        car_make,
+        car_model,
+        daily_rate,
+        total_price,
+        status,
+        payment_date,
+        date_submitted,
+        additional_driver,
+        full_insurance,
+        gps_navigation,
+        child_seat,
+        special_requests,
+        booking_data
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+        $11, $12, $13, $14, $15, $16, $17, $18,
+        $19, $20, $21, $22, $23, $24, $25, $26
+      )`,
+      [
+        "BK" + Math.floor(Math.random() * 1000000),
+        testBooking.customer_first_name,
+        testBooking.customer_last_name,
+        testBooking.customer_email,
+        testBooking.customer_phone,
+        testBooking.customer_age,
+        testBooking.driver_license,
+        testBooking.license_expiration,
+        testBooking.country,
+        testBooking.pickup_date,
+        testBooking.return_date,
+        testBooking.pickup_location,
+        testBooking.dropoff_location,
+        testBooking.car_make,
+        testBooking.car_model,
+        testBooking.daily_rate,
+        testBooking.total_price,
+        testBooking.status,
+        testBooking.payment_date,
+        testBooking.date_submitted,
+        testBooking.additional_driver,
+        testBooking.full_insurance,
+        testBooking.gps_navigation,
+        testBooking.child_seat,
+        testBooking.special_requests,
+        JSON.stringify(testBooking.booking_data)
+      ]
+    );
+
+    res.json({ success: true, message: "Test booking inserted!" });
+  } catch (error) {
+    console.error('Error creating test booking:', error);
+    res.json({ success: false, error: error.message });
+  }
+});
+
 // Start server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
