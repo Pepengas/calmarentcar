@@ -27,8 +27,6 @@ const updateStatusBtn = document.getElementById('updateStatusBtn');
 
 // Initialize the dashboard when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Admin Dashboard Initialized');
-    
     // Check if user is authenticated
     if (!API_TOKEN) {
         // Redirect to login page if not authenticated
@@ -99,17 +97,7 @@ async function loadBookings() {
         
         const data = await response.json();
         
-        // Add detailed logging of API response
-        console.log('===== ADMIN BOOKINGS API RESPONSE =====');
-        console.log('Raw response data:', data);
-        console.log('Success status:', data.success);
-        console.log('Bookings count:', data.bookings?.length || 0);
-        console.log('First booking (if exists):', data.bookings?.[0] || 'No bookings');
-        console.log('=======================================');
-        
         if (data.success) {
-            console.log(`Successfully loaded ${data.bookings?.length || 0} bookings`);
-            
             // Store all bookings
             allBookings = data.bookings || [];
             filteredBookings = [...allBookings];
