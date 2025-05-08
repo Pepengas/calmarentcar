@@ -78,10 +78,14 @@ async function loadBookings() {
     `;
     
     try {
+        // Add token to headers if available
+        const headers = {};
+        if (API_TOKEN) {
+            headers['Authorization'] = `Bearer ${API_TOKEN}`;
+        }
+
         const response = await fetch('/api/admin/bookings', {
-            headers: {
-                'Authorization': `Bearer ${API_TOKEN}`
-            }
+            headers: headers
         });
         
         if (response.status === 401 || response.status === 403) {
@@ -103,32 +107,22 @@ async function loadBookings() {
             filteredBookings = [...allBookings];
             
             // Extract car models for filter dropdown 
-            // Server returns car_make and car_model in snake_case
             allBookings.forEach(booking => {
                 if (booking.car_make && booking.car_model) {
                     carModels.add(`${booking.car_make} ${booking.car_model}`);
                 }
             });
             
-            // Check if required functions exist before calling them
-            if (typeof populateCarFilter === 'function') {
-                populateCarFilter();
-            }
-            
-            if (typeof renderBookings === 'function') {
-                renderBookings(filteredBookings);
-            }
-            
-            if (typeof updateDashboardStats === 'function') {
-                updateDashboardStats();
-            } else {
-                console.error('Function updateDashboardStats is not defined');
-            }
+            populateCarFilter();
+            renderBookings(filteredBookings);
+            updateDashboardStats();
         } else {
-            console.error('Failed to load bookings');
+            console.error('Failed to load bookings:', data.error);
+            showErrorMessage('Failed to load bookings from server: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error loading bookings:', error);
+        showErrorMessage('Error loading bookings: ' + error.message);
     } finally {
         hideLoader();
     }
@@ -590,6 +584,26 @@ function updateBookingStatus() {
     .finally(() => {
         hideLoader();
     });
+}
+
+/**
+ * Display an error message in the bookings table
+ * @param {string} message - The error message to display
+ */
+function showErrorMessage(message) {
+    bookingsTableBody.innerHTML = `
+        <tr>
+            <td colspan="12" class="text-center py-5">
+                <div class="my-4 text-danger">
+                    <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                    <p class="mb-2">${message}</p>
+                    <button class="btn btn-outline-primary mt-3" onclick="loadBookings()">
+                        <i class="fas fa-sync-alt me-1"></i> Try Again
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `;
 }
 
        
