@@ -20,7 +20,15 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(cookieParser());
+
+// Serve static files from root directory for backward compatibility
 app.use(express.static(path.join(__dirname)));
+
+// Serve static files from specific directories with explicit path prefixes
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use('/dist', express.static(path.join(__dirname, 'dist')));
 
 // PostgreSQL connection
 let pool = null;
@@ -330,10 +338,28 @@ app.get('/api/bookings', async (req, res) => {
 // Client API - Create a booking (public form)
 app.post('/api/bookings', async (req, res) => {
     try {
+        // Debug logging of the request body
+        console.log('⬇️ ======== BOOKING REQUEST RECEIVED ========');
+        console.log('📦 Request Body:', JSON.stringify(req.body, null, 2));
+        console.log('🔑 Keys in request body:', Object.keys(req.body));
+        console.log('🧪 Required fields check:');
+        console.log('   - firstName:', req.body.firstName ? '✅ Present' : '❌ Missing');
+        console.log('   - lastName:', req.body.lastName ? '✅ Present' : '❌ Missing');
+        console.log('   - email:', req.body.email ? '✅ Present' : '❌ Missing');
+        console.log('   - pickupDate:', req.body.pickupDate ? '✅ Present' : '❌ Missing');
+        console.log('   - returnDate:', req.body.returnDate ? '✅ Present' : '❌ Missing');
+        console.log('   - pickupLocation:', req.body.pickupLocation ? '✅ Present' : '❌ Missing');
+        console.log('   - carMake:', req.body.carMake ? '✅ Present' : '❌ Missing');
+        console.log('   - carModel:', req.body.carModel ? '✅ Present' : '❌ Missing');
+        console.log('   - dailyRate:', req.body.dailyRate ? '✅ Present' : '❌ Missing');
+        console.log('   - totalPrice:', req.body.totalPrice ? '✅ Present' : '❌ Missing');
+        console.log('⬆️ ======== END BOOKING REQUEST DEBUG ========');
+        
         const booking = req.body;
         
         // Validate required fields
         if (!booking.firstName || !booking.lastName || !booking.email || !booking.pickupDate) {
+            console.error('❌ Booking validation failed: Missing required fields');
             return res.json({
                 success: false,
                 error: 'Missing required fields'
@@ -383,6 +409,8 @@ app.post('/api/bookings', async (req, res) => {
                 JSON.stringify({...booking, bookingReference: bookingRef})
             ]);
             
+            console.log('✅ Booking saved to database successfully, reference:', bookingRef);
+            
             return res.json({
                 success: true,
                 booking: {
@@ -394,6 +422,8 @@ app.post('/api/bookings', async (req, res) => {
             });
         } else {
             // Still send success but with notice to store in localStorage
+            console.log('📝 Database not connected, using localStorage fallback, reference:', bookingRef);
+            
             return res.json({
                 success: true,
                 useLocalStorage: true,
@@ -406,7 +436,7 @@ app.post('/api/bookings', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Error creating booking from public form:', error);
+        console.error('❌ Error creating booking:', error);
         
         return res.json({
             success: false,
@@ -427,6 +457,11 @@ app.get('/admin', (req, res) => {
 // Home page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Ensure styles.css is always available
+app.get('/styles.css', (req, res) => {
+    res.sendFile(path.join(__dirname, 'assets/css/styles.css'));
 });
 
 // Start server

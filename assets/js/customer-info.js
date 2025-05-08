@@ -238,7 +238,7 @@ const CustomerInfo = {
         this.elements.summaryReturnDate.textContent = formattedReturnDate;
         this.elements.summaryDuration.textContent = `${durationDays} day${durationDays > 1 ? 's' : ''}`;
         this.elements.summaryCar.textContent = `${selectedCar.make} ${selectedCar.model}`;
-        this.elements.summaryDailyRate.textContent = `$${selectedCar.price.toFixed(2)}/day`;
+        this.elements.summaryDailyRate.textContent = `€${selectedCar.price.toFixed(2)}/day`;
         
         // Store duration for later calculations
         this.bookingData.durationDays = durationDays;
@@ -291,7 +291,7 @@ const CustomerInfo = {
         }
         
         // Update total price display
-        this.elements.summaryTotal.textContent = `$${totalPrice.toFixed(2)}`;
+        this.elements.summaryTotal.textContent = `€${totalPrice.toFixed(2)}`;
         
         // Store total price for later use
         this.bookingData.totalPrice = totalPrice;
@@ -305,7 +305,7 @@ const CustomerInfo = {
         optionElement.className = 'summary-item';
         optionElement.innerHTML = `
             <span class="summary-label">${optionName}:</span>
-            <span class="summary-value">$${optionPrice.toFixed(2)}</span>
+            <span class="summary-value">€${optionPrice.toFixed(2)}</span>
         `;
         this.elements.additionalOptionsSummary.appendChild(optionElement);
     },
@@ -524,15 +524,44 @@ const CustomerInfo = {
      * Submit the booking
      */
     submitBooking: function(bookingData) {
-        console.log('Submitting booking data to server:', bookingData);
+        // Log the raw data for debugging
+        console.log('Original booking data:', bookingData);
         
         // Show loading overlay if it exists
         if (this.elements.loadingOverlay) {
             this.elements.loadingOverlay.style.display = 'flex';
         }
         
-        // Prepare the booking data for the API
+        // Get car make and model correctly
+        const carMake = this.extractCarMake(bookingData);
+        const carModel = this.extractCarModel(bookingData);
+        
+        // Calculate total price including add-ons
+        const totalPrice = this.calculateTotalPrice(bookingData);
+        const dailyRate = parseFloat(bookingData.dailyRate || (bookingData.selectedCar ? bookingData.selectedCar.price : 0));
+        
+        // Validate essential data before sending
+        if (!bookingData.pickupDate || !bookingData.returnDate) {
+            console.error('Missing required date information');
+            alert('Booking error: Missing pickup or return date information');
+            if (this.elements.loadingOverlay) {
+                this.elements.loadingOverlay.style.display = 'none';
+            }
+            return;
+        }
+        
+        if (!bookingData.customer || !bookingData.customer.firstName) {
+            console.error('Missing customer information');
+            alert('Booking error: Missing customer information');
+            if (this.elements.loadingOverlay) {
+                this.elements.loadingOverlay.style.display = 'none';
+            }
+            return;
+        }
+        
+        // Prepare the booking data for the API - ensuring field names match server expectations
         const apiBookingData = {
+            // Customer details - required fields
             firstName: bookingData.customer.firstName,
             lastName: bookingData.customer.lastName,
             email: bookingData.customer.email,
@@ -541,44 +570,62 @@ const CustomerInfo = {
             driverLicense: bookingData.customer.driverLicense,
             licenseExpiration: bookingData.customer.licenseExpiry,
             country: bookingData.customer.nationality,
+            
+            // Dates and locations - required fields
             pickupDate: bookingData.pickupDate,
             returnDate: bookingData.returnDate,
             pickupLocation: bookingData.pickupLocation,
             dropoffLocation: bookingData.dropoffLocation || bookingData.pickupLocation,
-            carMake: this.extractCarMake(bookingData),
-            carModel: this.extractCarModel(bookingData),
-            dailyRate: parseFloat(bookingData.dailyRate || 0),
-            totalPrice: this.calculateTotalPrice(bookingData),
+            
+            // Car details - required fields
+            carMake: carMake,
+            carModel: carModel,
+            dailyRate: dailyRate,
+            totalPrice: totalPrice,
+            
+            // Add-ons - optional but should be included
             additionalDriver: bookingData.customer.additionalOptions?.additionalDriver || false,
             fullInsurance: bookingData.customer.additionalOptions?.fullInsurance || false,
             gpsNavigation: bookingData.customer.additionalOptions?.gpsNavigation || false,
             childSeat: bookingData.customer.additionalOptions?.childSeat || false,
-            specialRequests: bookingData.specialRequests || ''
+            
+            // Other details
+            specialRequests: bookingData.specialRequests || '',
+            rentalDays: bookingData.rentalDays || this.calculateRentalDays(bookingData.pickupDate, bookingData.returnDate)
         };
+        
+        // Log the prepared data being sent to the API for debugging
+        console.log('Sending booking data to API:', apiBookingData);
         
         // Make the API call to save the booking
         fetch('/api/bookings', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify(apiBookingData)
         })
         .then(response => {
+            console.log('API response status:', response.status);
             if (!response.ok) {
                 throw new Error('Server error: ' + response.status);
             }
             return response.json();
         })
         .then(data => {
-            console.log('Booking saved successfully:', data);
+            console.log('Booking API response:', data);
             
-            if (data.success) {
+            if (data.success && (data.booking || data.useLocalStorage)) {
+                // Handle both database and localStorage success cases
+                const bookingReference = data.booking?.bookingReference || 'BK' + Date.now().toString().slice(-6);
+                const status = data.booking?.status || 'pending';
+                
                 // Store the booking reference for confirmation
                 localStorage.setItem('currentBooking', JSON.stringify({
                     ...bookingData,
-                    bookingReference: data.booking.bookingReference,
-                    status: data.booking.status
+                    bookingReference: bookingReference,
+                    status: status
                 }));
                 
                 // Store data for retrieval in booking confirmation
@@ -587,7 +634,7 @@ const CustomerInfo = {
                 // Redirect to payment page
                 window.location.href = 'payment.html';
             } else {
-                console.error('Booking save failed:', data.error);
+                console.error('Booking save failed:', data.error || 'Unknown error');
                 alert('Failed to save booking: ' + (data.error || 'Unknown error'));
                 
                 // Hide loading overlay
@@ -605,6 +652,24 @@ const CustomerInfo = {
                 this.elements.loadingOverlay.style.display = 'none';
             }
         });
+    },
+    
+    /**
+     * Calculate rental days between two dates
+     */
+    calculateRentalDays: function(pickupDate, returnDate) {
+        if (!pickupDate || !returnDate) return 1;
+        
+        try {
+            const pickup = new Date(pickupDate);
+            const dropoff = new Date(returnDate);
+            const diffTime = Math.abs(dropoff - pickup);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return Math.max(1, diffDays); // At least 1 day
+        } catch (e) {
+            console.error('Error calculating rental days:', e);
+            return 1;
+        }
     },
     
     /**
