@@ -553,10 +553,23 @@ app.get('/api/cars', (req, res) => {
     try {
         // Read cars from JSON file
         const fs = require('fs');
-        const carsData = fs.readFileSync(path.join(__dirname, 'cars.json'), 'utf8');
-        const cars = JSON.parse(carsData);
-        
-        console.log(`📋 Retrieved ${cars.length} cars from cars.json`);
+        let cars = [];
+
+        try {
+            // Try to read cars.json if it exists
+            if (fs.existsSync(path.join(__dirname, 'cars.json'))) {
+                const carsData = fs.readFileSync(path.join(__dirname, 'cars.json'), 'utf8');
+                cars = JSON.parse(carsData);
+                console.log(`📋 Retrieved ${cars.length} cars from cars.json`);
+            } else {
+                // Provide default cars if file doesn't exist
+                console.log('⚠️ cars.json not found, using default empty array');
+                cars = [];
+            }
+        } catch (fileError) {
+            console.error('⚠️ Error reading cars.json:', fileError);
+            // Continue with empty cars array
+        }
         
         return res.json({
             success: true,
