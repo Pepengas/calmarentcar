@@ -1,16 +1,19 @@
 /**
  * Calma Car Rental - Server
- * This file handles the server-side logic for the website
+ * Clean Express.js backend with PostgreSQL integration
  */
 
+// Import required packages
 const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
-const fs = require('fs');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-require('dotenv').config();
+const dotenv = require('dotenv');
+const { v4: uuidv4 } = require('uuid');
+
+// Load environment variables
+dotenv.config();
 
 // Initialize Express app
 const app = express();
@@ -18,27 +21,29 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Serve static files from root directory for backward compatibility
+// Serve static files
 app.use(express.static(path.join(__dirname)));
-
-// Serve static files from specific directories with explicit path prefixes
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
-app.use('/images', express.static(path.join(__dirname, 'images')));
-app.use('/dist', express.static(path.join(__dirname, 'dist')));
 
 // PostgreSQL connection
 let pool = null;
 let dbConnected = false;
 
-// Try to connect to the database
-try {
-    const connectionString = process.env.DATABASE_URL;
-    
-    if (connectionString) {
+// Set up database connection
+function setupDatabase() {
+    try {
+        const connectionString = process.env.DATABASE_URL;
+        
+        if (!connectionString) {
+            console.log('⚠️ No DATABASE_URL found in environment variables');
+            return false;
+        }
+        
         pool = new Pool({
             connectionString,
             ssl: {
@@ -49,21 +54,22 @@ try {
         // Test the connection
         pool.query('SELECT NOW()', (err, res) => {
             if (err) {
-                console.error('Database connection error:', err);
+                console.error('❌ Database connection error:', err);
                 dbConnected = false;
             } else {
-                console.log('Successfully connected to PostgreSQL database at:', res.rows[0].now);
+                console.log('✅ Successfully connected to PostgreSQL database at:', res.rows[0].now);
                 dbConnected = true;
                 
                 // Create tables if they don't exist
                 createTables();
             }
         });
-    } else {
-        console.log('No DATABASE_URL found, operating in fallback mode with localStorage');
+        
+        return true;
+    } catch (error) {
+        console.error('❌ Error initializing database connection:', error);
+        return false;
     }
-} catch (error) {
-    console.error('Error initializing database connection:', error);
 }
 
 // Create database tables if they don't exist
@@ -73,62 +79,61 @@ async function createTables() {
             CREATE TABLE IF NOT EXISTS bookings (
                 id SERIAL PRIMARY KEY,
                 booking_reference VARCHAR(50) UNIQUE,
-                customer_first_name VARCHAR(100),
-                customer_last_name VARCHAR(100),
-                customer_email VARCHAR(150),
+                customer_first_name VARCHAR(100) NOT NULL,
+                customer_last_name VARCHAR(100) NOT NULL,
+                customer_email VARCHAR(150) NOT NULL,
                 customer_phone VARCHAR(50),
                 customer_age VARCHAR(20),
                 driver_license VARCHAR(50),
                 license_expiration TIMESTAMP,
                 country VARCHAR(50),
-                pickup_date TIMESTAMP,
-                return_date TIMESTAMP,
-                pickup_location VARCHAR(100),
+                pickup_date TIMESTAMP NOT NULL,
+                return_date TIMESTAMP NOT NULL,
+                pickup_location VARCHAR(100) NOT NULL,
                 dropoff_location VARCHAR(100),
-                car_make VARCHAR(100),
-                car_model VARCHAR(100),
+                car_make VARCHAR(100) NOT NULL,
+                car_model VARCHAR(100) NOT NULL,
                 daily_rate NUMERIC(10,2),
-                total_price NUMERIC(10,2),
-                status VARCHAR(20),
+                total_price NUMERIC(10,2) NOT NULL,
+                status VARCHAR(20) DEFAULT 'pending',
                 payment_date TIMESTAMP,
-                date_submitted TIMESTAMP,
-                additional_driver BOOLEAN,
-                full_insurance BOOLEAN,
-                gps_navigation BOOLEAN,
-                child_seat BOOLEAN,
-                special_requests TEXT,
-                booking_data JSONB
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                additional_driver BOOLEAN DEFAULT FALSE,
+                full_insurance BOOLEAN DEFAULT FALSE,
+                gps_navigation BOOLEAN DEFAULT FALSE,
+                child_seat BOOLEAN DEFAULT FALSE,
+                special_requests TEXT
             )
         `);
-        console.log('Tables created or already exist');
+        console.log('✅ Bookings table created or already exists');
     } catch (error) {
-        console.error('Error creating tables:', error);
+        console.error('❌ Error creating tables:', error);
     }
 }
 
-// Simple admin auth middleware
+// Admin authentication middleware
 function requireAdminAuth(req, res, next) {
-    // If we want to temporarily allow access without authentication for testing
+    // For testing purposes, you can disable auth with an env variable
     if (process.env.DISABLE_ADMIN_AUTH === 'true') {
         return next();
     }
 
-    // Get the token from the request headers
+    // Get the token from request headers
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN format
 
-    // Check localStorage token stored in cookies
+    // Check token in cookies as well
     const cookieToken = req.cookies?.adminToken;
 
-    // Valid token (in production, use a more secure method)
+    // Valid token (in production, use a more secure method like JWT)
     const validToken = process.env.ADMIN_API_TOKEN || 'calma-admin-token-2023';
     
-    // Allow if either the Authorization header token or cookie token is valid
     if ((token && token === validToken) || (cookieToken && cookieToken === validToken)) {
         return next();
     }
 
-    // Otherwise, authentication failed
+    // Authentication failed
     return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -139,112 +144,232 @@ function requireAdminAuth(req, res, next) {
  * API Routes
  */
 
-// Get car data
-app.get('/api/cars', async (req, res) => {
+// Create a new booking (POST /api/bookings)
+app.post('/api/bookings', async (req, res) => {
     try {
-        const carsFilePath = path.join(__dirname, 'cars.json');
-        const data = await fs.promises.readFile(carsFilePath, 'utf8');
-        const cars = JSON.parse(data);
-        res.status(200).json(cars);
-    } catch (error) {
-        console.error('Error reading cars data:', error);
-        res.status(500).json({ success: false, message: 'Failed to load car data.' });
-    }
-});
-
-// Admin API - Get database status
-app.get('/api/admin/db-status', requireAdminAuth, async (req, res) => {
-    try {
-        if (!pool) {
-            return res.json({
-                connected: false,
-                error: 'Database not initialized',
-                bookingsCount: 0
+        // Log incoming request for debugging
+        console.log('📦 New booking request received:', JSON.stringify(req.body, null, 2));
+        
+        const booking = req.body;
+        
+        // Validate required fields
+        const requiredFields = [
+            'customer_first_name', 'customer_last_name', 'customer_email',
+            'pickup_date', 'return_date', 'pickup_location',
+            'car_make', 'car_model', 'total_price'
+        ];
+        
+        const missingFields = requiredFields.filter(field => !booking[field]);
+        
+        if (missingFields.length > 0) {
+            console.error('❌ Missing required fields:', missingFields);
+            return res.status(400).json({
+                success: false,
+                error: `Missing required fields: ${missingFields.join(', ')}`
             });
         }
         
-        // Test the connection
-        const result = await pool.query('SELECT NOW()');
+        // Generate unique booking reference
+        const bookingRef = `BK-${uuidv4().substring(0, 8).toUpperCase()}`;
         
-        // If we got here, connection is good
-        // Count bookings while we're at it
-        const countResult = await pool.query('SELECT COUNT(*) FROM bookings');
-        const bookingsCount = parseInt(countResult.rows[0].count);
-        
-        return res.json({
-            connected: true,
-            connection: {
-                host: process.env.DATABASE_URL ? '(hidden for security)' : 'localhost',
-                port: 5432,
-                database: process.env.DATABASE_URL ? '(hidden for security)' : 'calmarentcardb',
-                ssl: !!process.env.DATABASE_URL
-            },
-            bookingsCount
-        });
+        if (dbConnected && pool) {
+            // Insert booking into database
+            const result = await pool.query(`
+                INSERT INTO bookings (
+                    booking_reference, 
+                    customer_first_name, customer_last_name, customer_email, 
+                    customer_phone, customer_age, driver_license, license_expiration, country,
+                    pickup_date, return_date, pickup_location, dropoff_location, 
+                    car_make, car_model, daily_rate, total_price, status, 
+                    additional_driver, full_insurance, gps_navigation, child_seat, 
+                    special_requests
+                ) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+                RETURNING *
+            `, [
+                bookingRef,
+                booking.customer_first_name,
+                booking.customer_last_name,
+                booking.customer_email,
+                booking.customer_phone || null,
+                booking.customer_age || null,
+                booking.driver_license || null,
+                booking.license_expiration || null,
+                booking.country || null,
+                booking.pickup_date,
+                booking.return_date,
+                booking.pickup_location,
+                booking.dropoff_location || booking.pickup_location,
+                booking.car_make,
+                booking.car_model,
+                booking.daily_rate || null,
+                booking.total_price,
+                'pending',
+                booking.additional_driver || false,
+                booking.full_insurance || false,
+                booking.gps_navigation || false,
+                booking.child_seat || false,
+                booking.special_requests || null
+            ]);
+            
+            console.log('✅ Booking saved to database successfully, reference:', bookingRef);
+            
+            return res.status(201).json({
+                success: true,
+                booking_reference: bookingRef,
+                redirect_url: `/booking-confirmation.html?reference=${bookingRef}`
+            });
+        } else {
+            console.error('❌ Database connection not available');
+            return res.status(503).json({
+                success: false,
+                error: 'Database connection not available'
+            });
+        }
     } catch (error) {
-        console.error('Database status check error:', error);
-        
-        return res.json({
-            connected: false,
+        console.error('❌ Error creating booking:', error);
+        return res.status(500).json({
+            success: false,
             error: error.message
         });
     }
 });
 
-// Admin API - Get all bookings
+// Get booking by reference (GET /api/bookings/:reference)
+app.get('/api/bookings/:reference', async (req, res) => {
+    try {
+        const { reference } = req.params;
+        
+        if (!reference) {
+            return res.status(400).json({
+                success: false,
+                error: 'Booking reference is required'
+            });
+        }
+        
+        if (dbConnected && pool) {
+            const result = await pool.query('SELECT * FROM bookings WHERE booking_reference = $1', [reference]);
+            
+            if (result.rows.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'Booking not found'
+                });
+            }
+            
+            const booking = result.rows[0];
+            
+            // Format the booking data for client consumption
+            const formattedBooking = {
+                booking_reference: booking.booking_reference,
+                status: booking.status,
+                customer: {
+                    first_name: booking.customer_first_name,
+                    last_name: booking.customer_last_name,
+                    email: booking.customer_email,
+                    phone: booking.customer_phone,
+                    age: booking.customer_age,
+                    driver_license: booking.driver_license,
+                    license_expiration: booking.license_expiration,
+                    country: booking.country
+                },
+                rental: {
+                    pickup_date: booking.pickup_date,
+                    return_date: booking.return_date,
+                    pickup_location: booking.pickup_location,
+                    dropoff_location: booking.dropoff_location,
+                    car_make: booking.car_make,
+                    car_model: booking.car_model,
+                    daily_rate: booking.daily_rate,
+                    total_price: booking.total_price
+                },
+                addons: {
+                    additional_driver: booking.additional_driver,
+                    full_insurance: booking.full_insurance,
+                    gps_navigation: booking.gps_navigation,
+                    child_seat: booking.child_seat
+                },
+                special_requests: booking.special_requests,
+                created_at: booking.created_at
+            };
+            
+            return res.json({
+                success: true,
+                booking: formattedBooking
+            });
+        } else {
+            return res.status(503).json({
+                success: false,
+                error: 'Database connection not available'
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching booking:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Get all bookings (admin only) (GET /api/admin/bookings)
 app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
-    // Log message to confirm route is being accessed
     console.log('📊 Admin API - Get all bookings route accessed', new Date().toISOString());
     console.log('🔑 Auth headers:', req.headers.authorization ? 'Present' : 'Missing');
     console.log('🍪 Admin cookie:', req.cookies?.adminToken ? 'Present' : 'Missing');
     
     try {
-        let bookings = [];
-        
-        if (dbConnected && pool) {
-            // Fetch from database
-            console.log('💾 Database connected, fetching bookings...');
-            const result = await pool.query('SELECT * FROM bookings ORDER BY date_submitted DESC');
-            console.log(`📋 Found ${result.rows.length} bookings in database`);
-            
-            // Map the bookings to the expected format
-            bookings = result.rows.map(booking => {
-                // Convert DB structure to expected format
-                return {
-                    id: booking.id,
-                    booking_reference: booking.booking_reference,
-                    customer: {
-                        firstName: booking.customer_first_name,
-                        lastName: booking.customer_last_name,
-                        email: booking.customer_email,
-                        phone: booking.customer_phone,
-                        age: booking.customer_age,
-                        driverLicense: booking.driver_license,
-                        licenseExpiration: booking.license_expiration,
-                        country: booking.country
-                    },
-                    car_make: booking.car_make,
-                    car_model: booking.car_model,
-                    pickup_date: booking.pickup_date,
-                    return_date: booking.return_date,
-                    pickup_location: booking.pickup_location,
-                    dropoff_location: booking.dropoff_location,
-                    daily_rate: booking.daily_rate,
-                    total_price: booking.total_price,
-                    status: booking.status,
-                    payment_date: booking.payment_date,
-                    date_submitted: booking.date_submitted,
-                    additional_driver: booking.additional_driver,
-                    full_insurance: booking.full_insurance,
-                    gps_navigation: booking.gps_navigation,
-                    child_seat: booking.child_seat,
-                    special_requests: booking.special_requests,
-                    booking_data: booking.booking_data
-                };
-            });
-        } else {
+        if (!dbConnected || !pool) {
             console.error('❌ Database not connected. Cannot fetch bookings.');
+            return res.status(503).json({
+                success: false,
+                error: 'Database connection not available',
+                bookings: []
+            });
         }
+        
+        // Fetch all bookings from database
+        console.log('💾 Database connected, fetching bookings...');
+        const result = await pool.query(`
+            SELECT * FROM bookings 
+            ORDER BY created_at DESC
+        `);
+        
+        console.log(`📋 Found ${result.rows.length} bookings in database`);
+        
+        // Format bookings for the admin dashboard
+        const bookings = result.rows.map(booking => {
+            return {
+                id: booking.id,
+                booking_reference: booking.booking_reference,
+                customer: {
+                    firstName: booking.customer_first_name,
+                    lastName: booking.customer_last_name,
+                    email: booking.customer_email,
+                    phone: booking.customer_phone,
+                    age: booking.customer_age,
+                    driverLicense: booking.driver_license,
+                    licenseExpiration: booking.license_expiration,
+                    country: booking.country
+                },
+                car_make: booking.car_make,
+                car_model: booking.car_model,
+                pickup_date: booking.pickup_date,
+                return_date: booking.return_date,
+                pickup_location: booking.pickup_location,
+                dropoff_location: booking.dropoff_location,
+                daily_rate: booking.daily_rate,
+                total_price: booking.total_price,
+                status: booking.status,
+                payment_date: booking.payment_date,
+                date_submitted: booking.created_at,
+                additional_driver: booking.additional_driver,
+                full_insurance: booking.full_insurance,
+                gps_navigation: booking.gps_navigation,
+                child_seat: booking.child_seat,
+                special_requests: booking.special_requests
+            };
+        });
         
         return res.json({
             success: true,
@@ -254,7 +379,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
     } catch (error) {
         console.error('Error fetching bookings:', error);
         
-        return res.json({
+        return res.status(500).json({
             success: false,
             error: error.message,
             bookings: []
@@ -262,204 +387,224 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
     }
 });
 
-// Admin API - Update booking status
+// Update booking status (admin only) (PUT /api/admin/bookings/:id/status)
 app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
         
         if (!status) {
-            return res.json({
+            return res.status(400).json({
                 success: false,
                 error: 'Status is required'
             });
         }
         
-        if (dbConnected && pool) {
-            // Update in database
-            const result = await pool.query(`
-                UPDATE bookings
-                SET status = $1
-                WHERE id = $2
-                RETURNING *
-            `, [status, id]);
-            
-            if (result.rows.length === 0) {
-                return res.json({
-                    success: false,
-                    error: 'Booking not found'
-                });
-            }
-            
-            return res.json({
-                success: true,
-                booking: result.rows[0]
-            });
-        } else {
-            return res.json({
+        if (!dbConnected || !pool) {
+            return res.status(503).json({
                 success: false,
-                error: 'Database is not connected'
+                error: 'Database connection not available'
             });
         }
-    } catch (error) {
-        console.error('Error updating booking status:', error);
         
-        return res.json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Client API - Get public bookings (limited data)
-app.get('/api/bookings', async (req, res) => {
-    try {
-        let bookings = [];
+        // Valid statuses
+        const validStatuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({
+                success: false,
+                error: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+            });
+        }
         
-        if (dbConnected && pool) {
-            // Fetch from database, but limit information for security
-            const result = await pool.query(`
-                SELECT id, booking_reference, car_make, car_model, 
-                       pickup_date, return_date, status
-                FROM bookings 
-                ORDER BY date_submitted DESC
-            `);
-            
-            bookings = result.rows;
+        // Update booking status
+        const result = await pool.query(`
+            UPDATE bookings
+            SET status = $1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $2
+            RETURNING *
+        `, [status, id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Booking not found'
+            });
         }
         
         return res.json({
             success: true,
-            bookings
+            booking: result.rows[0]
         });
     } catch (error) {
-        console.error('Error fetching public bookings:', error);
-        
-        return res.json({
-            success: false,
-            error: error.message,
-            bookings: []
-        });
-    }
-});
-
-// Client API - Create a booking (public form)
-app.post('/api/bookings', async (req, res) => {
-    try {
-        // Debug logging of the request body
-        console.log('⬇️ ======== BOOKING REQUEST RECEIVED ========');
-        console.log('📦 Request Body:', JSON.stringify(req.body, null, 2));
-        console.log('🔑 Keys in request body:', Object.keys(req.body));
-        console.log('🧪 Required fields check:');
-        console.log('   - firstName:', req.body.firstName ? '✅ Present' : '❌ Missing');
-        console.log('   - lastName:', req.body.lastName ? '✅ Present' : '❌ Missing');
-        console.log('   - email:', req.body.email ? '✅ Present' : '❌ Missing');
-        console.log('   - pickupDate:', req.body.pickupDate ? '✅ Present' : '❌ Missing');
-        console.log('   - returnDate:', req.body.returnDate ? '✅ Present' : '❌ Missing');
-        console.log('   - pickupLocation:', req.body.pickupLocation ? '✅ Present' : '❌ Missing');
-        console.log('   - carMake:', req.body.carMake ? '✅ Present' : '❌ Missing');
-        console.log('   - carModel:', req.body.carModel ? '✅ Present' : '❌ Missing');
-        console.log('   - dailyRate:', req.body.dailyRate ? '✅ Present' : '❌ Missing');
-        console.log('   - totalPrice:', req.body.totalPrice ? '✅ Present' : '❌ Missing');
-        console.log('⬆️ ======== END BOOKING REQUEST DEBUG ========');
-        
-        const booking = req.body;
-        
-        // Validate required fields
-        if (!booking.firstName || !booking.lastName || !booking.email || !booking.pickupDate) {
-            console.error('❌ Booking validation failed: Missing required fields');
-            return res.json({
-                success: false,
-                error: 'Missing required fields'
-            });
-        }
-        
-        // Create a booking reference
-        const bookingRef = 'BK' + Date.now().toString().slice(-6);
-        
-        if (dbConnected && pool) {
-            // Convert to database structure
-            const result = await pool.query(`
-                INSERT INTO bookings (
-                    booking_reference, customer_first_name, customer_last_name, customer_email, 
-                    customer_phone, customer_age, driver_license, license_expiration, country,
-                    pickup_date, return_date, pickup_location, dropoff_location, 
-                    car_make, car_model, daily_rate, total_price, status, 
-                    date_submitted, additional_driver, full_insurance, 
-                    gps_navigation, child_seat, special_requests, booking_data
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
-                RETURNING *
-            `, [
-                bookingRef,
-                booking.firstName,
-                booking.lastName,
-                booking.email,
-                booking.phone,
-                booking.age,
-                booking.driverLicense,
-                booking.licenseExpiration,
-                booking.country,
-                booking.pickupDate,
-                booking.returnDate,
-                booking.pickupLocation,
-                booking.dropoffLocation,
-                booking.carMake,
-                booking.carModel,
-                booking.dailyRate,
-                booking.totalPrice,
-                'pending',
-                new Date(),
-                booking.additionalDriver,
-                booking.fullInsurance,
-                booking.gpsNavigation,
-                booking.childSeat,
-                booking.specialRequests,
-                JSON.stringify({...booking, bookingReference: bookingRef})
-            ]);
-            
-            console.log('✅ Booking saved to database successfully, reference:', bookingRef);
-            
-            return res.json({
-                success: true,
-                booking: {
-                    ...booking,
-                    bookingReference: bookingRef,
-                    id: result.rows[0].id,
-                    status: 'pending'
-                }
-            });
-        } else {
-            // Still send success but with notice to store in localStorage
-            console.log('📝 Database not connected, using localStorage fallback, reference:', bookingRef);
-            
-            return res.json({
-                success: true,
-                useLocalStorage: true,
-                booking: {
-                    ...booking,
-                    bookingReference: bookingRef,
-                    id: 'local-' + Date.now(),
-                    status: 'pending'
-                }
-            });
-        }
-    } catch (error) {
-        console.error('❌ Error creating booking:', error);
-        
-        return res.json({
+        console.error('Error updating booking status:', error);
+        return res.status(500).json({
             success: false,
             error: error.message
         });
     }
 });
 
-// Admin pages
-app.get('/admin-login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin-login.html'));
+// Get booking statistics (admin only) (GET /api/admin/statistics)
+app.get('/api/admin/statistics', requireAdminAuth, async (req, res) => {
+    try {
+        if (!dbConnected || !pool) {
+            return res.status(503).json({
+                success: false,
+                error: 'Database connection not available'
+            });
+        }
+        
+        // Get count of all bookings
+        const totalBookingsResult = await pool.query('SELECT COUNT(*) FROM bookings');
+        const totalBookings = parseInt(totalBookingsResult.rows[0].count);
+        
+        // Get sum of all booking prices
+        const revenueResult = await pool.query('SELECT SUM(total_price) FROM bookings');
+        const totalRevenue = parseFloat(revenueResult.rows[0].sum || 0);
+        
+        // Get bookings by status
+        const statusCountsResult = await pool.query(`
+            SELECT status, COUNT(*) 
+            FROM bookings 
+            GROUP BY status
+        `);
+        
+        // Get bookings created today
+        const todayBookingsResult = await pool.query(`
+            SELECT COUNT(*) 
+            FROM bookings 
+            WHERE created_at::date = CURRENT_DATE
+        `);
+        const todayBookings = parseInt(todayBookingsResult.rows[0].count);
+        
+        // Get popular car models
+        const popularCarsResult = await pool.query(`
+            SELECT car_make, car_model, COUNT(*) as count
+            FROM bookings
+            GROUP BY car_make, car_model
+            ORDER BY count DESC
+            LIMIT 5
+        `);
+        
+        // Convert status counts to an object
+        const statusCounts = {};
+        statusCountsResult.rows.forEach(row => {
+            statusCounts[row.status] = parseInt(row.count);
+        });
+        
+        return res.json({
+            success: true,
+            statistics: {
+                totalBookings,
+                totalRevenue,
+                todayBookings,
+                statusCounts,
+                popularCars: popularCarsResult.rows
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching statistics:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
+// Admin login check
+app.post('/api/admin/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        // In a real app, check credentials against database
+        // For this demo, we use hardcoded values (replace with proper auth!)
+        if (username === 'admin' && password === 'admin123') {
+            const token = process.env.ADMIN_API_TOKEN || 'calma-admin-token-2023';
+            
+            // Set cookie with token (for server-side auth check)
+            res.cookie('adminToken', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 24 * 60 * 60 * 1000 // 1 day
+            });
+            
+            return res.json({
+                success: true,
+                token, // Client should store this in localStorage
+                message: 'Login successful',
+            });
+        }
+        
+        return res.status(401).json({
+            success: false,
+            error: 'Invalid credentials'
+        });
+    } catch (error) {
+        console.error('Error during login:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Get available cars (GET /api/cars)
+app.get('/api/cars', (req, res) => {
+    try {
+        // Read cars from JSON file
+        const fs = require('fs');
+        const carsData = fs.readFileSync(path.join(__dirname, 'cars.json'), 'utf8');
+        const cars = JSON.parse(carsData);
+        
+        console.log(`📋 Retrieved ${cars.length} cars from cars.json`);
+        
+        return res.json({
+            success: true,
+            cars: cars
+        });
+    } catch (error) {
+        console.error('❌ Error fetching cars:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message,
+            cars: []
+        });
+    }
+});
+
+// Car availability check (GET /api/cars/availability)
+app.get('/api/cars/availability', (req, res) => {
+    try {
+        const { carId, pickupDate, dropoffDate } = req.query;
+        
+        // For now, assume all cars are available
+        // In a real implementation, you would check against bookings in the database
+        
+        return res.json({
+            success: true,
+            available: true,
+            message: "Car is available for the selected dates"
+        });
+    } catch (error) {
+        console.error('❌ Error checking car availability:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+/**
+ * HTML Routes
+ */
+
+// Admin pages
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/admin-login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin-login.html'));
 });
 
 // Home page
@@ -467,114 +612,23 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Ensure styles.css is always available
-app.get('/styles.css', (req, res) => {
-    res.sendFile(path.join(__dirname, 'assets/css/styles.css'));
-});
-
-// Temporary route to test booking creation manually
-app.post('/api/test-booking', async (req, res) => {
-  try {
-    const testBooking = {
-      customer_first_name: "Test",
-      customer_last_name: "User",
-      customer_email: "test@example.com",
-      customer_phone: "1234567890",
-      customer_age: "30",
-      driver_license: "ABC123",
-      license_expiration: new Date(),
-      country: "Testland",
-      pickup_date: new Date(),
-      return_date: new Date(),
-      pickup_location: "City A",
-      dropoff_location: "City B",
-      car_make: "Toyota",
-      car_model: "Corolla",
-      daily_rate: 50.0,
-      total_price: 150.0,
-      status: "pending",
-      payment_date: new Date(),
-      date_submitted: new Date(),
-      additional_driver: false,
-      full_insurance: true,
-      gps_navigation: false,
-      child_seat: false,
-      special_requests: "None",
-      booking_data: {}
-    };
-
-    await pool.query(`
-      INSERT INTO bookings (
-        booking_reference,
-        customer_first_name,
-        customer_last_name,
-        customer_email,
-        customer_phone,
-        customer_age,
-        driver_license,
-        license_expiration,
-        country,
-        pickup_date,
-        return_date,
-        pickup_location,
-        dropoff_location,
-        car_make,
-        car_model,
-        daily_rate,
-        total_price,
-        status,
-        payment_date,
-        date_submitted,
-        additional_driver,
-        full_insurance,
-        gps_navigation,
-        child_seat,
-        special_requests,
-        booking_data
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-        $11, $12, $13, $14, $15, $16, $17, $18,
-        $19, $20, $21, $22, $23, $24, $25, $26
-      )`,
-      [
-        "BK" + Math.floor(Math.random() * 1000000),
-        testBooking.customer_first_name,
-        testBooking.customer_last_name,
-        testBooking.customer_email,
-        testBooking.customer_phone,
-        testBooking.customer_age,
-        testBooking.driver_license,
-        testBooking.license_expiration,
-        testBooking.country,
-        testBooking.pickup_date,
-        testBooking.return_date,
-        testBooking.pickup_location,
-        testBooking.dropoff_location,
-        testBooking.car_make,
-        testBooking.car_model,
-        testBooking.daily_rate,
-        testBooking.total_price,
-        testBooking.status,
-        testBooking.payment_date,
-        testBooking.date_submitted,
-        testBooking.additional_driver,
-        testBooking.full_insurance,
-        testBooking.gps_navigation,
-        testBooking.child_seat,
-        testBooking.special_requests,
-        JSON.stringify(testBooking.booking_data)
-      ]
-    );
-
-    res.json({ success: true, message: "Test booking inserted!" });
-  } catch (error) {
-    console.error('Error creating test booking:', error);
-    res.json({ success: false, error: error.message });
-  }
+// Booking confirmation page
+app.get('/booking-confirmation', (req, res) => {
+    res.sendFile(path.join(__dirname, 'booking-confirmation.html'));
 });
 
 // Start server
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-    console.log(`http://localhost:${port}`);
+async function startServer() {
+    // Set up database connection
+    setupDatabase();
+    
+    // Start Express server
+    app.listen(port, () => {
+        console.log(`📡 Server running on port ${port}`);
+        console.log(`🌐 Visit: http://localhost:${port}`);
+    });
+}
+
+startServer().catch(err => {
+    console.error('Failed to start server:', err);
 }); 

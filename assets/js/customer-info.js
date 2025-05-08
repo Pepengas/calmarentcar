@@ -561,37 +561,37 @@ const CustomerInfo = {
         
         // Prepare the booking data for the API - ensuring field names match server expectations
         const apiBookingData = {
-            // Customer details - required fields
-            firstName: bookingData.customer.firstName,
-            lastName: bookingData.customer.lastName,
-            email: bookingData.customer.email,
-            phone: bookingData.customer.phone,
-            age: bookingData.customer.age,
-            driverLicense: bookingData.customer.driverLicense,
-            licenseExpiration: bookingData.customer.licenseExpiry,
+            // Customer details - required fields in snake_case as expected by server
+            customer_first_name: bookingData.customer.firstName,
+            customer_last_name: bookingData.customer.lastName,
+            customer_email: bookingData.customer.email,
+            customer_phone: bookingData.customer.phone,
+            customer_age: bookingData.customer.age,
+            driver_license: bookingData.customer.driverLicense,
+            license_expiration: bookingData.customer.licenseExpiry,
             country: bookingData.customer.nationality,
             
-            // Dates and locations - required fields
-            pickupDate: bookingData.pickupDate,
-            returnDate: bookingData.returnDate,
-            pickupLocation: bookingData.pickupLocation,
-            dropoffLocation: bookingData.dropoffLocation || bookingData.pickupLocation,
+            // Dates and locations - required fields in snake_case
+            pickup_date: bookingData.pickupDate,
+            return_date: bookingData.returnDate,
+            pickup_location: bookingData.pickupLocation,
+            dropoff_location: bookingData.dropoffLocation || bookingData.pickupLocation,
             
-            // Car details - required fields
-            carMake: carMake,
-            carModel: carModel,
-            dailyRate: dailyRate,
-            totalPrice: totalPrice,
+            // Car details - required fields in snake_case
+            car_make: carMake,
+            car_model: carModel,
+            daily_rate: dailyRate,
+            total_price: totalPrice,
             
             // Add-ons - optional but should be included
-            additionalDriver: bookingData.customer.additionalOptions?.additionalDriver || false,
-            fullInsurance: bookingData.customer.additionalOptions?.fullInsurance || false,
-            gpsNavigation: bookingData.customer.additionalOptions?.gpsNavigation || false,
-            childSeat: bookingData.customer.additionalOptions?.childSeat || false,
+            additional_driver: bookingData.customer.additionalOptions?.additionalDriver || false,
+            full_insurance: bookingData.customer.additionalOptions?.fullInsurance || false,
+            gps_navigation: bookingData.customer.additionalOptions?.gpsNavigation || false,
+            child_seat: bookingData.customer.additionalOptions?.childSeat || false,
             
             // Other details
-            specialRequests: bookingData.specialRequests || '',
-            rentalDays: bookingData.rentalDays || this.calculateRentalDays(bookingData.pickupDate, bookingData.returnDate)
+            special_requests: bookingData.specialRequests || '',
+            rental_days: bookingData.rentalDays || this.calculateRentalDays(bookingData.pickupDate, bookingData.returnDate)
         };
         
         // Log the prepared data being sent to the API for debugging
@@ -616,10 +616,10 @@ const CustomerInfo = {
         .then(data => {
             console.log('Booking API response:', data);
             
-            if (data.success && (data.booking || data.useLocalStorage)) {
+            if (data.success && (data.booking_reference || data.useLocalStorage)) {
                 // Handle both database and localStorage success cases
-                const bookingReference = data.booking?.bookingReference || 'BK' + Date.now().toString().slice(-6);
-                const status = data.booking?.status || 'pending';
+                const bookingReference = data.booking_reference || 'BK' + Date.now().toString().slice(-6);
+                const status = 'pending';
                 
                 // Store the booking reference for confirmation
                 localStorage.setItem('currentBooking', JSON.stringify({
@@ -631,8 +631,8 @@ const CustomerInfo = {
                 // Store data for retrieval in booking confirmation
                 sessionStorage.setItem('bookingParams', new URLSearchParams(window.location.search).toString());
                 
-                // Redirect to payment page
-                window.location.href = 'payment.html';
+                // Redirect to booking confirmation page with the reference
+                window.location.href = `booking-confirmation.html?reference=${bookingReference}`;
             } else {
                 console.error('Booking save failed:', data.error || 'Unknown error');
                 alert('Failed to save booking: ' + (data.error || 'Unknown error'));
