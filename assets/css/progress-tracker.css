@@ -21,25 +21,73 @@
   .progress-track-horizontal {
     display: none !important;
   }
+  
   .progress-track-vertical {
     display: block !important;
+    height: calc(100% - 3rem) !important; 
+    left: 50% !important;
+    top: 1.5rem !important;
+    width: 2px !important;
+    transform: translateX(-50%) !important;
+    z-index: 1 !important;
   }
+  
   .progress-tracker-steps {
     flex-direction: column !important;
+    align-items: center !important;
+    gap: 1.5rem !important;
+    padding: 0.5rem 0 !important;
   }
+  
   .progress-step {
-    margin-bottom: 2rem !important;
-    width: 100% !important;
-    flex-direction: row !important;
-    text-align: left !important;
-    align-items: flex-start !important;
-  }
-  .progress-step-circle {
-    margin-right: 1rem !important;
     margin-bottom: 0 !important;
+    width: 85% !important;
+    max-width: 300px !important;
+    padding: 1rem !important;
+    background-color: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    flex-direction: column !important;
+    text-align: center !important;
+    align-items: center !important;
+    position: relative !important;
+    z-index: 2 !important;
+    transition: transform 0.2s ease !important;
   }
+  
+  .progress-step:hover {
+    transform: translateY(-2px) !important;
+  }
+  
+  .progress-step-circle {
+    margin-right: 0 !important;
+    margin-bottom: 0.5rem !important;
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    font-size: 0.9rem !important;
+  }
+  
   .progress-step-label {
-    padding-top: 0.5rem !important;
+    padding-top: 0 !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+  }
+  
+  /* Style for completed step on mobile */
+  .progress-step:has(.fa-check), .progress-step-completed {
+    background-color: rgba(240, 255, 240, 0.5) !important;
+  }
+  
+  /* Style for active step on mobile */
+  .progress-step-active {
+    border-color: rgba(59, 130, 246, 0.3) !important;
+    background-color: rgba(239, 246, 255, 0.7) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+  }
+  
+  .progress-step-active:hover {
+    transform: translateY(-2px) scale(1.02) !important;
   }
 }
 
