@@ -303,23 +303,34 @@
     <a href="index.html" class="back-link">Back to search</a>
     
     <!-- Progress Steps -->
-    <nav aria-label="Booking progress" class="progress-steps step-progress-2 tw-reset">
-      <div class="step-line">
-        <div class="step-line-progress"></div>
-      </div>
-      <div class="step-container step completed" data-step="1">
-        <div class="step-circle">1</div>
-        <div class="step-label">Trip Details</div>
-      </div>
-      <div class="step-container step active" data-step="2">
-        <div class="step-circle">2</div>
-        <div class="step-label">Vehicle Selection</div>
-      </div>
-      <div class="step-container step" data-step="3">
-        <div class="step-circle">3</div>
-        <div class="step-label">Personal Information</div>
-      </div>
-    </nav>
+    <div class="progress-tracker">
+      <nav aria-label="Booking progress" class="progress-steps step-progress-2">
+        <div class="progress-line">
+          <div class="progress-line-active"></div>
+        </div>
+        <div class="step-container step completed" data-step="1">
+          <div class="step-circle">
+            <span class="step-number">1</span>
+            <span class="step-check">✓</span>
+          </div>
+          <div class="step-label">Trip Details</div>
+        </div>
+        <div class="step-container step active" data-step="2">
+          <div class="step-circle">
+            <span class="step-number">2</span>
+            <span class="step-check">✓</span>
+          </div>
+          <div class="step-label">Vehicle Selection</div>
+        </div>
+        <div class="step-container step" data-step="3">
+          <div class="step-circle">
+            <span class="step-number">3</span>
+            <span class="step-check">✓</span>
+          </div>
+          <div class="step-label">Personal Information</div>
+        </div>
+      </nav>
+    </div>
     
     <!-- Booking Summary -->
     <div id="booking-summary">

@@ -189,25 +189,6 @@
             .form-nav {
                 margin-top: 8px !important;
             }
-            
-            /* Responsive progress steps */
-            .progress-steps {
-                max-width: 300px;
-                margin: 15px auto 60px; /* Increased bottom margin on mobile */
-            }
-            
-            .step {
-                width: 30px;
-                height: 30px;
-                margin: 0 15px;
-                font-size: 0.9rem;
-            }
-            
-            .step::after {
-                width: 70px;
-                font-size: 0.75rem;
-                margin-top: 20px; /* Increased for better spacing on mobile */
-            }
         }
         /* Offset sections for fixed header when using in-page anchor links */
         section[id] {
@@ -230,81 +211,6 @@
         
         .logo img {
             display: block;
-        }
-
-        /* Progress Steps */
-        .progress-steps {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 20px auto 70px; /* Adjusted for the booking form context but still increased */
-            position: relative;
-            max-width: 400px;
-        }
-        
-        .progress-steps::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            height: 2px;
-            width: 70%;
-            background-color: #0066cc;
-            z-index: 1;
-        }
-        
-        .step {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background-color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin: 0 25px;
-            position: relative;
-            z-index: 2;
-            border: 2px solid #eee;
-            color: #666;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .step.completed {
-            background-color: #0066cc;
-            color: white;
-            border-color: #0066cc;
-        }
-        
-        .step.active {
-            background-color: #0066cc;
-            color: white;
-            border-color: #0066cc;
-            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.2), 0 4px 15px rgba(0, 102, 204, 0.3);
-        }
-        
-        /* Position titles below steps */
-        .step::after {
-            content: attr(data-title);
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 120px;
-            margin-top: 30px; /* Significantly increased top margin */
-            text-align: center;
-            font-size: 0.9rem;
-            color: #666;
-            font-weight: normal;
-            white-space: nowrap;
-            transition: all 0.3s ease;
-        }
-        
-        .step.active::after {
-            font-weight: 600;
-            color: #0066cc;
         }
 
         /* Hide original step titles */
@@ -462,23 +368,34 @@
                         
                         <!-- Form Progress Indicator -->
                         <div class="form-progress" style="margin-bottom: 20px;">
-                            <nav aria-label="Booking progress" class="progress-steps step-progress-1 tw-reset">
-                              <div class="step-line">
-                                <div class="step-line-progress"></div>
-                              </div>
-                              <div class="step-container step active" data-step="1">
-                                <div class="step-circle">1</div>
-                                <div class="step-label">Trip Details</div>
-                              </div>
-                              <div class="step-container step" data-step="2">
-                                <div class="step-circle">2</div>
-                                <div class="step-label">Vehicle Selection</div>
-                              </div>
-                              <div class="step-container step" data-step="3">
-                                <div class="step-circle">3</div>
-                                <div class="step-label">Personal Information</div>
-                              </div>
-                            </nav>
+                            <div class="progress-tracker">
+                              <nav aria-label="Booking progress" class="progress-steps step-progress-1">
+                                <div class="progress-line">
+                                  <div class="progress-line-active"></div>
+                                </div>
+                                <div class="step-container step active" data-step="1">
+                                  <div class="step-circle">
+                                    <span class="step-number">1</span>
+                                    <span class="step-check">✓</span>
+                                  </div>
+                                  <div class="step-label">Trip Details</div>
+                                </div>
+                                <div class="step-container step" data-step="2">
+                                  <div class="step-circle">
+                                    <span class="step-number">2</span>
+                                    <span class="step-check">✓</span>
+                                  </div>
+                                  <div class="step-label">Vehicle Selection</div>
+                                </div>
+                                <div class="step-container step" data-step="3">
+                                  <div class="step-circle">
+                                    <span class="step-number">3</span>
+                                    <span class="step-check">✓</span>
+                                  </div>
+                                  <div class="step-label">Personal Information</div>
+                                </div>
+                              </nav>
+                            </div>
                         </div>
                         
                         <form id="booking-form" novalidate aria-label="Car booking form" autocomplete="off" autocapitalize="off" autocorrect="off">
