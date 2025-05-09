@@ -5,9 +5,9 @@
 export const UI = {
     init() {
         this.initMobileMenu();
-        this.initDarkModeToggle();
-        this.initFAQAccordion();
         this.setupScrollEffects();
+        this.initFAQAccordion();
+        console.log('UI initialized');
     },
 
     initMobileMenu() {
@@ -70,32 +70,6 @@ export const UI = {
                         icon.classList.add('fa-bars');
                     }
                 });
-            });
-        }
-    },
-
-    initDarkModeToggle() {
-        const darkModeToggle = document.getElementById('dark-mode-toggle');
-        if (darkModeToggle) {
-            // Check for saved preference or system preference
-            const savedMode = localStorage.getItem('darkMode');
-            const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
-            // Set initial state based on saved preference or system preference
-            if (savedMode === 'dark' || (savedMode === null && prefersDarkMode)) {
-                document.body.classList.add('dark-mode');
-                darkModeToggle.checked = true;
-            }
-            
-            // Toggle dark mode on checkbox change
-            darkModeToggle.addEventListener('change', function() {
-                if (this.checked) {
-                    document.body.classList.add('dark-mode');
-                    localStorage.setItem('darkMode', 'dark');
-                } else {
-                    document.body.classList.remove('dark-mode');
-                    localStorage.setItem('darkMode', 'light');
-                }
             });
         }
     },
