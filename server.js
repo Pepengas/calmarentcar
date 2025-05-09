@@ -39,35 +39,33 @@ async function createTables() {
         await pool.query(`
             CREATE TABLE IF NOT EXISTS bookings (
                 id SERIAL PRIMARY KEY,
-                booking_reference VARCHAR(50) UNIQUE,
-                customer_first_name VARCHAR(100) NOT NULL,
-                customer_last_name VARCHAR(100) NOT NULL,
-                customer_email VARCHAR(150) NOT NULL,
-                customer_phone VARCHAR(50),
-                customer_age VARCHAR(20),
-                driver_license VARCHAR(50),
-                license_expiration TIMESTAMP,
-                country VARCHAR(50),
-                pickup_date TIMESTAMP NOT NULL,
-                return_date TIMESTAMP NOT NULL,
-                pickup_location VARCHAR(100) NOT NULL,
-                dropoff_location VARCHAR(100),
-                car_make VARCHAR(100) NOT NULL,
-                car_model VARCHAR(100) NOT NULL,
-                daily_rate NUMERIC(10,2),
-                total_price NUMERIC(10,2) NOT NULL,
-                status VARCHAR(20) DEFAULT 'pending',
-                payment_date TIMESTAMP,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                additional_driver BOOLEAN DEFAULT FALSE,
-                full_insurance BOOLEAN DEFAULT FALSE,
-                gps_navigation BOOLEAN DEFAULT FALSE,
-                child_seat BOOLEAN DEFAULT FALSE,
-                special_requests TEXT
+                booking_reference TEXT UNIQUE,
+                customer_first_name TEXT,
+                customer_last_name TEXT,
+                customer_email TEXT,
+                customer_phone TEXT,
+                driver_license TEXT,
+                license_expiration DATE,
+                customer_age INT,
+                country TEXT,
+                pickup_date DATE,
+                return_date DATE,
+                pickup_location TEXT,
+                dropoff_location TEXT,
+                car_make TEXT,
+                car_model TEXT,
+                daily_rate NUMERIC,
+                total_price NUMERIC,
+                additional_driver BOOLEAN,
+                full_insurance BOOLEAN,
+                gps_navigation BOOLEAN,
+                child_seat BOOLEAN,
+                special_requests TEXT,
+                status TEXT DEFAULT 'pending',
+                date_submitted TIMESTAMP DEFAULT NOW()
             )
         `);
-        console.log('✅ Bookings table created or already exists');
+        console.log('✅ Bookings table created successfully.');
     } catch (error) {
         console.error('❌ Error creating tables:', error);
     }
@@ -510,6 +508,32 @@ app.post('/api/admin/login', async (req, res) => {
         });
     } catch (error) {
         console.error('Error during login:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Create database tables (admin only)
+app.post('/api/admin/setup-database', requireAdminAuth, async (req, res) => {
+    try {
+        if (!global.dbConnected) {
+            return res.status(503).json({
+                success: false,
+                error: 'Database not connected'
+            });
+        }
+        
+        // Create tables
+        await createTables();
+        
+        return res.json({
+            success: true,
+            message: 'Database tables created successfully'
+        });
+    } catch (error) {
+        console.error('Error setting up database:', error);
         return res.status(500).json({
             success: false,
             error: error.message
