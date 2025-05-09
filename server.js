@@ -11,7 +11,7 @@ const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
 
 // Import database pool
-const pool = require('./database');
+const { pool, registerCreateTables } = require('./database');
 
 // Initialize Express app
 const app = express();
@@ -70,6 +70,9 @@ async function createTables() {
         console.error('❌ Error creating tables:', error);
     }
 }
+
+// Register the createTables function with the database module
+registerCreateTables(createTables);
 
 // Create tables when database is connected
 if (global.dbConnected) {
@@ -627,21 +630,15 @@ app.get('/booking-confirmation', (req, res) => {
 async function startServer() {
     console.log('🚀 Starting server...');
     
-    // Attempt to create tables when server starts (if connected)
-    setTimeout(() => {
-        if (global.dbConnected) {
-            console.log('🔄 Creating database tables...');
-            createTables();
-        } else {
-            console.warn('⚠️ Server running without database connection. Some features will be limited.');
-        }
-    }, 1000); // Small delay to ensure connection has been tested
-    
     // Start Express server
     app.listen(port, () => {
         console.log(`📡 Server running on port ${port}`);
         console.log(`🌐 Visit: http://localhost:${port}`);
         console.log(`📊 Database connected: ${global.dbConnected ? 'Yes ✅' : 'No ❌'}`);
+        
+        if (!global.dbConnected) {
+            console.warn('⚠️ Server running without database connection. Some features will be limited.');
+        }
     });
 }
 
