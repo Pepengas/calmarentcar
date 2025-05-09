@@ -5,42 +5,13 @@
 
 // Import required packages
 const express = require('express');
-const { Pool } = require('pg');
 const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
 
-// Load environment variables
-require('dotenv').config();
-
-// Check for DATABASE_URL and exit if not set
-if (!process.env.DATABASE_URL) {
-  console.error('❌ DATABASE_URL not set');
-  process.exit(1);
-}
-
-// PostgreSQL connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
-
-// Test the database connection
-let dbConnected = false;
-
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('❌ DB connection failed:', err.message);
-  } else {
-    console.log('✅ Connected to DB at:', res.rows[0].now);
-    dbConnected = true;
-    // Create tables if they don't exist
-    createTables();
-  }
-});
+// Import database pool
+const pool = require('./database');
 
 // Initialize Express app
 const app = express();
@@ -60,6 +31,11 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 // Create database tables if they don't exist
 async function createTables() {
     try {
+        if (!global.dbConnected) {
+            console.warn('⚠️ Cannot create tables: database not connected');
+            return;
+        }
+        
         await pool.query(`
             CREATE TABLE IF NOT EXISTS bookings (
                 id SERIAL PRIMARY KEY,
@@ -95,6 +71,11 @@ async function createTables() {
     } catch (error) {
         console.error('❌ Error creating tables:', error);
     }
+}
+
+// Create tables when database is connected
+if (global.dbConnected) {
+    createTables();
 }
 
 // Admin authentication middleware
@@ -157,7 +138,7 @@ app.post('/api/bookings', async (req, res) => {
         // Generate unique booking reference
         const bookingRef = `BK-${uuidv4().substring(0, 8).toUpperCase()}`;
         
-        if (!dbConnected) {
+        if (!global.dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
@@ -232,7 +213,7 @@ app.get('/api/bookings/:reference', async (req, res) => {
             });
         }
         
-        if (!dbConnected) {
+        if (!global.dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
@@ -305,7 +286,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
     console.log('🍪 Admin cookie:', req.cookies?.adminToken ? 'Present' : 'Missing');
     
     try {
-        if (!dbConnected) {
+        if (!global.dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
@@ -360,7 +341,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
         return res.json({
             success: true,
             bookings,
-            dbConnected
+            dbConnected: global.dbConnected
         });
     } catch (error) {
         console.error('Error fetching bookings:', error);
@@ -386,7 +367,7 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
             });
         }
         
-        if (!dbConnected) {
+        if (!global.dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
@@ -434,7 +415,7 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
 // Get booking statistics (admin only) (GET /api/admin/statistics)
 app.get('/api/admin/statistics', requireAdminAuth, async (req, res) => {
     try {
-        if (!dbConnected) {
+        if (!global.dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
@@ -622,11 +603,21 @@ app.get('/booking-confirmation', (req, res) => {
 async function startServer() {
     console.log('🚀 Starting server...');
     
+    // Attempt to create tables when server starts (if connected)
+    setTimeout(() => {
+        if (global.dbConnected) {
+            console.log('🔄 Creating database tables...');
+            createTables();
+        } else {
+            console.warn('⚠️ Server running without database connection. Some features will be limited.');
+        }
+    }, 1000); // Small delay to ensure connection has been tested
+    
     // Start Express server
     app.listen(port, () => {
         console.log(`📡 Server running on port ${port}`);
         console.log(`🌐 Visit: http://localhost:${port}`);
-        console.log(`📊 Database connected: ${dbConnected ? 'Yes ✅' : 'No ❌'}`);
+        console.log(`📊 Database connected: ${global.dbConnected ? 'Yes ✅' : 'No ❌'}`);
     });
 }
 
