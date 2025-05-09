@@ -3,9 +3,6 @@
  * Clean Express.js backend with PostgreSQL integration
  */
 
-// Load environment variables
-require('dotenv').config();
-
 // Import required packages
 const express = require('express');
 const { Pool } = require('pg');
@@ -14,25 +11,21 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
 
-// Initialize Express app
-const app = express();
-const port = process.env.PORT || 3000;
+// Load environment variables
+require('dotenv').config();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-// Serve static files
-app.use(express.static(path.join(__dirname)));
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
-app.use('/public', express.static(path.join(__dirname, 'public')));
+// Check for DATABASE_URL and exit if not set
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL not set');
+  process.exit(1);
+}
 
 // PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // Test the database connection
@@ -48,6 +41,21 @@ pool.query('SELECT NOW()', (err, res) => {
     createTables();
   }
 });
+
+// Initialize Express app
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Serve static files
+app.use(express.static(path.join(__dirname)));
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // Create database tables if they don't exist
 async function createTables() {
