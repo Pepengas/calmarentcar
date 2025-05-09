@@ -3,17 +3,16 @@
  * Clean Express.js backend with PostgreSQL integration
  */
 
+// Load environment variables
+require('dotenv').config();
+
 // Import required packages
 const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const dotenv = require('dotenv');
 const { v4: uuidv4 } = require('uuid');
-
-// Load environment variables
-dotenv.config();
 
 // Initialize Express app
 const app = express();
@@ -44,6 +43,8 @@ function setupDatabase() {
             return false;
         }
         
+        console.log('🔌 Attempting to connect to DB at:', connectionString.split('@')[1] || 'hidden');
+        
         pool = new Pool({
             connectionString,
             ssl: {
@@ -51,13 +52,13 @@ function setupDatabase() {
             }
         });
         
-        // Test the connection
+        // Test the connection immediately
         pool.query('SELECT NOW()', (err, res) => {
             if (err) {
-                console.error('❌ Database connection error:', err);
+                console.error('❌ DB connection failed:', err.message);
                 dbConnected = false;
             } else {
-                console.log('✅ Successfully connected to PostgreSQL database at:', res.rows[0].now);
+                console.log('✅ Connected to DB at:', res.rows[0].now);
                 dbConnected = true;
                 
                 // Create tables if they don't exist
@@ -67,7 +68,7 @@ function setupDatabase() {
         
         return true;
     } catch (error) {
-        console.error('❌ Error initializing database connection:', error);
+        console.error('❌ DB connection failed:', error.message);
         return false;
     }
 }
@@ -220,10 +221,10 @@ app.post('/api/bookings', async (req, res) => {
                 redirect_url: `/booking-confirmation.html?reference=${bookingRef}`
             });
         } else {
-            console.error('❌ Database connection not available');
+            console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
-                error: 'Database connection not available'
+                error: 'Database not connected'
             });
         }
     } catch (error) {
@@ -298,9 +299,10 @@ app.get('/api/bookings/:reference', async (req, res) => {
                 booking: formattedBooking
             });
         } else {
+            console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
-                error: 'Database connection not available'
+                error: 'Database not connected'
             });
         }
     } catch (error) {
@@ -320,10 +322,10 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
     
     try {
         if (!dbConnected || !pool) {
-            console.error('❌ Database not connected. Cannot fetch bookings.');
+            console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
-                error: 'Database connection not available',
+                error: 'Database not connected',
                 bookings: []
             });
         }
@@ -401,9 +403,10 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
         }
         
         if (!dbConnected || !pool) {
+            console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
-                error: 'Database connection not available'
+                error: 'Database not connected'
             });
         }
         
@@ -448,9 +451,10 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
 app.get('/api/admin/statistics', requireAdminAuth, async (req, res) => {
     try {
         if (!dbConnected || !pool) {
+            console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
-                error: 'Database connection not available'
+                error: 'Database not connected'
             });
         }
         
@@ -633,15 +637,22 @@ app.get('/booking-confirmation', (req, res) => {
 // Start server
 async function startServer() {
     // Set up database connection
-    setupDatabase();
+    console.log('🚀 Starting server...');
+    console.log('🔌 Connecting to database...');
+    
+    const dbSetupResult = setupDatabase();
+    if (!dbSetupResult) {
+        console.warn('⚠️ Server starting without database connection. Some features will be limited.');
+    }
     
     // Start Express server
     app.listen(port, () => {
         console.log(`📡 Server running on port ${port}`);
         console.log(`🌐 Visit: http://localhost:${port}`);
+        console.log(`📊 Database connected: ${dbConnected ? 'Yes ✅' : 'No ❌'}`);
     });
 }
 
 startServer().catch(err => {
-    console.error('Failed to start server:', err);
+    console.error('❌ Failed to start server:', err);
 }); 
