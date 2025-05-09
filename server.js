@@ -300,7 +300,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
         console.log('💾 Database connected, fetching bookings...');
         const result = await pool.query(`
             SELECT * FROM bookings 
-            ORDER BY created_at DESC
+            ORDER BY date_submitted DESC
         `);
         
         console.log(`📋 Found ${result.rows.length} bookings in database`);
@@ -330,7 +330,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
                 total_price: booking.total_price,
                 status: booking.status,
                 payment_date: booking.payment_date,
-                date_submitted: booking.created_at,
+                date_submitted: booking.date_submitted,
                 additional_driver: booking.additional_driver,
                 full_insurance: booking.full_insurance,
                 gps_navigation: booking.gps_navigation,
@@ -388,7 +388,7 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
         // Update booking status
         const result = await pool.query(`
             UPDATE bookings
-            SET status = $1, updated_at = CURRENT_TIMESTAMP
+            SET status = $1
             WHERE id = $2
             RETURNING *
         `, [status, id]);
@@ -443,7 +443,7 @@ app.get('/api/admin/statistics', requireAdminAuth, async (req, res) => {
         const todayBookingsResult = await pool.query(`
             SELECT COUNT(*) 
             FROM bookings 
-            WHERE created_at::date = CURRENT_DATE
+            WHERE date_submitted::date = CURRENT_DATE
         `);
         const todayBookings = parseInt(todayBookingsResult.rows[0].count);
         
