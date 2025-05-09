@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Select Your Vehicle - Calma Car Rental</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Add progress steps CSS -->
+  <link rel="stylesheet" href="assets/css/progress-steps.css">
   <style>
     /* Reset and base styles */
     * {
@@ -272,8 +276,6 @@
       /* Tighter spacing for very small screens */
     }
   </style>
-  <!-- Add our custom progress steps CSS -->
-  <link rel="stylesheet" href="css/progress-steps.css">
 </head>
 <body>
   <!-- Header that exactly matches the screenshot -->
@@ -301,11 +303,23 @@
     <a href="index.html" class="back-link">Back to search</a>
     
     <!-- Progress Steps -->
-    <div class="progress-steps">
-      <div class="step completed" data-step="1" data-title="Trip Details">1</div>
-      <div class="step active" data-step="2" data-title="Vehicle Selection">2</div>
-      <div class="step" data-step="3" data-title="Personal Information">3</div>
-    </div>
+    <nav aria-label="Booking progress" class="progress-steps step-progress-2 tw-reset">
+      <div class="step-line">
+        <div class="step-line-progress"></div>
+      </div>
+      <div class="step-container step completed" data-step="1">
+        <div class="step-circle">1</div>
+        <div class="step-label">Trip Details</div>
+      </div>
+      <div class="step-container step active" data-step="2">
+        <div class="step-circle">2</div>
+        <div class="step-label">Vehicle Selection</div>
+      </div>
+      <div class="step-container step" data-step="3">
+        <div class="step-circle">3</div>
+        <div class="step-label">Personal Information</div>
+      </div>
+    </nav>
     
     <!-- Booking Summary -->
     <div id="booking-summary">

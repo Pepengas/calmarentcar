@@ -317,6 +317,9 @@
     <!-- Load date and time picker scripts in head -->
     <script src="assets/js/centered-calendar.js"></script>
     <script src="assets/js/simple-time-picker.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Add Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body>
     <!-- Initialize date and time pickers immediately after body -->
@@ -459,11 +462,23 @@
                         
                         <!-- Form Progress Indicator -->
                         <div class="form-progress" style="margin-bottom: 20px;">
-                            <div class="progress-steps">
-                                <div class="step active" data-step="1" data-title="Trip Details">1</div>
-                                <div class="step" data-step="2" data-title="Vehicle Selection">2</div>
-                                <div class="step" data-step="3" data-title="Personal Information">3</div>
-                            </div>
+                            <nav aria-label="Booking progress" class="progress-steps step-progress-1 tw-reset">
+                              <div class="step-line">
+                                <div class="step-line-progress"></div>
+                              </div>
+                              <div class="step-container step active" data-step="1">
+                                <div class="step-circle">1</div>
+                                <div class="step-label">Trip Details</div>
+                              </div>
+                              <div class="step-container step" data-step="2">
+                                <div class="step-circle">2</div>
+                                <div class="step-label">Vehicle Selection</div>
+                              </div>
+                              <div class="step-container step" data-step="3">
+                                <div class="step-circle">3</div>
+                                <div class="step-label">Personal Information</div>
+                              </div>
+                            </nav>
                         </div>
                         
                         <form id="booking-form" novalidate aria-label="Car booking form" autocomplete="off" autocapitalize="off" autocorrect="off">

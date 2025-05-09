@@ -1,166 +1,86 @@
 /* 
- * Progress Steps Indicator Styles
- * Custom CSS to fix alignment issues with the booking progress steps
+ * Progress Steps Indicator - Tailwind CSS Implementation
+ * Modern, responsive progress bar for booking process
  */
 
-/* Hide any existing step styles that might be causing conflicts */
-.step-titles {
-    display: none !important;
+/* Use this class to remove any default styles */
+.tw-reset * {
+    all: revert;
 }
 
 /* Container for the progress steps */
 .progress-steps {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    margin: 20px auto 60px !important; /* Reduced from 90px to 60px */
-    position: relative !important;
-    max-width: 450px !important;
+    @apply flex justify-center items-center my-8 relative max-w-2xl mx-auto;
 }
 
-/* Horizontal line connecting the steps */
-.progress-steps::before {
-    content: '' !important;
-    position: absolute !important;
-    top: 14px !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: 2px !important;
-    background-color: #0066cc !important;
-    z-index: 1 !important;
+/* Step container */
+.step-container {
+    @apply flex flex-col items-center relative z-10;
+    flex: 1;
 }
 
-/* Individual step circle */
-.step {
-    width: 30px !important;
-    height: 30px !important;
-    border-radius: 50% !important;
-    background-color: #fff !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-weight: 600 !important;
-    margin: 0 40px !important;
-    position: relative !important;
-    z-index: 2 !important;
-    border: 2px solid #ddd !important;
-    color: #666 !important;
+/* Step circle */
+.step-circle {
+    @apply w-10 h-10 rounded-full flex items-center justify-center font-semibold border-2 border-gray-300 bg-white text-gray-500 mb-2 transition-all duration-300;
 }
 
 /* Active step styling */
-.step.active {
-    background-color: #0066cc !important;
-    color: white !important;
-    border-color: #0066cc !important;
-    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2) !important;
+.step.active .step-circle {
+    @apply bg-blue-500 text-white border-blue-500 shadow-md;
 }
 
 /* Completed step styling */
-.step.completed {
-    background-color: #0066cc !important;
-    color: white !important;
-    border-color: #0066cc !important;
+.step.completed .step-circle {
+    @apply bg-blue-500 text-white border-blue-500;
 }
 
-/* Text below steps */
-.step::after {
-    content: attr(data-title) !important;
-    position: absolute !important;
-    top: 40px !important; /* Increased for better spacing */
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 100px !important; 
-    text-align: center !important;
-    font-size: 13px !important;
-    color: #666 !important;
-    font-weight: normal !important;
-    white-space: nowrap !important; /* Prevent text wrapping */
-    background-color: rgba(255, 255, 255, 0.95) !important; /* Semi-transparent background */
-    padding: 3px 6px !important; /* Add padding around the text */
-    border-radius: 3px !important; /* Slight rounding of corners */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; /* Subtle shadow for better visibility */
-    z-index: 3 !important; /* Ensure text appears above other elements */
+/* Step label */
+.step-label {
+    @apply text-xs text-center text-gray-500 font-medium max-w-xs transition-all duration-300;
 }
 
-/* Active step text styling */
-.step.active::after {
-    font-weight: 600 !important;
-    color: #0066cc !important;
-    background-color: rgba(255, 255, 255, 1) !important; /* Fully opaque background for active step */
+/* Active and completed step label styling */
+.step.active .step-label, 
+.step.completed .step-label {
+    @apply text-blue-500 font-semibold;
 }
 
-/* Completed step text styling */
-.step.completed::after {
-    color: #0066cc !important;
+/* The line between steps */
+.step-line {
+    @apply absolute top-5 h-0.5 bg-gray-300 w-full -z-10 left-0;
+    transform: translateY(-50%);
 }
 
-/* Form Progress Wrapper */
-.form-progress {
-    margin-bottom: 30px !important; /* Reduced from 60px to 30px */
-    position: relative !important;
-    z-index: 5 !important;
+/* Active line section */
+.step-line-progress {
+    @apply absolute top-0 h-full bg-blue-500 transition-all duration-500 ease-in-out left-0;
+    width: 0%;
 }
 
-/* Add additional space after the form-progress but less than before */
-.form-progress::after {
-    content: '' !important;
-    display: block !important;
-    height: 10px !important; /* Reduced from 20px to 10px */
+/* Set width based on active step */
+.step-progress-1 .step-line-progress {
+    width: 0%;
 }
 
-/* Ensure fields below progress-steps aren't covered */
-.form-group {
-    position: relative !important;
-    z-index: 4 !important;
-    margin-top: 5px !important; /* Reduced from 10px to 5px */
+.step-progress-2 .step-line-progress {
+    width: 50%;
 }
 
-/* Responsive adjustments */
-@media (max-width: 767px) {
+.step-progress-3 .step-line-progress {
+    width: 100%;
+}
+
+/* Responsive styles */
+@media (max-width: 640px) {
+    .step-circle {
+        @apply w-8 h-8 text-sm;
+    }
+    
+    .step-label {
+        @apply text-xs max-w-[80px];
+    }
+    
     .progress-steps {
-        max-width: 360px !important;
-        margin-bottom: 60px !important; /* Reduced from 90px to 60px */
-    }
-    
-    .step {
-        margin: 0 20px !important;
-    }
-    
-    .step::after {
-        top: 45px !important;
-    }
-    
-    .form-progress {
-        margin-bottom: 40px !important; /* Reduced from 70px to 40px */
-    }
-}
-
-@media (max-width: 480px) {
-    .progress-steps {
-        max-width: 300px !important;
-        margin-bottom: 70px !important; /* Reduced from 100px to 70px */
-    }
-    
-    .step {
-        margin: 0 12px !important;
-        width: 25px !important;
-        height: 25px !important;
-        font-size: 12px !important;
-    }
-    
-    .step::after {
-        top: 35px !important;
-        font-size: 11px !important;
-        width: 80px !important;
-        white-space: normal !important;
-        line-height: 1.2 !important;
-    }
-    
-    .progress-steps::before {
-        top: 12px !important;
-    }
-    
-    .form-progress {
-        margin-bottom: 50px !important; /* Reduced from 80px to 50px */
+        @apply max-w-xs px-4;
     }
 } 

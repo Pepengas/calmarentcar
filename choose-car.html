@@ -15,6 +15,8 @@
     <!-- Stylesheet -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/booking.css">
+    <!-- Add Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     
     <!-- Preloading Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -63,12 +65,24 @@
                 
                 <!-- Form Progress Indicator -->
                 <div class="form-progress" style="margin-bottom: 40px;">
-                    <div class="progress-steps">
-                        <div class="step completed" data-step="1" data-title="Trip Details">1</div>
-                        <div class="step active" data-step="2" data-title="Vehicle Selection">2</div>
-                        <div class="step" data-step="3" data-title="Personal Information">3</div>
-                    </div>
-                    <div class="step-titles">
+                    <nav aria-label="Booking progress" class="progress-steps step-progress-2 tw-reset">
+                      <div class="step-line">
+                        <div class="step-line-progress"></div>
+                      </div>
+                      <div class="step-container step completed" data-step="1">
+                        <div class="step-circle">1</div>
+                        <div class="step-label">Trip Details</div>
+                      </div>
+                      <div class="step-container step active" data-step="2">
+                        <div class="step-circle">2</div>
+                        <div class="step-label">Vehicle Selection</div>
+                      </div>
+                      <div class="step-container step" data-step="3">
+                        <div class="step-circle">3</div>
+                        <div class="step-label">Personal Information</div>
+                      </div>
+                    </nav>
+                    <div class="step-titles" style="display: none;">
                         <div class="step-title">Trip Details</div>
                         <div class="step-title active">Choose Car</div>
                         <div class="step-title">Personal Information</div>
