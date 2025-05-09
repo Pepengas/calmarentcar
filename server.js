@@ -30,48 +30,24 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // PostgreSQL connection
-let pool = null;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+// Test the database connection
 let dbConnected = false;
 
-// Set up database connection
-function setupDatabase() {
-    try {
-        const connectionString = process.env.DATABASE_URL;
-        
-        if (!connectionString) {
-            console.log('⚠️ No DATABASE_URL found in environment variables');
-            return false;
-        }
-        
-        console.log('🔌 Attempting to connect to DB at:', connectionString.split('@')[1] || 'hidden');
-        
-        pool = new Pool({
-            connectionString,
-            ssl: {
-                rejectUnauthorized: false // Required for Railway SSL connections
-            }
-        });
-        
-        // Test the connection immediately
-        pool.query('SELECT NOW()', (err, res) => {
-            if (err) {
-                console.error('❌ DB connection failed:', err.message);
-                dbConnected = false;
-            } else {
-                console.log('✅ Connected to DB at:', res.rows[0].now);
-                dbConnected = true;
-                
-                // Create tables if they don't exist
-                createTables();
-            }
-        });
-        
-        return true;
-    } catch (error) {
-        console.error('❌ DB connection failed:', error.message);
-        return false;
-    }
-}
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('❌ DB connection failed:', err.message);
+  } else {
+    console.log('✅ Connected to DB at:', res.rows[0].now);
+    dbConnected = true;
+    // Create tables if they don't exist
+    createTables();
+  }
+});
 
 // Create database tables if they don't exist
 async function createTables() {
@@ -173,60 +149,60 @@ app.post('/api/bookings', async (req, res) => {
         // Generate unique booking reference
         const bookingRef = `BK-${uuidv4().substring(0, 8).toUpperCase()}`;
         
-        if (dbConnected && pool) {
-            // Insert booking into database
-            const result = await pool.query(`
-                INSERT INTO bookings (
-                    booking_reference, 
-                    customer_first_name, customer_last_name, customer_email, 
-                    customer_phone, customer_age, driver_license, license_expiration, country,
-                    pickup_date, return_date, pickup_location, dropoff_location, 
-                    car_make, car_model, daily_rate, total_price, status, 
-                    additional_driver, full_insurance, gps_navigation, child_seat, 
-                    special_requests
-                ) 
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
-                RETURNING *
-            `, [
-                bookingRef,
-                booking.customer_first_name,
-                booking.customer_last_name,
-                booking.customer_email,
-                booking.customer_phone || null,
-                booking.customer_age || null,
-                booking.driver_license || null,
-                booking.license_expiration || null,
-                booking.country || null,
-                booking.pickup_date,
-                booking.return_date,
-                booking.pickup_location,
-                booking.dropoff_location || booking.pickup_location,
-                booking.car_make,
-                booking.car_model,
-                booking.daily_rate || null,
-                booking.total_price,
-                'pending',
-                booking.additional_driver || false,
-                booking.full_insurance || false,
-                booking.gps_navigation || false,
-                booking.child_seat || false,
-                booking.special_requests || null
-            ]);
-            
-            console.log('✅ Booking saved to database successfully, reference:', bookingRef);
-            
-            return res.status(201).json({
-                success: true,
-                booking_reference: bookingRef,
-                redirect_url: `/booking-confirmation.html?reference=${bookingRef}`
-            });
-        } else {
+        if (!dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
                 error: 'Database not connected'
             });
         }
+        
+        // Insert booking into database
+        const result = await pool.query(`
+            INSERT INTO bookings (
+                booking_reference, 
+                customer_first_name, customer_last_name, customer_email, 
+                customer_phone, customer_age, driver_license, license_expiration, country,
+                pickup_date, return_date, pickup_location, dropoff_location, 
+                car_make, car_model, daily_rate, total_price, status, 
+                additional_driver, full_insurance, gps_navigation, child_seat, 
+                special_requests
+            ) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+            RETURNING *
+        `, [
+            bookingRef,
+            booking.customer_first_name,
+            booking.customer_last_name,
+            booking.customer_email,
+            booking.customer_phone || null,
+            booking.customer_age || null,
+            booking.driver_license || null,
+            booking.license_expiration || null,
+            booking.country || null,
+            booking.pickup_date,
+            booking.return_date,
+            booking.pickup_location,
+            booking.dropoff_location || booking.pickup_location,
+            booking.car_make,
+            booking.car_model,
+            booking.daily_rate || null,
+            booking.total_price,
+            'pending',
+            booking.additional_driver || false,
+            booking.full_insurance || false,
+            booking.gps_navigation || false,
+            booking.child_seat || false,
+            booking.special_requests || null
+        ]);
+        
+        console.log('✅ Booking saved to database successfully, reference:', bookingRef);
+        
+        return res.status(201).json({
+            success: true,
+            booking_reference: bookingRef,
+            redirect_url: `/booking-confirmation.html?reference=${bookingRef}`
+        });
     } catch (error) {
         console.error('❌ Error creating booking:', error);
         return res.status(500).json({
@@ -248,63 +224,63 @@ app.get('/api/bookings/:reference', async (req, res) => {
             });
         }
         
-        if (dbConnected && pool) {
-            const result = await pool.query('SELECT * FROM bookings WHERE booking_reference = $1', [reference]);
-            
-            if (result.rows.length === 0) {
-                return res.status(404).json({
-                    success: false,
-                    error: 'Booking not found'
-                });
-            }
-            
-            const booking = result.rows[0];
-            
-            // Format the booking data for client consumption
-            const formattedBooking = {
-                booking_reference: booking.booking_reference,
-                status: booking.status,
-                customer: {
-                    first_name: booking.customer_first_name,
-                    last_name: booking.customer_last_name,
-                    email: booking.customer_email,
-                    phone: booking.customer_phone,
-                    age: booking.customer_age,
-                    driver_license: booking.driver_license,
-                    license_expiration: booking.license_expiration,
-                    country: booking.country
-                },
-                rental: {
-                    pickup_date: booking.pickup_date,
-                    return_date: booking.return_date,
-                    pickup_location: booking.pickup_location,
-                    dropoff_location: booking.dropoff_location,
-                    car_make: booking.car_make,
-                    car_model: booking.car_model,
-                    daily_rate: booking.daily_rate,
-                    total_price: booking.total_price
-                },
-                addons: {
-                    additional_driver: booking.additional_driver,
-                    full_insurance: booking.full_insurance,
-                    gps_navigation: booking.gps_navigation,
-                    child_seat: booking.child_seat
-                },
-                special_requests: booking.special_requests,
-                created_at: booking.created_at
-            };
-            
-            return res.json({
-                success: true,
-                booking: formattedBooking
-            });
-        } else {
+        if (!dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
                 error: 'Database not connected'
             });
         }
+        
+        const result = await pool.query('SELECT * FROM bookings WHERE booking_reference = $1', [reference]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Booking not found'
+            });
+        }
+        
+        const booking = result.rows[0];
+        
+        // Format the booking data for client consumption
+        const formattedBooking = {
+            booking_reference: booking.booking_reference,
+            status: booking.status,
+            customer: {
+                first_name: booking.customer_first_name,
+                last_name: booking.customer_last_name,
+                email: booking.customer_email,
+                phone: booking.customer_phone,
+                age: booking.customer_age,
+                driver_license: booking.driver_license,
+                license_expiration: booking.license_expiration,
+                country: booking.country
+            },
+            rental: {
+                pickup_date: booking.pickup_date,
+                return_date: booking.return_date,
+                pickup_location: booking.pickup_location,
+                dropoff_location: booking.dropoff_location,
+                car_make: booking.car_make,
+                car_model: booking.car_model,
+                daily_rate: booking.daily_rate,
+                total_price: booking.total_price
+            },
+            addons: {
+                additional_driver: booking.additional_driver,
+                full_insurance: booking.full_insurance,
+                gps_navigation: booking.gps_navigation,
+                child_seat: booking.child_seat
+            },
+            special_requests: booking.special_requests,
+            created_at: booking.created_at
+        };
+        
+        return res.json({
+            success: true,
+            booking: formattedBooking
+        });
     } catch (error) {
         console.error('Error fetching booking:', error);
         return res.status(500).json({
@@ -321,7 +297,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
     console.log('🍪 Admin cookie:', req.cookies?.adminToken ? 'Present' : 'Missing');
     
     try {
-        if (!dbConnected || !pool) {
+        if (!dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
@@ -402,7 +378,7 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
             });
         }
         
-        if (!dbConnected || !pool) {
+        if (!dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
@@ -450,7 +426,7 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
 // Get booking statistics (admin only) (GET /api/admin/statistics)
 app.get('/api/admin/statistics', requireAdminAuth, async (req, res) => {
     try {
-        if (!dbConnected || !pool) {
+        if (!dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
             return res.status(503).json({
                 success: false,
@@ -636,14 +612,7 @@ app.get('/booking-confirmation', (req, res) => {
 
 // Start server
 async function startServer() {
-    // Set up database connection
     console.log('🚀 Starting server...');
-    console.log('🔌 Connecting to database...');
-    
-    const dbSetupResult = setupDatabase();
-    if (!dbSetupResult) {
-        console.warn('⚠️ Server starting without database connection. Some features will be limited.');
-    }
     
     // Start Express server
     app.listen(port, () => {
