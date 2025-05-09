@@ -915,84 +915,34 @@
     <a href="car-selection.html" class="back-link">Back to car selection</a>
     
     <!-- NEW Progress Tracker -->
-    <div class="max-w-4xl mx-auto my-12 px-4">
-      <!-- Desktop progress tracker (hidden on small screens) -->
-      <nav aria-label="Booking progress" class="relative hidden sm:block">
-        <!-- Horizontal track (desktop) -->
-        <div class="progress-track-horizontal absolute top-6 left-0 w-full h-1 bg-gray-200 transform -translate-y-1/2">
-          <div class="absolute top-0 left-0 h-full bg-blue-500 w-full transition-all duration-500"></div>
+    <div class="w-full max-w-2xl mx-auto mt-6 px-4">
+      <div class="flex justify-between items-center text-sm md:text-base">
+        <!-- Step 1 (completed) -->
+        <div class="flex flex-col items-center flex-1">
+          <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+            <span class="fas fa-check" style="font-size: 0.8rem;"></span>
+          </div>
+          <span class="mt-1 text-blue-600 font-semibold">Trip Details</span>
         </div>
-        
-        <!-- Steps -->
-        <div class="progress-tracker-steps relative flex justify-between">
-          <!-- Step 1: Trip Details (completed) -->
-          <div class="progress-step progress-step-completed w-1/3 flex flex-col items-center text-center">
-            <div class="progress-step-circle flex items-center justify-center w-12 h-12 rounded-full bg-green-500 text-white border-2 border-green-500 mb-3 text-lg font-bold z-10">
-              <span class="fas fa-check"></span>
-            </div>
-            <div class="progress-step-label font-medium text-green-600">Trip Details</div>
+
+        <div class="h-1 bg-blue-600 flex-1 mx-2"></div>
+
+        <!-- Step 2 (completed) -->
+        <div class="flex flex-col items-center flex-1">
+          <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+            <span class="fas fa-check" style="font-size: 0.8rem;"></span>
           </div>
-          
-          <!-- Step 2: Vehicle Selection (completed) -->
-          <div class="progress-step progress-step-completed w-1/3 flex flex-col items-center text-center">
-            <div class="progress-step-circle flex items-center justify-center w-12 h-12 rounded-full bg-green-500 text-white border-2 border-green-500 mb-3 text-lg font-bold z-10">
-              <span class="fas fa-check"></span>
-            </div>
-            <div class="progress-step-label font-medium text-green-600">Vehicle Selection</div>
-          </div>
-          
-          <!-- Step 3: Personal Information (active) -->
-          <div class="progress-step progress-step-active w-1/3 flex flex-col items-center text-center">
-            <div class="progress-step-circle flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 text-white border-2 border-blue-500 mb-3 text-lg font-bold z-10 transform scale-110 shadow-md">
-              3
-            </div>
-            <div class="progress-step-label font-semibold text-blue-600">Personal Information</div>
-          </div>
+          <span class="mt-1 text-blue-600 font-semibold">Vehicle Selection</span>
         </div>
-      </nav>
-      
-      <!-- Mobile progress tracker (only shown on small screens) -->
-      <div class="block sm:hidden max-w-xl mx-auto my-8 px-4">
-        <h3 class="text-center text-lg font-medium mb-6 text-gray-700">Booking Progress</h3>
-        <div class="flex flex-col space-y-4 relative">
-          <!-- Vertical connecting line -->
-          <div class="absolute left-4 top-8 w-0.5 h-[calc(100%-32px)] bg-gray-200 z-0">
-            <!-- Completed portion of the line -->
-            <div class="absolute left-0 top-0 w-full h-full bg-green-500"></div>
+
+        <div class="h-1 bg-blue-600 flex-1 mx-2"></div>
+
+        <!-- Step 3 (active) -->
+        <div class="flex flex-col items-center flex-1">
+          <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+            3
           </div>
-          
-          <!-- Step 1: Trip Details (completed) -->
-          <div class="bg-white rounded-xl shadow-md py-4 px-6 flex items-center relative z-10 border-l-4 border-green-500 bg-green-50">
-            <div class="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-4 border-2 border-white shadow">
-              <span class="text-white text-sm">✓</span>
-            </div>
-            <div>
-              <span class="font-medium text-green-600">Trip Details</span>
-              <p class="text-sm text-gray-600 mt-1">Dates and locations selected</p>
-            </div>
-          </div>
-          
-          <!-- Step 2: Vehicle Selection (completed) -->
-          <div class="bg-white rounded-xl shadow-md py-4 px-6 flex items-center relative z-10 border-l-4 border-green-500 bg-green-50">
-            <div class="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-4 border-2 border-white shadow">
-              <span class="text-white text-sm">✓</span>
-            </div>
-            <div>
-              <span class="font-medium text-green-600">Vehicle Selection</span>
-              <p class="text-sm text-gray-600 mt-1">Perfect car chosen</p>
-            </div>
-          </div>
-          
-          <!-- Step 3: Personal Information (active) -->
-          <div class="bg-white rounded-xl shadow-md py-4 px-6 flex items-center relative z-10 border-l-4 border-blue-600 bg-blue-50">
-            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-4 border-2 border-white shadow">
-              <span class="text-white font-bold text-sm">3</span>
-            </div>
-            <div>
-              <span class="font-bold text-blue-600">Personal Information</span>
-              <p class="text-sm text-gray-600 mt-1">Complete your booking</p>
-            </div>
-          </div>
+          <span class="mt-1 text-blue-600 font-semibold">Personal Info</span>
         </div>
       </div>
     </div>

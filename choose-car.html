@@ -15,8 +15,12 @@
     <!-- Stylesheet -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/booking.css">
+    <!-- Add Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Add Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Add progress tracker CSS -->
+    <link rel="stylesheet" href="assets/css/progress-tracker.css">
     
     <!-- Preloading Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -65,33 +69,36 @@
                 
                 <!-- Form Progress Indicator -->
                 <div class="form-progress" style="margin-bottom: 40px;">
-                    <div class="progress-tracker">
-                      <nav aria-label="Booking progress" class="progress-steps step-progress-2">
-                        <div class="progress-line">
-                          <div class="progress-line-active"></div>
-                        </div>
-                        <div class="step-container step completed" data-step="1">
-                          <div class="step-circle">
-                            <span class="step-number">1</span>
-                            <span class="step-check">✓</span>
+                    <div class="w-full max-w-2xl mx-auto mt-6 px-4">
+                      <div class="flex justify-between items-center text-sm md:text-base">
+                        <!-- Step 1 (completed) -->
+                        <div class="flex flex-col items-center flex-1">
+                          <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+                            <span class="fas fa-check" style="font-size: 0.8rem;"></span>
                           </div>
-                          <div class="step-label">Trip Details</div>
+                          <span class="mt-1 text-blue-600 font-semibold">Trip Details</span>
                         </div>
-                        <div class="step-container step active" data-step="2">
-                          <div class="step-circle">
-                            <span class="step-number">2</span>
-                            <span class="step-check">✓</span>
+
+                        <div class="h-1 bg-blue-600 flex-1 mx-2"></div>
+
+                        <!-- Step 2 (active) -->
+                        <div class="flex flex-col items-center flex-1">
+                          <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+                            2
                           </div>
-                          <div class="step-label">Vehicle Selection</div>
+                          <span class="mt-1 text-blue-600 font-semibold">Vehicle Selection</span>
                         </div>
-                        <div class="step-container step" data-step="3">
-                          <div class="step-circle">
-                            <span class="step-number">3</span>
-                            <span class="step-check">✓</span>
+
+                        <div class="h-1 bg-gray-300 flex-1 mx-2"></div>
+
+                        <!-- Step 3 (inactive) -->
+                        <div class="flex flex-col items-center flex-1">
+                          <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">
+                            3
                           </div>
-                          <div class="step-label">Personal Information</div>
+                          <span class="mt-1 text-gray-600">Personal Info</span>
                         </div>
-                      </nav>
+                      </div>
                     </div>
                     <!-- Hide old step titles -->
                     <div class="step-titles" style="display: none;">
