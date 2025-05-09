@@ -1,0 +1,54 @@
+/* 
+ * Progress Tracker CSS
+ * A clean, responsive step indicator for the booking process
+ */
+
+/* Pulse animation for active step */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+/* Special responsive behavior not covered by Tailwind classes */
+@media (max-width: 640px) {
+  .progress-track-horizontal {
+    display: none !important;
+  }
+  .progress-track-vertical {
+    display: block !important;
+  }
+  .progress-tracker-steps {
+    flex-direction: column !important;
+  }
+  .progress-step {
+    margin-bottom: 2rem !important;
+    width: 100% !important;
+    flex-direction: row !important;
+    text-align: left !important;
+    align-items: flex-start !important;
+  }
+  .progress-step-circle {
+    margin-right: 1rem !important;
+    margin-bottom: 0 !important;
+  }
+  .progress-step-label {
+    padding-top: 0.5rem !important;
+  }
+}
+
+/* Show vertical track only on mobile */
+.progress-track-vertical {
+  display: none;
+}
+
+/* Active step animation */
+.progress-step-active .progress-step-circle {
+  animation: pulse 2s infinite;
+} 
