@@ -1399,21 +1399,59 @@
             },
             body: JSON.stringify(bookingData)
           })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              // Store booking reference
-              const bookingReference = data.booking_reference;
+          .then(response => {
+            // Log both status code and status text for debugging
+            console.log(`Booking API response status: ${response.status} ${response.statusText}`);
+            
+            // Clone the response so we can log the body for debugging
+            const responseClone = response.clone();
+            
+            // Return both the response object and the JSON promise
+            return responseClone.text()
+              .then(rawBody => {
+                console.log('Raw response body:', rawBody);
+                
+                // Try to parse JSON if there's content
+                let jsonData = null;
+                try {
+                  if (rawBody && rawBody.trim()) {
+                    jsonData = JSON.parse(rawBody);
+                  }
+                } catch (e) {
+                  console.error('Error parsing JSON response:', e);
+                }
+                
+                // Return both the response and parsed data
+                return {
+                  ok: response.ok,
+                  status: response.status,
+                  data: jsonData
+                };
+              });
+          })
+          .then(result => {
+            // Handle the parsed response
+            if (result.ok && result.data && result.data.success) {
+              // Booking was successful
+              console.log('Booking successful:', result.data);
+              const bookingReference = result.data.booking_reference;
               
               // Redirect to confirmation page
               window.location.href = `booking-confirmation.html?reference=${bookingReference}`;
             } else {
-              alert('Error: ' + (data.error || 'Unknown error'));
+              // Even though we got a response, the booking failed according to the API
+              const errorMessage = result.data && result.data.error 
+                ? result.data.error 
+                : `Server returned ${result.status} status code`;
+                
+              console.error('Booking failed:', errorMessage);
+              alert('Booking error: ' + errorMessage);
               resetSubmitButton();
             }
           })
           .catch(error => {
-            console.error('Error:', error);
+            // Network error or other exception
+            console.error('Booking request failed:', error);
             alert('Error submitting booking. Please try again.');
             resetSubmitButton();
           });

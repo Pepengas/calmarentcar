@@ -241,7 +241,7 @@ app.post('/api/bookings', async (req, res) => {
         
         console.log('✅ Booking saved to database successfully, reference:', bookingRef);
         
-        return res.status(201).json({
+        return res.status(200).json({
             success: true,
             booking_reference: bookingRef,
             redirect_url: `/booking-confirmation.html?reference=${bookingRef}`
