@@ -320,25 +320,22 @@
     <!-- Header -->
     <header class="site-header">
         <div class="container">
-            <nav class="navbar">
-                <div class="logo">
-                    <a href="index.html" title="Go to homepage">
+            <nav class="navbar flex justify-between items-center w-full">
+                <div class="logo flex-shrink-0">
+                    <a href="index.html" title="Go to homepage" class="block">
                     <img src="images/CalmaLogoTrans.png" alt="Calma Car Rental Logo" width="160" height="50">
                     </a>
                 </div>
                 
-                <div class="nav-container">
-                    <ul class="nav-links" id="nav-menu" aria-label="Main navigation">
-                        <li><a href="#" class="active">Home</a></li>
-                        <li><a href="#cars">Our Cars</a></li>
-                        <li><a href="#about">About Us</a></li>
-                        <li><a href="#why-rent">Why Choose Us</a></li>
-                        <li><a href="#faq">FAQ</a></li>
+                <div class="nav-container hidden md:block">
+                    <ul class="nav-links flex space-x-6" id="nav-menu" aria-label="Main navigation">
+                        <!-- Removed Home, Our Cars, About Us, Why Choose Us, and FAQ links -->
+                        <li><a href="index.html#book-section" class="active">Book Now</a></li>
                         <li><a href="#contact">Contact</a></li>
                     </ul>
                 </div>
                 
-                <button class="mobile-menu" aria-label="Open navigation menu" aria-controls="nav-container" aria-expanded="false">
+                <button class="mobile-menu md:hidden" aria-label="Open navigation menu" aria-controls="nav-container" aria-expanded="false">
                     <i class="fas fa-bars" aria-hidden="true"></i>
                 </button>
             </nav>
