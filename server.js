@@ -122,10 +122,12 @@ app.post('/api/bookings', async (req, res) => {
         // Validate required fields
         const requiredFields = [
             'customer_first_name', 'customer_last_name', 'customer_email',
-            'pickup_date', 'return_date', 'pickup_location',
-            'car_make', 'car_model', 'total_price'
+            'pickup_date', 'return_date', 'pickup_location'
         ];
         
+        const carDataFields = ['car_make', 'car_model', 'total_price'];
+        
+        // Check basic required fields
         const missingFields = requiredFields.filter(field => !booking[field]);
         
         if (missingFields.length > 0) {
@@ -133,6 +135,17 @@ app.post('/api/bookings', async (req, res) => {
             return res.status(400).json({
                 success: false,
                 error: `Missing required fields: ${missingFields.join(', ')}`
+            });
+        }
+        
+        // Validate car data more strictly to prevent "Unknown Unknown" issues
+        const missingCarData = carDataFields.filter(field => !booking[field]);
+        
+        if (missingCarData.length > 0) {
+            console.error('❌ Missing car data fields:', missingCarData);
+            return res.status(400).json({
+                success: false,
+                error: `Missing car data fields: ${missingCarData.join(', ')}. Please select a car before booking.`
             });
         }
         
@@ -151,6 +164,15 @@ app.post('/api/bookings', async (req, res) => {
         const carMake = (booking.car_make || '').trim();
         const carModel = (booking.car_model || '').trim();
         
+        // Block bookings with empty car data
+        if (!carMake || !carModel) {
+            console.error('❌ Empty car make or model:', { carMake, carModel });
+            return res.status(400).json({
+                success: false,
+                error: 'Car make and model cannot be empty. Please select a car before booking.'
+            });
+        }
+        
         // Ensure daily_rate is a number
         let dailyRate = parseFloat(booking.daily_rate);
         if (isNaN(dailyRate) && booking.total_price) {
@@ -161,6 +183,22 @@ app.post('/api/bookings', async (req, res) => {
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
             dailyRate = parseFloat(booking.total_price) / diffDays;
         }
+        
+        // If we still don't have a valid daily rate, reject the booking
+        if (isNaN(dailyRate) || dailyRate <= 0) {
+            console.error('❌ Invalid daily rate:', dailyRate);
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid daily rate. Please select a car with a valid price.'
+            });
+        }
+        
+        console.log('✅ Validated car data:', {
+            carMake,
+            carModel,
+            dailyRate,
+            totalPrice: booking.total_price
+        });
         
         // Insert booking into database
         const result = await pool.query(`
@@ -191,7 +229,7 @@ app.post('/api/bookings', async (req, res) => {
             booking.dropoff_location || booking.pickup_location,
             carMake,
             carModel,
-            dailyRate || null,
+            dailyRate,
             booking.total_price,
             'pending',
             booking.additional_driver || false,

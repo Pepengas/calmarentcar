@@ -67,16 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('adminToken');
         window.location.href = 'admin-login.html';
     });
-
-    // Add event listener to show date picker when custom date option is selected
-    const dateFilterEl = document.getElementById('dateFilter');
-    const datePickerContainer = document.getElementById('datePickerContainer');
-    
-    if (dateFilterEl && datePickerContainer) {
-        dateFilterEl.addEventListener('change', function() {
-            datePickerContainer.style.display = this.value === 'custom' ? 'block' : 'none';
-        });
-    }
 });
 
 /**
@@ -740,7 +730,8 @@ function applyFilters() {
         const monthAgo = new Date();
         monthAgo.setMonth(monthAgo.getMonth() - 1);
         filtered = filtered.filter(booking => new Date(booking.date_submitted) >= monthAgo);
-    } else if (dateOption === 'custom' && submittedDate) {
+    } else if (submittedDate) {
+        // Filter by exact date selected in the datepicker
         // Convert the selected date to start of day in local timezone
         const selectedDate = new Date(submittedDate);
         selectedDate.setHours(0, 0, 0, 0);
@@ -758,11 +749,12 @@ function applyFilters() {
     // Filter by car model
     if (carModel) {
         filtered = filtered.filter(booking => {
-            const bookingCarModel = `${booking.car_make || ''} ${booking.car_model || ''}`.trim();
-            return bookingCarModel === carModel;
+            if (!booking.car_make && !booking.car_model) return false;
+            return `${booking.car_make} ${booking.car_model}` === carModel;
         });
     }
     
+    // Update filtered bookings and render
     filteredBookings = filtered;
     renderBookings(filteredBookings);
 }
@@ -772,7 +764,6 @@ function applyFilters() {
  */
 function resetFilters() {
     document.getElementById('submittedDateFilter').value = '';
-    document.getElementById('datePickerContainer').style.display = 'none';
     filteredBookings = [...allBookings];
     renderBookings(filteredBookings);
 }
