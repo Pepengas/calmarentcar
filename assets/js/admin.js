@@ -366,8 +366,11 @@ function renderBookings(bookings) {
                 <button class="btn btn-sm btn-outline-primary me-1 view-details-btn" title="View Details" data-booking-id="${booking.id}">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-secondary edit-status-btn" title="Edit Status" data-booking-id="${booking.id}" data-current-status="${booking.status}">
+                <button class="btn btn-sm btn-outline-secondary me-1 edit-status-btn" title="Edit Status" data-booking-id="${booking.id}" data-current-status="${booking.status}">
                     <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger delete-booking-btn" title="Delete Booking" data-booking-id="${booking.id}" data-booking-ref="${booking.booking_reference || booking.id}">
+                    <i class="fas fa-trash-alt"></i>
                 </button>
             </td>
         `;
@@ -391,6 +394,10 @@ function attachActionListeners() {
     bookingsTableBody.querySelectorAll('.edit-status-btn').forEach(btn => {
         btn.removeEventListener('click', handleEditStatusClick); // Avoid adding multiple listeners
         btn.addEventListener('click', handleEditStatusClick);
+    });
+    bookingsTableBody.querySelectorAll('.delete-booking-btn').forEach(btn => {
+        btn.removeEventListener('click', handleDeleteBookingClick); // Avoid adding multiple listeners
+        btn.addEventListener('click', handleDeleteBookingClick);
     });
     console.log('[Admin] attachActionListeners: Event listeners for action buttons re-attached.');
 }
@@ -768,6 +775,59 @@ function resetFilters() {
     document.getElementById('datePickerContainer').style.display = 'none';
     filteredBookings = [...allBookings];
     renderBookings(filteredBookings);
+}
+
+/**
+ * Handle delete booking button click
+ * @param {Event} event - The click event
+ */
+function handleDeleteBookingClick(event) {
+    const bookingId = event.currentTarget.dataset.bookingId;
+    const bookingRef = event.currentTarget.dataset.bookingRef;
+    
+    console.log(`[Admin] handleDeleteBookingClick: Delete booking ID: ${bookingId}, Reference: ${bookingRef}`);
+    
+    // Confirm deletion with the admin
+    if (!confirm(`Are you sure you want to delete booking ${bookingRef}? This action cannot be undone.`)) {
+        return; // User cancelled
+    }
+    
+    showLoader();
+    
+    // Send delete request to API
+    fetch(`/api/admin/bookings/${bookingId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${API_TOKEN}`
+        },
+        credentials: 'include'
+    })
+    .then(response => {
+        if (response.status === 401 || response.status === 403) {
+            // Auth failed - redirect to login
+            localStorage.removeItem('adminToken');
+            window.location.href = 'admin-login.html';
+            throw new Error('Authentication failed');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Success - reload bookings
+            loadBookings();
+            alert(`Booking ${bookingRef} deleted successfully.`);
+        } else {
+            // API request was successful but operation failed
+            alert(`Failed to delete booking: ${data.error || 'Unknown error'}`);
+        }
+    })
+    .catch(error => {
+        console.error('[Admin] handleDeleteBookingClick error:', error);
+        alert(`Error deleting booking: ${error.message}`);
+    })
+    .finally(() => {
+        hideLoader();
+    });
 }
 
        

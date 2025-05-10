@@ -200,6 +200,26 @@ document.addEventListener('DOMContentLoaded', function() {
           const carName = this.getAttribute('data-car-name');
           const carPrice = this.getAttribute('data-car-price');
           
+          // Extract make and model from car name
+          const nameParts = carName.split(' ');
+          const make = nameParts[0];
+          const model = nameParts.slice(1).join(' ');
+          
+          // Save selected car data to localStorage for reliable access between pages
+          const selectedCar = {
+            id: carId,
+            name: carName,
+            make: make,
+            model: model,
+            price: parseFloat(carPrice)
+          };
+          
+          // Log the data being saved
+          console.log('Saving car data to localStorage:', selectedCar);
+          
+          // Save to localStorage
+          localStorage.setItem('selectedCar', JSON.stringify(selectedCar));
+          
           // Create URL parameters for the personal info page
           const params = new URLSearchParams(window.location.search);
           params.append('car-id', carId);

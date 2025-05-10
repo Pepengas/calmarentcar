@@ -466,6 +466,49 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
     }
 });
 
+// Delete booking (admin only) (DELETE /api/admin/bookings/:id)
+app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        if (!global.dbConnected) {
+            console.warn('🚨 Skipping DB call: no connection');
+            return res.status(503).json({
+                success: false,
+                error: 'Database not connected'
+            });
+        }
+        
+        // Get booking reference before deletion (for logging purposes)
+        const bookingResult = await pool.query('SELECT booking_reference FROM bookings WHERE id = $1', [id]);
+        
+        if (bookingResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Booking not found'
+            });
+        }
+        
+        const bookingRef = bookingResult.rows[0].booking_reference;
+        
+        // Delete the booking
+        await pool.query('DELETE FROM bookings WHERE id = $1', [id]);
+        
+        console.log(`🗑️ Admin deleted booking ID ${id}, reference ${bookingRef}`);
+        
+        return res.json({
+            success: true,
+            message: `Booking ${bookingRef} deleted successfully`
+        });
+    } catch (error) {
+        console.error('Error deleting booking:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // Get booking statistics (admin only) (GET /api/admin/statistics)
 app.get('/api/admin/statistics', requireAdminAuth, async (req, res) => {
     try {

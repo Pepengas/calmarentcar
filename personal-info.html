@@ -1255,10 +1255,20 @@
       console.log('Form:', form);
       console.log('Submit button:', submitBtn);
       
+      // Flag to prevent multiple submissions
+      let isSubmitting = false;
+      
       // Add a direct event listener to the submit button
       if (submitBtn) {
         submitBtn.addEventListener('click', function(e) {
           console.log('Submit button clicked from inline handler');
+          
+          // Prevent duplicate submissions
+          if (isSubmitting) {
+            console.log('Form is already being submitted, preventing duplicate submission');
+            e.preventDefault();
+            return;
+          }
           
           // Force direct submission by collecting form data manually
           e.preventDefault();
@@ -1292,6 +1302,14 @@
             return;
           }
           
+          // Set submitting flag to prevent duplicate submissions
+          isSubmitting = true;
+          
+          // Disable submit button to prevent multiple clicks
+          submitBtn.disabled = true;
+          submitBtn.classList.add('disabled');
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+          
           // Show loading overlay
           const loadingOverlay = document.getElementById('loading-overlay');
           if (loadingOverlay) {
@@ -1305,9 +1323,29 @@
           const carModel = carName.split(' ').slice(1).join(' ') || '';
           const carPrice = parseFloat(urlParams.get('car-price') || 0);
           
+          // Get car data more reliably - try to get from local storage if URL params are missing
+          let finalCarMake = carMake;
+          let finalCarModel = carModel; 
+          let finalDailyRate = carPrice;
+          
+          // Try to get from localStorage if URL parameters are incomplete
+          if (!finalCarMake || !finalCarModel || !finalDailyRate) {
+            try {
+              const storedCarData = JSON.parse(localStorage.getItem('selectedCar'));
+              if (storedCarData) {
+                finalCarMake = finalCarMake || storedCarData.make;
+                finalCarModel = finalCarModel || storedCarData.model;
+                finalDailyRate = finalDailyRate || storedCarData.price;
+                console.log('Retrieved car data from localStorage:', storedCarData);
+              }
+            } catch (e) {
+              console.error('Error retrieving car data from localStorage:', e);
+            }
+          }
+          
           // Calculate total price based on duration and selected car
           const durationDays = parseInt(urlParams.get('duration') || 1);
-          let totalPrice = carPrice * durationDays;
+          let totalPrice = finalDailyRate * durationDays;
           
           // Check additional options
           const additionalDriver = document.getElementById('additionalDriver').checked;
@@ -1335,9 +1373,9 @@
             return_date: urlParams.get('dropoff-date'),
             pickup_location: urlParams.get('pickup-location'),
             dropoff_location: urlParams.get('dropoff-location'),
-            car_make: carMake,
-            car_model: carModel,
-            daily_rate: carPrice,
+            car_make: finalCarMake,
+            car_model: finalCarModel,
+            daily_rate: finalDailyRate,
             total_price: totalPrice,
             additional_driver: additionalDriver,
             full_insurance: fullInsurance,
@@ -1345,6 +1383,13 @@
             child_seat: childSeat,
             special_requests: document.getElementById('specialRequests').value
           };
+          
+          console.log('Submitting booking with car data:', {
+            car_make: finalCarMake,
+            car_model: finalCarModel,
+            daily_rate: finalDailyRate,
+            total_price: totalPrice
+          });
           
           // Send booking data to server
           fetch('/api/bookings', {
@@ -1364,18 +1409,25 @@
               window.location.href = `booking-confirmation.html?reference=${bookingReference}`;
             } else {
               alert('Error: ' + (data.error || 'Unknown error'));
-              if (loadingOverlay) {
-                loadingOverlay.style.display = 'none';
-              }
+              resetSubmitButton();
             }
           })
           .catch(error => {
             console.error('Error:', error);
             alert('Error submitting booking. Please try again.');
+            resetSubmitButton();
+          });
+          
+          // Function to reset button and flags
+          function resetSubmitButton() {
+            isSubmitting = false;
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('disabled');
+            submitBtn.innerHTML = 'Complete Booking <i class="fas fa-arrow-right"></i>';
             if (loadingOverlay) {
               loadingOverlay.style.display = 'none';
             }
-          });
+          }
         });
       }
       
