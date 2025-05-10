@@ -1136,7 +1136,7 @@
   </div>
 
   <!-- JavaScript -->
-  <script src="assets/js/customer-info.js"></script>
+  <!-- <script src="assets/js/customer-info.js"></script> -->
   
   <!-- Country Selector Script -->
   <script>
@@ -1417,15 +1417,7 @@
             total_price: totalPrice
           });
           
-          // Disable submit button to prevent multiple clicks
-          submitBtn.disabled = true;
-          submitBtn.classList.add('disabled');
-          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-          
-          // Show loading overlay
-          if (loadingOverlay) {
-            loadingOverlay.style.display = 'flex';
-          }
+          // Button is already disabled above, and loading overlay already shown
           
           fetch("/api/bookings", {
             method: "POST",
@@ -1478,19 +1470,6 @@
             if (loadingOverlay) {
               loadingOverlay.style.display = 'none';
             }
-          }
-        });
-      }
-      
-      // Add event listener to the form submit event
-      if (form) {
-        form.addEventListener('submit', function(e) {
-          console.log('Form submitted from inline handler');
-          e.preventDefault(); // Prevent default to avoid conflicts
-          
-          // Trigger the click handler to ensure our custom logic runs
-          if (submitBtn) {
-            submitBtn.click();
           }
         });
       }
