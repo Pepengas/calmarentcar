@@ -1258,6 +1258,32 @@
       // Flag to prevent multiple submissions
       let isSubmitting = false;
       
+      // Function to show success message
+      function showSuccessMessage() {
+        // Create a success message element if it doesn't exist
+        let successMessage = document.getElementById('booking-success-message');
+        if (!successMessage) {
+          successMessage = document.createElement('div');
+          successMessage.id = 'booking-success-message';
+          successMessage.className = 'alert alert-success';
+          successMessage.style.position = 'fixed';
+          successMessage.style.top = '20px';
+          successMessage.style.left = '50%';
+          successMessage.style.transform = 'translateX(-50%)';
+          successMessage.style.zIndex = '9999';
+          successMessage.style.padding = '15px 25px';
+          successMessage.style.borderRadius = '5px';
+          successMessage.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+          successMessage.style.backgroundColor = '#dff0d8';
+          successMessage.style.color = '#3c763d';
+          successMessage.style.border = '1px solid #d6e9c6';
+          document.body.appendChild(successMessage);
+        }
+        
+        successMessage.innerHTML = '<i class="fas fa-check-circle"></i> Booking successful! Redirecting to confirmation page...';
+        successMessage.style.display = 'block';
+      }
+      
       // Add a direct event listener to the submit button
       if (submitBtn) {
         submitBtn.addEventListener('click', function(e) {
@@ -1399,60 +1425,68 @@
             },
             body: JSON.stringify(bookingData)
           })
-          .then(response => {
+          .then(async response => {
             // Log both status code and status text for debugging
             console.log(`Booking API response status: ${response.status} ${response.statusText}`);
             
-            // Clone the response so we can log the body for debugging
-            const responseClone = response.clone();
+            // Get content type to check if response is JSON
+            const contentType = response.headers.get("content-type");
+            const isJson = contentType && contentType.includes("application/json");
             
-            // Return both the response object and the JSON promise
-            return responseClone.text()
-              .then(rawBody => {
-                console.log('Raw response body:', rawBody);
-                
-                // Try to parse JSON if there's content
-                let jsonData = null;
-                try {
-                  if (rawBody && rawBody.trim()) {
-                    jsonData = JSON.parse(rawBody);
-                  }
-                } catch (e) {
-                  console.error('Error parsing JSON response:', e);
-                }
-                
-                // Return both the response and parsed data
-                return {
-                  ok: response.ok,
-                  status: response.status,
-                  data: jsonData
-                };
-              });
+            // Clone the response for logging the raw body
+            const rawResponse = await response.clone().text();
+            console.log('Raw response body:', rawResponse);
+            
+            // Only try to parse JSON if content type indicates JSON
+            let responseData = null;
+            
+            if (isJson && rawResponse && rawResponse.trim()) {
+              try {
+                responseData = JSON.parse(rawResponse);
+              } catch (e) {
+                console.error('Error parsing JSON response:', e);
+              }
+            }
+            
+            // Return structured data
+            return {
+              ok: response.ok,
+              status: response.status,
+              data: responseData,
+              raw: rawResponse
+            };
           })
           .then(result => {
-            // Handle the parsed response
-            if (result.ok && result.data && result.data.success) {
-              // Booking was successful
-              console.log('Booking successful:', result.data);
-              const bookingReference = result.data.booking_reference;
+            // If the response is OK (status 2xx), consider it successful even if JSON parsing failed
+            if (result.ok) {
+              console.log('Booking successful:', result.data || result.raw);
               
-              // Redirect to confirmation page
-              window.location.href = `booking-confirmation.html?reference=${bookingReference}`;
-            } else {
-              // Even though we got a response, the booking failed according to the API
-              const errorMessage = result.data && result.data.error 
-                ? result.data.error 
-                : `Server returned ${result.status} status code`;
-                
-              console.error('Booking failed:', errorMessage);
-              alert('Booking error: ' + errorMessage);
-              resetSubmitButton();
+              // Get booking reference from data if available
+              const bookingReference = result.data?.booking_reference || '';
+              
+              // Show success message
+              showSuccessMessage();
+              
+              // Redirect to confirmation page after a short delay
+              setTimeout(() => {
+                window.location.href = `booking-confirmation.html?reference=${bookingReference}`;
+              }, 1000);
+              return; // Exit early on success
             }
+            
+            // Otherwise, it's an error
+            const errorMessage = result.data?.error 
+              ? result.data.error 
+              : `Server error: ${result.status}`;
+              
+            console.error('Booking failed:', errorMessage);
+            alert('Error submitting booking: ' + errorMessage);
+            resetSubmitButton();
           })
           .catch(error => {
             // Network error or other exception
             console.error('Booking request failed:', error);
-            alert('Error submitting booking. Please try again.');
+            alert('Network error while submitting booking. Please try again.');
             resetSubmitButton();
           });
           
@@ -1461,7 +1495,7 @@
             isSubmitting = false;
             submitBtn.disabled = false;
             submitBtn.classList.remove('disabled');
-            submitBtn.innerHTML = 'Complete Booking <i class="fas fa-arrow-right"></i>';
+            submitBtn.innerHTML = 'Proceed to Payment <i class="fas fa-credit-card"></i>';
             if (loadingOverlay) {
               loadingOverlay.style.display = 'none';
             }
