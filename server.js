@@ -147,6 +147,21 @@ app.post('/api/bookings', async (req, res) => {
             });
         }
         
+        // Ensure car_make and car_model are properly formatted
+        const carMake = (booking.car_make || '').trim();
+        const carModel = (booking.car_model || '').trim();
+        
+        // Ensure daily_rate is a number
+        let dailyRate = parseFloat(booking.daily_rate);
+        if (isNaN(dailyRate) && booking.total_price) {
+            // Calculate daily rate from total price if missing
+            const pickupDate = new Date(booking.pickup_date);
+            const returnDate = new Date(booking.return_date);
+            const diffTime = Math.abs(returnDate - pickupDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+            dailyRate = parseFloat(booking.total_price) / diffDays;
+        }
+        
         // Insert booking into database
         const result = await pool.query(`
             INSERT INTO bookings (
@@ -174,9 +189,9 @@ app.post('/api/bookings', async (req, res) => {
             booking.return_date,
             booking.pickup_location,
             booking.dropoff_location || booking.pickup_location,
-            booking.car_make,
-            booking.car_model,
-            booking.daily_rate || null,
+            carMake,
+            carModel,
+            dailyRate || null,
             booking.total_price,
             'pending',
             booking.additional_driver || false,
@@ -296,17 +311,55 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
             });
         }
         
-        // Fetch all bookings from database
+        // Fetch all bookings from database with proper JOIN if cars table exists
         console.log('💾 Database connected, fetching bookings...');
-        const result = await pool.query(`
-            SELECT * FROM bookings 
-            ORDER BY date_submitted DESC
-        `);
+        let result;
+        
+        try {
+            // First check if the cars table exists
+            const tablesResult = await pool.query(`
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'cars'
+                );
+            `);
+            
+            const carsTableExists = tablesResult.rows[0].exists;
+            
+            if (carsTableExists) {
+                // Join with cars table to get car information if missing in bookings
+                result = await pool.query(`
+                    SELECT b.*, c.make AS car_make_lookup, c.model AS car_model_lookup, c.daily_rate AS car_daily_rate
+                    FROM bookings b
+                    LEFT JOIN cars c ON (b.car_make = c.make AND b.car_model = c.model) 
+                                      OR (b.car_make IS NULL AND b.car_model IS NULL AND c.id::text = b.car_id::text)
+                    ORDER BY b.date_submitted DESC
+                `);
+            } else {
+                // If cars table doesn't exist, just fetch from bookings
+                result = await pool.query(`
+                    SELECT * FROM bookings 
+                    ORDER BY date_submitted DESC
+                `);
+            }
+        } catch (dbError) {
+            // If the JOIN fails, fall back to just selecting from bookings
+            console.warn('⚠️ Failed to join with cars table, falling back to bookings table only:', dbError.message);
+            result = await pool.query(`
+                SELECT * FROM bookings 
+                ORDER BY date_submitted DESC
+            `);
+        }
         
         console.log(`📋 Found ${result.rows.length} bookings in database`);
         
         // Format bookings for the admin dashboard
         const bookings = result.rows.map(booking => {
+            // Use car_make/car_model from the cars table if available and booking fields are empty
+            const carMake = booking.car_make || booking.car_make_lookup || '';
+            const carModel = booking.car_model || booking.car_model_lookup || '';
+            const dailyRate = booking.daily_rate || booking.car_daily_rate || null;
+            
             return {
                 id: booking.id,
                 booking_reference: booking.booking_reference,
@@ -320,13 +373,13 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
                     licenseExpiration: booking.license_expiration,
                     country: booking.country
                 },
-                car_make: booking.car_make,
-                car_model: booking.car_model,
+                car_make: carMake,
+                car_model: carModel,
                 pickup_date: booking.pickup_date,
                 return_date: booking.return_date,
                 pickup_location: booking.pickup_location,
                 dropoff_location: booking.dropoff_location,
-                daily_rate: booking.daily_rate,
+                daily_rate: dailyRate,
                 total_price: booking.total_price,
                 status: booking.status,
                 payment_date: booking.payment_date,

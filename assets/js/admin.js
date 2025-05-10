@@ -67,6 +67,16 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('adminToken');
         window.location.href = 'admin-login.html';
     });
+
+    // Add event listener to show date picker when custom date option is selected
+    const dateFilterEl = document.getElementById('dateFilter');
+    const datePickerContainer = document.getElementById('datePickerContainer');
+    
+    if (dateFilterEl && datePickerContainer) {
+        dateFilterEl.addEventListener('change', function() {
+            datePickerContainer.style.display = this.value === 'custom' ? 'block' : 'none';
+        });
+    }
 });
 
 /**
@@ -229,10 +239,12 @@ function formatDate(dateString) {
     
     try {
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-GB', {
+        return date.toLocaleString('en-GB', {
             day: '2-digit',
             month: '2-digit',
-            year: 'numeric'
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     } catch (e) {
         console.error('Error formatting date:', e);
@@ -323,7 +335,19 @@ function renderBookings(bookings) {
         const lastName = customer.lastName || booking.customer_last_name || '';
         const customerName = `${firstName} ${lastName}`.trim();
 
-        const carName = (booking.car_make && booking.car_model) ? `${booking.car_make} ${booking.car_model}` : 'N/A';
+        // Handle missing car model data more gracefully
+        let carName = 'N/A';
+        if (booking.car_make && booking.car_model) {
+            carName = `${booking.car_make} ${booking.car_model}`;
+        } else if (booking.car_make) {
+            carName = booking.car_make;
+        } else if (booking.car_model) {
+            carName = booking.car_model;
+        }
+        
+        // Ensure total price is properly formatted even if it's 0
+        const price = parseFloat(booking.total_price);
+        const formattedPrice = isNaN(price) ? 'N/A' : formatCurrency(price);
         
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -335,7 +359,7 @@ function renderBookings(bookings) {
             <td>${carName}</td>
             <td>${formatDate(booking.pickup_date)}</td>
             <td>${formatDate(booking.return_date)}</td>
-            <td>${formatCurrency(booking.total_price)}</td>
+            <td>${formattedPrice}</td>
             <td><span class="booking-status ${getStatusClass(booking.status)}">${booking.status || 'N/A'}</span></td>
             <td>${formatDate(booking.date_submitted)}</td>
             <td>
@@ -433,14 +457,21 @@ function showBookingDetails(booking) {
     const returnDate = formatDate(booking.return_date);
     const duration = calculateDuration(booking.pickup_date, booking.return_date);
     
-    // Extract car info
-    const carMake = booking.car_make || '';
-    const carModel = booking.car_model || '';
-    const car = carMake && carModel ? `${carMake} ${carModel}` : 'N/A';
+    // Extract car info - handle missing data gracefully
+    let car = 'N/A';
+    if (booking.car_make && booking.car_model) {
+        car = `${booking.car_make} ${booking.car_model}`;
+    } else if (booking.car_make) {
+        car = booking.car_make;
+    } else if (booking.car_model) {
+        car = booking.car_model;
+    }
     
-    // Extract pricing
-    const dailyRate = booking.daily_rate || 0;
-    const totalPrice = booking.total_price || 0;
+    // Extract pricing - handle missing or zero data
+    const dailyRate = parseFloat(booking.daily_rate);
+    const totalPrice = parseFloat(booking.total_price);
+    const formattedDailyRate = isNaN(dailyRate) ? 'N/A' : formatCurrency(dailyRate);
+    const formattedTotalPrice = isNaN(totalPrice) ? 'N/A' : formatCurrency(totalPrice);
     
     // Extra options
     const additionalDriver = booking.additional_driver || false;
@@ -508,10 +539,10 @@ function showBookingDetails(booking) {
                         <strong>Car:</strong> ${car}
                     </div>
                     <div class="col-md-6 mb-2">
-                        <strong>Daily Rate:</strong> ${formatCurrency(dailyRate)}
+                        <strong>Daily Rate:</strong> ${formattedDailyRate}
                     </div>
                     <div class="col-md-6 mb-2">
-                        <strong>Total Price:</strong> ${formatCurrency(totalPrice)}
+                        <strong>Total Price:</strong> ${formattedTotalPrice}
                     </div>
                 </div>
             </div>
@@ -673,7 +704,9 @@ function getStatusClass(status) {
  */
 function applyFilters() {
     const status = statusFilter.value;
+    const dateOption = dateFilter.value;
     const carModel = carFilter.value;
+    const submittedDate = document.getElementById('submittedDateFilter').value;
     
     // Start with all bookings
     let filtered = [...allBookings];
@@ -681,6 +714,38 @@ function applyFilters() {
     // Filter by status
     if (status) {
         filtered = filtered.filter(booking => booking.status === status);
+    }
+    
+    // Filter by date
+    if (dateOption === 'today') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        filtered = filtered.filter(booking => {
+            const bookingDate = new Date(booking.date_submitted);
+            bookingDate.setHours(0, 0, 0, 0);
+            return bookingDate.getTime() === today.getTime();
+        });
+    } else if (dateOption === 'week') {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        filtered = filtered.filter(booking => new Date(booking.date_submitted) >= weekAgo);
+    } else if (dateOption === 'month') {
+        const monthAgo = new Date();
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        filtered = filtered.filter(booking => new Date(booking.date_submitted) >= monthAgo);
+    } else if (dateOption === 'custom' && submittedDate) {
+        // Convert the selected date to start of day in local timezone
+        const selectedDate = new Date(submittedDate);
+        selectedDate.setHours(0, 0, 0, 0);
+        
+        // Get the next day to compare with
+        const nextDay = new Date(selectedDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        
+        filtered = filtered.filter(booking => {
+            const bookingDate = new Date(booking.date_submitted);
+            return bookingDate >= selectedDate && bookingDate < nextDay;
+        });
     }
     
     // Filter by car model
@@ -699,6 +764,8 @@ function applyFilters() {
  * Reset all filters and show all bookings
  */
 function resetFilters() {
+    document.getElementById('submittedDateFilter').value = '';
+    document.getElementById('datePickerContainer').style.display = 'none';
     filteredBookings = [...allBookings];
     renderBookings(filteredBookings);
 }
