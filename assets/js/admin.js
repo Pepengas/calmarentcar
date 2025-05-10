@@ -2,13 +2,28 @@
  * Calma Car Rental - Admin Dashboard JavaScript
  */
 
-// Global variables
+// API variables
+let API_TOKEN = '';
+let API_BASE_URL = '/api/admin';
+
+// Booking data variables
 let allBookings = [];
 let filteredBookings = [];
 let carModels = new Set();
 
+// DOM element references
+let bookingsTableBody;
+let statusFilter;
+let dateFilter;
+let carFilter;
+let textSearchFilter;
+let clearSearchBtn;
+
+// Current booking being viewed/edited
+let currentBookingId = null;
+
 // Get admin API token from localStorage (set during login)
-const API_TOKEN = localStorage.getItem('adminToken');
+API_TOKEN = localStorage.getItem('adminToken');
 
 // Log token presence on load (without revealing the actual token)
 console.log('[Admin] Token in localStorage:', API_TOKEN ? 'Present' : 'Missing');
@@ -24,49 +39,75 @@ if (API_TOKEN && !document.cookie.includes('adminToken=')) {
 
 // DOM Elements
 const pageLoader = document.getElementById('pageLoader');
-const bookingsTableBody = document.getElementById('bookingsTableBody');
 const bookingsCount = document.getElementById('bookingsCount');
 const totalBookings = document.getElementById('totalBookings');
 const totalRevenue = document.getElementById('totalRevenue');
 const carsBookedToday = document.getElementById('carsBookedToday');
 const filterForm = document.getElementById('filterForm');
-const statusFilter = document.getElementById('statusFilter');
-const dateFilter = document.getElementById('dateFilter');
-const carFilter = document.getElementById('carFilter');
 const bookingDetailsModal = new bootstrap.Modal(document.getElementById('bookingDetailsModal'));
 const bookingDetailsContent = document.getElementById('bookingDetailsContent');
 const updateStatusBtn = document.getElementById('updateStatusBtn');
 
 // Initialize the dashboard when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if user is authenticated
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if the user is logged in
+    API_TOKEN = localStorage.getItem('adminToken');
     if (!API_TOKEN) {
-        // Redirect to login page if not authenticated
         window.location.href = 'admin-login.html';
         return;
     }
+
+    // Initialize references to DOM elements
+    bookingsTableBody = document.getElementById('bookingsTableBody');
+    statusFilter = document.getElementById('statusFilter');
+    dateFilter = document.getElementById('dateFilter');
+    carFilter = document.getElementById('carFilter');
+    textSearchFilter = document.getElementById('textSearchFilter');
+    clearSearchBtn = document.getElementById('clearSearchBtn');
     
-    loadBookings();
-    
-    // Setup event listeners
-    filterForm.addEventListener('submit', (e) => {
+    // Event listeners
+    document.getElementById('filterForm').addEventListener('submit', function(e) {
         e.preventDefault();
         applyFilters();
     });
     
-    filterForm.addEventListener('reset', () => {
-        setTimeout(() => {
-            resetFilters();
-        }, 10);
+    document.getElementById('filterForm').addEventListener('reset', function(e) {
+        setTimeout(resetFilters, 0);
     });
     
-    updateStatusBtn.addEventListener('click', updateBookingStatus);
+    document.getElementById('dateFilter').addEventListener('change', function() {
+        const datePickerContainer = document.getElementById('datePickerContainer');
+        if (this.value === 'custom') {
+            datePickerContainer.style.display = 'block';
+        } else {
+            datePickerContainer.style.display = 'none';
+            document.getElementById('submittedDateFilter').value = '';
+        }
+    });
     
-    // Add logout functionality
-    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    document.getElementById('updateStatusBtn').addEventListener('click', updateBookingStatus);
+    document.getElementById('logoutBtn').addEventListener('click', function() {
         localStorage.removeItem('adminToken');
         window.location.href = 'admin-login.html';
     });
+    
+    // Add event listener for text search input
+    if (textSearchFilter) {
+        textSearchFilter.addEventListener('input', function() {
+            applyFilters();
+        });
+    }
+    
+    // Add event listener for clear search button
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function() {
+            textSearchFilter.value = '';
+            applyFilters();
+        });
+    }
+
+    // Load bookings data
+    loadBookings();
 });
 
 /**
@@ -704,9 +745,37 @@ function applyFilters() {
     const dateOption = dateFilter.value;
     const carModel = carFilter.value;
     const submittedDate = document.getElementById('submittedDateFilter').value;
+    const searchText = textSearchFilter ? textSearchFilter.value.trim().toLowerCase() : '';
+    
+    // Handle date picker container visibility
+    const datePickerContainer = document.getElementById('datePickerContainer');
+    if (dateOption === 'custom') {
+        datePickerContainer.style.display = 'block';
+    } else {
+        datePickerContainer.style.display = 'none';
+    }
     
     // Start with all bookings
     let filtered = [...allBookings];
+    
+    // Filter by search text (new functionality)
+    if (searchText) {
+        filtered = filtered.filter(booking => {
+            // Search across multiple fields
+            const reference = (booking.booking_reference || '').toLowerCase();
+            const name = (booking.customer_name || '').toLowerCase();
+            const email = (booking.customer_email || '').toLowerCase();
+            const carMake = (booking.car_make || '').toLowerCase();
+            const carModel = (booking.car_model || '').toLowerCase();
+            const carInfo = `${carMake} ${carModel}`.toLowerCase();
+            
+            // Check if any field contains the search text
+            return reference.includes(searchText) || 
+                   name.includes(searchText) || 
+                   email.includes(searchText) || 
+                   carInfo.includes(searchText);
+        });
+    }
     
     // Filter by status
     if (status) {
@@ -764,6 +833,9 @@ function applyFilters() {
  */
 function resetFilters() {
     document.getElementById('submittedDateFilter').value = '';
+    if (textSearchFilter) {
+        textSearchFilter.value = '';
+    }
     filteredBookings = [...allBookings];
     renderBookings(filteredBookings);
 }
