@@ -1417,83 +1417,57 @@
             total_price: totalPrice
           });
           
-          // Send booking data to server using async function
-          (async function submitBooking() {
-            try {
-              // Disable submit button to prevent multiple clicks
-              submitBtn.disabled = true;
-              submitBtn.classList.add('disabled');
-              submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-              
-              // Show loading overlay
-              if (loadingOverlay) {
-                loadingOverlay.style.display = 'flex';
-              }
-              
-              // Make the fetch request and await the response
-              const response = await fetch('/api/bookings', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(bookingData)
-              });
-              
-              // Log the response status for debugging
-              console.log(`Booking API response status: ${response.status} ${response.statusText}`);
-              
-              // Check if the response is OK first before proceeding
-              if (!response.ok) {
-                // Get the raw error response as text
-                const rawError = await response.text();
-                console.error('Response error:', rawError);
-                
-                // Try to parse error JSON if possible
-                let errorMessage = `Error ${response.status}`;
-                try {
-                  if (rawError && rawError.trim()) {
-                    const errorData = JSON.parse(rawError);
-                    errorMessage = errorData.error || errorMessage;
-                  }
-                } catch (e) {
-                  console.error('Error parsing error response:', e);
-                }
-                
-                throw new Error(errorMessage);
-              }
-              
-              // Check the content type before parsing as JSON
-              const contentType = response.headers.get("content-type");
-              if (!contentType || !contentType.includes("application/json")) {
-                console.error('Invalid content type:', contentType);
-                throw new Error("Invalid JSON response from server");
-              }
-              
-              // Parse the JSON response
-              const responseData = await response.json();
-              console.log('Booking successful:', responseData);
-              
-              // Show success message
-              showSuccessMessage();
-              
-              // Get booking reference
-              const bookingReference = responseData.booking_reference || '';
-              
-              // Redirect to confirmation page after a short delay
-              setTimeout(() => {
-                window.location.href = `booking-confirmation.html?reference=${bookingReference}`;
-              }, 1000);
-              
-            } catch (error) {
-              // Handle any errors that occurred during the fetch
-              console.error('Booking request failed:', error);
-              alert(error.message || 'Error submitting booking. Please try again.');
-              resetSubmitButton();
-            } finally {
-              // Release the submission flag to allow future submissions
-              isSubmitting = false;
+          // Disable submit button to prevent multiple clicks
+          submitBtn.disabled = true;
+          submitBtn.classList.add('disabled');
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+          
+          // Show loading overlay
+          if (loadingOverlay) {
+            loadingOverlay.style.display = 'flex';
+          }
+          
+          fetch("/api/bookings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(bookingData)
+          })
+          .then(async (response) => {
+            const contentType = response.headers.get("content-type");
+            const rawBody = await response.clone().text();
+            
+            console.log(`Booking API response status: ${response.status} ${response.statusText}`);
+            console.log('Raw response body:', rawBody);
+          
+            if (!response.ok) {
+              throw new Error(`Booking failed. Status: ${response.status}. Message: ${rawBody}`);
             }
-          })();
+          
+            if (!contentType || !contentType.includes("application/json")) {
+              throw new Error(`Unexpected response format. Raw body: ${rawBody}`);
+            }
+          
+            const data = await response.json();
+            if (!data.success) {
+              throw new Error(`Booking failed. Server responded: ${JSON.stringify(data)}`);
+            }
+          
+            // Show success message
+            showSuccessMessage();
+              
+            // Redirect after a short delay
+            setTimeout(() => {
+              window.location.href = `booking-confirmation.html?reference=${data.booking_reference}`;
+            }, 1000);
+          })
+          .catch((error) => {
+            console.error('Booking error:', error);
+            alert(`Booking error: ${error.message}`);
+            resetSubmitButton();
+          })
+          .finally(() => {
+            isSubmitting = false;
+          });
           
           // Function to reset button and flags
           function resetSubmitButton() {
