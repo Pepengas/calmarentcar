@@ -218,6 +218,51 @@
         .step-titles {
             display: none;
         }
+
+        /* FAQ Accordion styles */
+        .faq-item {
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+        
+        .faq-question {
+            padding: 1rem 1.5rem;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+        
+        .faq-question:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .faq-question h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            flex-grow: 1;
+        }
+        
+        .faq-toggle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 24px;
+            height: 24px;
+            margin-left: 1rem;
+            color: #0066cc;
+        }
+        
+        .faq-answer {
+            padding: 0 1.5rem 1.5rem;
+            background-color: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
     </style>
     <link rel="stylesheet" href="assets/css/booking-widget.css">
     <link rel="stylesheet" href="assets/css/time-picker.css">
@@ -1050,5 +1095,42 @@
     <script type="module" src="assets/js/main.js"></script>
     <script src="assets/js/fix-cars.js"></script>
     <script src="assets/js/mobile-menu.js"></script>
+    
+    <!-- FAQ Accordion Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                const answer = item.querySelector('.faq-answer');
+                const toggle = item.querySelector('.faq-toggle');
+                
+                // Initially hide all answers
+                answer.style.display = 'none';
+                
+                // Set initial state
+                toggle.querySelector('.fa-minus').style.display = 'none';
+                toggle.querySelector('.fa-plus').style.display = 'block';
+                
+                question.addEventListener('click', function() {
+                    // Toggle current answer
+                    const isOpen = answer.style.display === 'block';
+                    
+                    if (isOpen) {
+                        // Close the answer
+                        answer.style.display = 'none';
+                        toggle.querySelector('.fa-minus').style.display = 'none';
+                        toggle.querySelector('.fa-plus').style.display = 'block';
+                    } else {
+                        // Open the answer
+                        answer.style.display = 'block';
+                        toggle.querySelector('.fa-minus').style.display = 'block';
+                        toggle.querySelector('.fa-plus').style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html> 
