@@ -221,31 +221,13 @@
 
         /* FAQ Accordion styles */
         .faq-item {
-            margin-bottom: 1rem;
-            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            background-color: #fff;
         }
         
         .faq-question {
-            padding: 1rem 1.5rem;
-            position: relative;
-            cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: background-color 0.3s ease;
-        }
-        
-        .faq-question:hover {
-            background-color: #f8f9fa;
-        }
-        
-        .faq-question h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            flex-grow: 1;
         }
         
         .faq-toggle {
@@ -255,13 +237,22 @@
             width: 24px;
             height: 24px;
             margin-left: 1rem;
-            color: #0066cc;
+        }
+        
+        .faq-toggle .fa-minus {
+            display: none;
         }
         
         .faq-answer {
-            padding: 0 1.5rem 1.5rem;
-            background-color: #f8f9fa;
-            border-top: 1px solid #eee;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            opacity: 0;
+        }
+        
+        .faq-answer.active {
+            max-height: 500px;
+            opacity: 1;
         }
     </style>
     <link rel="stylesheet" href="assets/css/booking-widget.css">
@@ -837,68 +828,78 @@
                 
                 <div class="faq-content">
                     <div class="faq-container">
-                        <div class="faq-item">
-                            <div class="faq-question">
-                                <h3>What's the minimum age to rent a car?</h3>
-                                <div class="faq-toggle">
+                        <div class="faq-item mb-5 rounded-xl overflow-hidden shadow-md bg-white">
+                            <div class="faq-question p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-300 ease-in-out">
+                                <h3 class="text-lg font-medium text-gray-800">What's the minimum age to rent a car?</h3>
+                                <div class="faq-toggle text-blue-600">
                                     <i class="fas fa-plus"></i>
                                     <i class="fas fa-minus"></i>
                                 </div>
                             </div>
-                            <div class="faq-answer">
-                                <p>The minimum age to rent a car with Calma is 25 years old. Drivers must have held a valid driving license for at least 12 months.</p>
+                            <div class="faq-answer bg-white">
+                                <div class="answer-content p-5 text-gray-700 leading-relaxed border-t border-gray-100">
+                                    <p>The minimum age to rent a car with Calma is 25 years old. Drivers must have held a valid driving license for at least 12 months.</p>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="faq-item">
-                            <div class="faq-question">
-                                <h3>Can I pick up the car from my hotel?</h3>
-                                <div class="faq-toggle">
+                        <div class="faq-item mb-5 rounded-xl overflow-hidden shadow-md bg-white">
+                            <div class="faq-question p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-300 ease-in-out">
+                                <h3 class="text-lg font-medium text-gray-800">Can I pick up the car from my hotel?</h3>
+                                <div class="faq-toggle text-blue-600">
                                     <i class="fas fa-plus"></i>
                                     <i class="fas fa-minus"></i>
                                 </div>
                             </div>
-                            <div class="faq-answer">
-                                <p>Yes, we offer free delivery and pick-up service to hotels and villas in the Chania area. Please provide your accommodation details when booking, and our team will arrange a convenient time to meet you.</p>
+                            <div class="faq-answer bg-white">
+                                <div class="answer-content p-5 text-gray-700 leading-relaxed border-t border-gray-100">
+                                    <p>Yes, we offer free delivery and pick-up service to hotels and villas in the Chania area. Please provide your accommodation details when booking, and our team will arrange a convenient time to meet you.</p>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="faq-item">
-                            <div class="faq-question">
-                                <h3>What payment methods do you accept?</h3>
-                                <div class="faq-toggle">
+                        <div class="faq-item mb-5 rounded-xl overflow-hidden shadow-md bg-white">
+                            <div class="faq-question p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-300 ease-in-out">
+                                <h3 class="text-lg font-medium text-gray-800">What payment methods do you accept?</h3>
+                                <div class="faq-toggle text-blue-600">
                                     <i class="fas fa-plus"></i>
                                     <i class="fas fa-minus"></i>
                                 </div>
                             </div>
-                            <div class="faq-answer">
-                                <p>We accept all major credit cards (Visa, MasterCard, American Express) and cash payments in Euro. For certain booking types, prepayment may be required to confirm your reservation.</p>
+                            <div class="faq-answer bg-white">
+                                <div class="answer-content p-5 text-gray-700 leading-relaxed border-t border-gray-100">
+                                    <p>We accept all major credit cards (Visa, MasterCard, American Express) and cash payments in Euro. For certain booking types, prepayment may be required to confirm your reservation.</p>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="faq-item">
-                            <div class="faq-question">
-                                <h3>Is there a mileage limit?</h3>
-                                <div class="faq-toggle">
+                        <div class="faq-item mb-5 rounded-xl overflow-hidden shadow-md bg-white">
+                            <div class="faq-question p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-300 ease-in-out">
+                                <h3 class="text-lg font-medium text-gray-800">Is there a mileage limit?</h3>
+                                <div class="faq-toggle text-blue-600">
                                     <i class="fas fa-plus"></i>
                                     <i class="fas fa-minus"></i>
                                 </div>
                             </div>
-                            <div class="faq-answer">
-                                <p>No, all our rentals come with unlimited kilometers, allowing you to explore Crete without worrying about additional charges for distance traveled.</p>
+                            <div class="faq-answer bg-white">
+                                <div class="answer-content p-5 text-gray-700 leading-relaxed border-t border-gray-100">
+                                    <p>No, all our rentals come with unlimited kilometers, allowing you to explore Crete without worrying about additional charges for distance traveled.</p>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="faq-item">
-                            <div class="faq-question">
-                                <h3>What happens in case of a breakdown?</h3>
-                                <div class="faq-toggle">
+                        <div class="faq-item mb-5 rounded-xl overflow-hidden shadow-md bg-white">
+                            <div class="faq-question p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-300 ease-in-out">
+                                <h3 class="text-lg font-medium text-gray-800">What happens in case of a breakdown?</h3>
+                                <div class="faq-toggle text-blue-600">
                                     <i class="fas fa-plus"></i>
                                     <i class="fas fa-minus"></i>
                                 </div>
                             </div>
-                            <div class="faq-answer">
-                                <p>All our vehicles include 24/7 roadside assistance. In the unlikely event of a breakdown, simply call our emergency number (provided with your rental documents), and we'll arrange immediate assistance or a replacement vehicle at no extra cost.</p>
+                            <div class="faq-answer bg-white">
+                                <div class="answer-content p-5 text-gray-700 leading-relaxed border-t border-gray-100">
+                                    <p>All our vehicles include 24/7 roadside assistance. In the unlikely event of a breakdown, simply call our emergency number (provided with your rental documents), and we'll arrange immediate assistance or a replacement vehicle at no extra cost.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1106,25 +1107,41 @@
                 const answer = item.querySelector('.faq-answer');
                 const toggle = item.querySelector('.faq-toggle');
                 
-                // Initially hide all answers
-                answer.style.display = 'none';
+                // Initially ensure all answers are hidden
+                answer.classList.remove('active');
                 
-                // Set initial state
+                // Set initial toggle state
                 toggle.querySelector('.fa-minus').style.display = 'none';
                 toggle.querySelector('.fa-plus').style.display = 'block';
                 
                 question.addEventListener('click', function() {
                     // Toggle current answer
-                    const isOpen = answer.style.display === 'block';
+                    const isOpen = answer.classList.contains('active');
                     
                     if (isOpen) {
                         // Close the answer
-                        answer.style.display = 'none';
+                        answer.classList.remove('active');
+                        
+                        // Show plus, hide minus with transition
                         toggle.querySelector('.fa-minus').style.display = 'none';
                         toggle.querySelector('.fa-plus').style.display = 'block';
                     } else {
+                        // Close all other answers first
+                        faqItems.forEach(otherItem => {
+                            if (otherItem !== item) {
+                                const otherAnswer = otherItem.querySelector('.faq-answer');
+                                const otherToggle = otherItem.querySelector('.faq-toggle');
+                                
+                                otherAnswer.classList.remove('active');
+                                otherToggle.querySelector('.fa-minus').style.display = 'none';
+                                otherToggle.querySelector('.fa-plus').style.display = 'block';
+                            }
+                        });
+                        
                         // Open the answer
-                        answer.style.display = 'block';
+                        answer.classList.add('active');
+                        
+                        // Show minus, hide plus with transition
                         toggle.querySelector('.fa-minus').style.display = 'block';
                         toggle.querySelector('.fa-plus').style.display = 'none';
                     }
