@@ -885,6 +885,89 @@
     .ui-datepicker select.ui-datepicker-year::-ms-expand {
       display: none;
     }
+    
+    /* Footer styles */
+    footer {
+      background-color: #f8f9fa;
+      padding: 3rem 0 1.5rem;
+      border-top: 1px solid #eee;
+      margin-top: 3rem;
+    }
+    
+    .footer-content {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+    
+    .footer-column {
+      flex: 1;
+      min-width: 200px;
+      margin-right: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .footer-column h3 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+    
+    .footer-column h3::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 30px;
+      height: 2px;
+      background-color: #0066cc;
+    }
+    
+    .footer-column ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .footer-column ul li {
+      margin-bottom: 0.7rem;
+    }
+    
+    .footer-column ul li a {
+      color: #666;
+      text-decoration: none;
+      transition: color 0.2s;
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    .footer-column ul li a:hover {
+      color: #0066cc;
+    }
+    
+    .footer-column ul li a i {
+      margin-right: 0.5rem;
+      width: 16px;
+    }
+    
+    .copyright {
+      text-align: center;
+      padding-top: 1.5rem;
+      border-top: 1px solid #eee;
+      color: #777;
+      font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+      .footer-content {
+        flex-direction: column;
+      }
+      
+      .footer-column {
+        margin-right: 0;
+      }
+    }
   </style>
   <!-- Add progress tracker CSS -->
   <link rel="stylesheet" href="assets/css/progress-tracker.css">
@@ -1675,5 +1758,43 @@
     });
   </script>
   <script src="assets/js/mobile-menu.js"></script>
+  
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-column">
+          <h3>Calma Car Rental</h3>
+          <ul>
+            <li><a href="index.html#about">About Us</a></li>
+            <li><a href="index.html#cars">Our Fleet</a></li>
+            <li><a href="index.html#additional">Terms & Conditions</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-column">
+          <h3>Support</h3>
+          <ul>
+            <li><a href="index.html#faq">FAQ</a></li>
+            <li><a href="index.html#contact">Contact Us</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-column">
+          <h3>Connect with Us</h3>
+          <ul>
+            <li><a href="#"><i class="fab fa-facebook"></i> Facebook</a></li>
+            <li><a href="#"><i class="fab fa-instagram"></i> Instagram</a></li>
+            <li><a href="#"><i class="fab fa-twitter"></i> Twitter</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="copyright">
+        <p>&copy; 2023 Calma Car Rental. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
