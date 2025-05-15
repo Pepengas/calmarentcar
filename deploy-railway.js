@@ -7,6 +7,8 @@ const fs = require('fs');
 const { execSync } = require('child_process');
 const path = require('path');
 
+process.env.PORT = 3030;
+
 console.log('🚂 Running Railway deployment helper script...');
 
 // Check if XLSX module is available
