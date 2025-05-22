@@ -471,7 +471,7 @@
                 // Car name cell
                 const nameCell = document.createElement('td');
                 nameCell.className = 'px-4 py-2';
-                nameCell.textContent = `${car.make} ${car.model}`;
+                nameCell.textContent = car.name || car.id || 'Unknown';
                 row.appendChild(nameCell);
 
                 // Month price cells
