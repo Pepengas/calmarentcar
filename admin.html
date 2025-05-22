@@ -465,50 +465,76 @@
             tbody.innerHTML = '';
 
             carsData.forEach(car => {
-                const row = document.createElement('tr');
-                row.className = 'border-b hover:bg-gray-50';
-                
+                // --- 7-day price row ---
+                const weekRow = document.createElement('tr');
+                weekRow.className = 'border-b hover:bg-gray-50';
                 // Car name cell
-                const nameCell = document.createElement('td');
-                nameCell.className = 'px-4 py-2';
-                nameCell.textContent = car.name || car.id || 'Unknown';
-                row.appendChild(nameCell);
-
+                const weekNameCell = document.createElement('td');
+                weekNameCell.className = 'px-4 py-2 fw-bold';
+                weekNameCell.textContent = car.name + ' (7-day price)';
+                weekRow.appendChild(weekNameCell);
                 // Month price cells
                 const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
                 const currentYear = new Date().getFullYear();
-
                 months.forEach(month => {
                     const monthKey = `${currentYear}-${month}`;
-                    const price = car.monthly_pricing?.[monthKey] || '';
-                    
+                    const price = car.monthly_pricing?.[monthKey]?.week_price || '';
                     const cell = document.createElement('td');
                     cell.className = 'px-4 py-2';
-                    
                     const input = document.createElement('input');
                     input.type = 'number';
                     input.className = 'w-20 px-2 py-1 border rounded';
                     input.value = price;
                     input.dataset.carId = car.id;
                     input.dataset.month = monthKey;
-                    
+                    input.dataset.type = 'week_price';
                     cell.appendChild(input);
-                    row.appendChild(cell);
+                    weekRow.appendChild(cell);
                 });
-
                 // Actions cell
-                const actionsCell = document.createElement('td');
-                actionsCell.className = 'px-4 py-2';
-                
-                const saveBtn = document.createElement('button');
-                saveBtn.className = 'text-blue-500 hover:text-blue-700';
-                saveBtn.textContent = 'Save';
-                saveBtn.onclick = () => saveCarPrices(car.id);
-                
-                actionsCell.appendChild(saveBtn);
-                row.appendChild(actionsCell);
-
-                tbody.appendChild(row);
+                const weekActionsCell = document.createElement('td');
+                weekActionsCell.className = 'px-4 py-2';
+                const weekSaveBtn = document.createElement('button');
+                weekSaveBtn.className = 'text-blue-500 hover:text-blue-700';
+                weekSaveBtn.textContent = 'Save';
+                weekSaveBtn.onclick = () => saveCarPrices(car.id);
+                weekActionsCell.appendChild(weekSaveBtn);
+                weekRow.appendChild(weekActionsCell);
+                tbody.appendChild(weekRow);
+                // --- Extra day price row ---
+                const extraRow = document.createElement('tr');
+                extraRow.className = 'border-b hover:bg-gray-50';
+                // Car name cell
+                const extraNameCell = document.createElement('td');
+                extraNameCell.className = 'px-4 py-2 text-muted';
+                extraNameCell.textContent = car.name + ' (extra day)';
+                extraRow.appendChild(extraNameCell);
+                // Month price cells
+                months.forEach(month => {
+                    const monthKey = `${currentYear}-${month}`;
+                    const price = car.monthly_pricing?.[monthKey]?.extra_day || '';
+                    const cell = document.createElement('td');
+                    cell.className = 'px-4 py-2';
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'w-20 px-2 py-1 border rounded';
+                    input.value = price;
+                    input.dataset.carId = car.id;
+                    input.dataset.month = monthKey;
+                    input.dataset.type = 'extra_day';
+                    cell.appendChild(input);
+                    extraRow.appendChild(cell);
+                });
+                // Actions cell
+                const extraActionsCell = document.createElement('td');
+                extraActionsCell.className = 'px-4 py-2';
+                const extraSaveBtn = document.createElement('button');
+                extraSaveBtn.className = 'text-blue-500 hover:text-blue-700';
+                extraSaveBtn.textContent = 'Save';
+                extraSaveBtn.onclick = () => saveCarPrices(car.id);
+                extraActionsCell.appendChild(extraSaveBtn);
+                extraRow.appendChild(extraActionsCell);
+                tbody.appendChild(extraRow);
             });
         }
 
@@ -516,11 +542,11 @@
         async function saveCarPrices(carId) {
             const inputs = document.querySelectorAll(`input[data-car-id="${carId}"]`);
             const prices = {};
-
             inputs.forEach(input => {
-                if (input.value) {
-                    prices[input.dataset.month] = parseFloat(input.value);
-                }
+                const month = input.dataset.month;
+                const type = input.dataset.type;
+                if (!prices[month]) prices[month] = {};
+                if (input.value) prices[month][type] = parseFloat(input.value);
             });
 
             try {
