@@ -175,6 +175,20 @@
         @media (max-width: 600px) {
             .car-tabs-custom .nav-link { min-width: 90px; font-size: 0.95rem; padding: 0.3rem 0.7rem; }
         }
+        .car-dropdown-custom {
+            font-size: 1.2rem;
+            border-radius: 2rem;
+            box-shadow: 0 2px 8px #3498db22;
+            border: 1.5px solid #3498db;
+            color: #217dbb;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 1.2rem !important;
+        }
+        .car-dropdown-custom:focus {
+            border-color: #217dbb;
+            box-shadow: 0 0 0 2px #3498db33;
+        }
     </style>
 </head>
 <body>
@@ -521,40 +535,42 @@
             const tbody = priceEditorTable.querySelector('tbody');
             tbody.innerHTML = '';
 
-            // Render car tabs
-            const carTabsContainer = document.createElement('ul');
-            carTabsContainer.className = 'nav nav-pills mb-2 car-tabs-custom justify-content-center flex-nowrap overflow-auto';
-            carTabsContainer.id = 'carTabs';
+            // Render car dropdown
+            let carDropdown = document.getElementById('carDropdown');
+            if (!carDropdown) {
+                carDropdown = document.createElement('select');
+                carDropdown.id = 'carDropdown';
+                carDropdown.className = 'form-select form-select-lg mb-3 car-dropdown-custom';
+                carDropdown.style.maxWidth = '350px';
+                carDropdown.style.margin = '0 auto 1rem auto';
+                // Insert dropdown before the table
+                const pricePanel = priceEditorTable.closest('.bg-white');
+                if (pricePanel) {
+                    pricePanel.insertBefore(carDropdown, pricePanel.firstChild);
+                }
+            } else {
+                carDropdown.innerHTML = '';
+            }
             carsData.forEach((car, idx) => {
-                const tab = document.createElement('li');
-                tab.className = 'nav-item';
-                const tabBtn = document.createElement('button');
-                tabBtn.className = 'nav-link car-tab-btn' + (idx === 0 ? ' active' : '');
-                tabBtn.innerHTML = `<i class='fas fa-car-side me-2'></i> ${car.name}`;
-                tabBtn.type = 'button';
-                tabBtn.dataset.carId = car.id;
-                tabBtn.onclick = () => showCarPriceTable(car.id);
-                tab.appendChild(tabBtn);
-                carTabsContainer.appendChild(tab);
+                const option = document.createElement('option');
+                option.value = car.id;
+                option.textContent = car.name;
+                carDropdown.appendChild(option);
             });
-            // Insert tabs before the table
-            const pricePanel = priceEditorTable.closest('.bg-white');
-            if (pricePanel && !document.getElementById('carTabs')) {
-                pricePanel.insertBefore(carTabsContainer, pricePanel.firstChild);
-                // Add a divider below the tabs
-                const divider = document.createElement('hr');
-                divider.className = 'car-tabs-divider';
-                pricePanel.insertBefore(divider, carTabsContainer.nextSibling);
+            // On change, show selected car's table
+            carDropdown.onchange = function() {
+                showCarPriceTable(this.value);
+            };
+            // On initial load, show the first car's table
+            if (carsData.length > 0) {
+                carDropdown.value = carsData[0].id;
+                showCarPriceTable(carsData[0].id);
             }
             // Render only the selected car's table
             function showCarPriceTable(selectedCarId) {
                 // Remove all rows
                 const tbody = priceEditorTable.querySelector('tbody');
                 tbody.innerHTML = '';
-                // Set active tab
-                document.querySelectorAll('#carTabs .nav-link').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.carId === selectedCarId);
-                });
                 // Find the car
                 const car = carsData.find(c => c.id === selectedCarId);
                 if (!car) return;
@@ -612,10 +628,6 @@
                 priceEditorTable.querySelector('thead').style.top = '0';
                 priceEditorTable.querySelector('thead').style.background = '#f8f9fa';
             }
-            // On initial load, show the first car's table
-            if (carsData.length > 0) {
-                showCarPriceTable(carsData[0].id);
-            }
         }
 
         // Save prices for a single car
@@ -671,95 +683,32 @@
         // Initial load
         fetchCars();
 
-        // Add custom styles for beauty and layout polish
-        const style = document.createElement('style');
-        style.innerHTML = `
-        .car-tabs-custom {
-            margin-bottom: 0.5rem !important;
-            padding-bottom: 0 !important;
-            border-bottom: none !important;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            white-space: nowrap;
-            scrollbar-width: thin;
-        }
-        .car-tabs-custom .nav-link {
-            font-size: 1.1rem;
-            border-radius: 2rem;
-            margin-right: 0.5rem;
-            background: #f8f9fa;
-            color: #3498db;
-            border: 1px solid #e3e6ea;
-            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-            min-width: 160px;
-            text-align: center;
-        }
-        .car-tabs-custom .nav-link.active {
-            background: linear-gradient(90deg, #3498db 60%, #6dd5fa 100%);
-            color: #fff;
-            font-weight: bold;
-            box-shadow: 0 2px 8px #3498db33;
-        }
-        .car-tabs-custom .nav-link:hover {
-            background: #e3e6ea;
-            color: #217dbb;
-        }
-        .car-tabs-divider {
-            margin: 0 0 1rem 0;
-            border-top: 2px solid #e3e6ea;
-        }
-        .price-input:focus {
-            border-color: #3498db;
-            box-shadow: 0 0 0 2px #3498db33;
-        }
-        .save-btn {
-            margin-top: 0.5rem;
-            border-radius: 1.5rem;
-            font-weight: 500;
-            letter-spacing: 0.03em;
-            box-shadow: 0 2px 8px #3498db22;
-        }
-        .bg-light { background: #f8f9fa !important; }
-        .bg-white { background: #fff !important; }
-        .fw-semibold { font-weight: 500; }
-        .fw-bold { font-weight: 700; }
-        .table th, .table td { vertical-align: middle; }
-        .bg-white.rounded-lg.shadow-md.p-6.mb-8 { margin-top: 0 !important; padding-top: 1.5rem !important; }
-        @media (max-width: 900px) {
-            .car-tabs-custom .nav-link { min-width: 120px; font-size: 1rem; }
-        }
-        @media (max-width: 600px) {
-            .car-tabs-custom .nav-link { min-width: 90px; font-size: 0.95rem; padding: 0.3rem 0.7rem; }
-        }
-        `;
-        document.head.appendChild(style);
-    });
+        // Tab switching logic
+        const dashboardTab = document.querySelector('.nav-link:has(.fa-tachometer-alt)');
+        const carsTab = document.querySelector('.nav-link:has(.fa-car)');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const carsContent = document.getElementById('carsContent');
 
-    // Tab switching logic
-    const dashboardTab = document.querySelector('.nav-link:has(.fa-tachometer-alt)');
-    const carsTab = document.querySelector('.nav-link:has(.fa-car)');
-    const dashboardContent = document.getElementById('dashboardContent');
-    const carsContent = document.getElementById('carsContent');
-
-    dashboardTab.classList.add('active');
-    carsTab.classList.remove('active');
-    dashboardContent.style.display = 'block';
-    carsContent.style.display = 'none';
-
-    dashboardTab.addEventListener('click', function(e) {
-        e.preventDefault();
         dashboardTab.classList.add('active');
         carsTab.classList.remove('active');
         dashboardContent.style.display = 'block';
         carsContent.style.display = 'none';
-    });
 
-    carsTab.addEventListener('click', function(e) {
-        e.preventDefault();
-        carsTab.classList.add('active');
-        dashboardTab.classList.remove('active');
-        dashboardContent.style.display = 'none';
-        carsContent.style.display = 'block';
+        dashboardTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            dashboardTab.classList.add('active');
+            carsTab.classList.remove('active');
+            dashboardContent.style.display = 'block';
+            carsContent.style.display = 'none';
+        });
+
+        carsTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            carsTab.classList.add('active');
+            dashboardTab.classList.remove('active');
+            dashboardContent.style.display = 'none';
+            carsContent.style.display = 'block';
+        });
     });
     </script>
 </body>
