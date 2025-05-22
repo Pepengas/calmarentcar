@@ -503,16 +503,19 @@
                   const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
                   // Always use the pickup month for price lookup (per admin panel logic)
                   const month = pickup.toISOString().slice(0, 7);
+                  console.log(`[car-selection] Fetching price for carId=${carId}, month=${month}, days=${days}`);
                   const response = await fetch(`/api/get-price?car_id=${carId}&month=${month}&days=${days}`);
                   const data = await response.json();
+                  console.log(`[car-selection] API response for carId=${carId}:`, data);
                   if (!data.success) {
                       throw new Error(data.error || 'Failed to get price');
                   }
                   // Show only the total price for the duration, per admin panel logic
                   priceElement.textContent = `Total: €${data.total_price}`;
+                  console.log(`[car-selection] Set price for carId=${carId}: Total: €${data.total_price}`);
               } catch (error) {
                   console.error('Error calculating price:', error);
-                  priceElement.textContent = 'Price unavailable';
+                  if (priceElement) priceElement.textContent = 'Price unavailable';
               }
           });
       }
