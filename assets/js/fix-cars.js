@@ -157,6 +157,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Display booking summary if elements exist
     const summaryContainer = document.getElementById('booking-summary');
     if (summaryContainer) {
+      // Calculate correct duration (inclusive)
+      let durationDays = 1;
+      if (pickupDate && dropoffDate) {
+        const pickup = new Date(pickupDate);
+        const dropoff = new Date(dropoffDate);
+        durationDays = Math.ceil((dropoff - pickup) / (1000 * 60 * 60 * 24)) + 1;
+        if (durationDays < 1) durationDays = 1;
+      }
       summaryContainer.innerHTML = `
         <div class="summary-title">Your Trip Details</div>
         <div class="summary-item">
@@ -169,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div class="summary-item">
           <span class="summary-label">Duration:</span>
-          <span class="summary-value">${duration} ${duration === 1 ? 'day' : 'days'}</span>
+          <span class="summary-value">${durationDays} ${durationDays === 1 ? 'day' : 'days'}</span>
         </div>
       `;
     }
