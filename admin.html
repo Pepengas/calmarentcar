@@ -465,76 +465,49 @@
             tbody.innerHTML = '';
 
             carsData.forEach(car => {
-                // --- 7-day price row ---
-                const weekRow = document.createElement('tr');
-                weekRow.className = 'border-b hover:bg-gray-50';
-                // Car name cell
-                const weekNameCell = document.createElement('td');
-                weekNameCell.className = 'px-4 py-2 fw-bold';
-                weekNameCell.textContent = car.name + ' (7-day price)';
-                weekRow.appendChild(weekNameCell);
-                // Month price cells
-                const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-                const currentYear = new Date().getFullYear();
-                months.forEach(month => {
-                    const monthKey = `${currentYear}-${month}`;
-                    const price = car.monthly_pricing?.[monthKey]?.week_price || '';
-                    const cell = document.createElement('td');
-                    cell.className = 'px-4 py-2';
-                    const input = document.createElement('input');
-                    input.type = 'number';
-                    input.className = 'w-20 px-2 py-1 border rounded';
-                    input.value = price;
-                    input.dataset.carId = car.id;
-                    input.dataset.month = monthKey;
-                    input.dataset.type = 'week_price';
-                    cell.appendChild(input);
-                    weekRow.appendChild(cell);
+                const dayLabels = [
+                    'Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7', 'Extra day'
+                ];
+                const dayKeys = [
+                    'day_1', 'day_2', 'day_3', 'day_4', 'day_5', 'day_6', 'day_7', 'extra_day'
+                ];
+                dayLabels.forEach((label, idx) => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b hover:bg-gray-50';
+                    // Car name + label cell
+                    const nameCell = document.createElement('td');
+                    nameCell.className = idx < 7 ? 'px-4 py-2' : 'px-4 py-2 text-muted';
+                    nameCell.textContent = car.name + ' (' + label + ')';
+                    row.appendChild(nameCell);
+                    // Month price cells
+                    const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+                    const currentYear = new Date().getFullYear();
+                    months.forEach(month => {
+                        const monthKey = `${currentYear}-${month}`;
+                        const price = car.monthly_pricing?.[monthKey]?.[dayKeys[idx]] || '';
+                        const cell = document.createElement('td');
+                        cell.className = 'px-4 py-2';
+                        const input = document.createElement('input');
+                        input.type = 'number';
+                        input.className = 'w-20 px-2 py-1 border rounded';
+                        input.value = price;
+                        input.dataset.carId = car.id;
+                        input.dataset.month = monthKey;
+                        input.dataset.type = dayKeys[idx];
+                        cell.appendChild(input);
+                        row.appendChild(cell);
+                    });
+                    // Actions cell
+                    const actionsCell = document.createElement('td');
+                    actionsCell.className = 'px-4 py-2';
+                    const saveBtn = document.createElement('button');
+                    saveBtn.className = 'text-blue-500 hover:text-blue-700';
+                    saveBtn.textContent = 'Save';
+                    saveBtn.onclick = () => saveCarPrices(car.id);
+                    actionsCell.appendChild(saveBtn);
+                    row.appendChild(actionsCell);
+                    tbody.appendChild(row);
                 });
-                // Actions cell
-                const weekActionsCell = document.createElement('td');
-                weekActionsCell.className = 'px-4 py-2';
-                const weekSaveBtn = document.createElement('button');
-                weekSaveBtn.className = 'text-blue-500 hover:text-blue-700';
-                weekSaveBtn.textContent = 'Save';
-                weekSaveBtn.onclick = () => saveCarPrices(car.id);
-                weekActionsCell.appendChild(weekSaveBtn);
-                weekRow.appendChild(weekActionsCell);
-                tbody.appendChild(weekRow);
-                // --- Extra day price row ---
-                const extraRow = document.createElement('tr');
-                extraRow.className = 'border-b hover:bg-gray-50';
-                // Car name cell
-                const extraNameCell = document.createElement('td');
-                extraNameCell.className = 'px-4 py-2 text-muted';
-                extraNameCell.textContent = car.name + ' (extra day)';
-                extraRow.appendChild(extraNameCell);
-                // Month price cells
-                months.forEach(month => {
-                    const monthKey = `${currentYear}-${month}`;
-                    const price = car.monthly_pricing?.[monthKey]?.extra_day || '';
-                    const cell = document.createElement('td');
-                    cell.className = 'px-4 py-2';
-                    const input = document.createElement('input');
-                    input.type = 'number';
-                    input.className = 'w-20 px-2 py-1 border rounded';
-                    input.value = price;
-                    input.dataset.carId = car.id;
-                    input.dataset.month = monthKey;
-                    input.dataset.type = 'extra_day';
-                    cell.appendChild(input);
-                    extraRow.appendChild(cell);
-                });
-                // Actions cell
-                const extraActionsCell = document.createElement('td');
-                extraActionsCell.className = 'px-4 py-2';
-                const extraSaveBtn = document.createElement('button');
-                extraSaveBtn.className = 'text-blue-500 hover:text-blue-700';
-                extraSaveBtn.textContent = 'Save';
-                extraSaveBtn.onclick = () => saveCarPrices(car.id);
-                extraActionsCell.appendChild(extraSaveBtn);
-                extraRow.appendChild(extraActionsCell);
-                tbody.appendChild(extraRow);
             });
         }
 
