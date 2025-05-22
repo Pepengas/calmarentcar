@@ -489,7 +489,7 @@
                     input.type = 'number';
                     input.className = 'w-20 px-2 py-1 border rounded';
                     input.value = price;
-                    input.dataset.carId = car.car_id;
+                    input.dataset.carId = car.id;
                     input.dataset.month = monthKey;
                     
                     cell.appendChild(input);
@@ -503,7 +503,7 @@
                 const saveBtn = document.createElement('button');
                 saveBtn.className = 'text-blue-500 hover:text-blue-700';
                 saveBtn.textContent = 'Save';
-                saveBtn.onclick = () => saveCarPrices(car.car_id);
+                saveBtn.onclick = () => saveCarPrices(car.id);
                 
                 actionsCell.appendChild(saveBtn);
                 row.appendChild(actionsCell);
@@ -551,7 +551,7 @@
 
         // Save all prices
         savePricesBtn.addEventListener('click', async () => {
-            const savePromises = carsData.map(car => saveCarPrices(car.car_id));
+            const savePromises = carsData.map(car => saveCarPrices(car.id));
             
             try {
                 await Promise.all(savePromises);
