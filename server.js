@@ -783,10 +783,12 @@ app.get('/api/get-price', async (req, res) => {
         let nDays = parseInt(days);
         if (!nDays || nDays < 1) nDays = 1;
         if (nDays <= 7) {
-            total = monthPricing[nDays] || null;
+            // Use 'day_N' keys for 1-7 days
+            total = monthPricing[`day_${nDays}`] || null;
         } else {
-            if (monthPricing[7] && monthPricing['extraDay']) {
-                total = monthPricing[7] + (nDays - 7) * monthPricing['extraDay'];
+            // Use 'day_7' + (nDays-7)*extra_day for longer rentals
+            if (monthPricing['day_7'] && monthPricing['extra_day']) {
+                total = monthPricing['day_7'] + (nDays - 7) * monthPricing['extra_day'];
             } else {
                 total = null;
             }
