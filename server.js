@@ -383,7 +383,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
             if (carsTableExists) {
                 // Join with cars table to get car information if missing in bookings
                 result = await pool.query(`
-                    SELECT b.*, c.name AS car_name_lookup, c.daily_rate AS car_daily_rate
+                    SELECT b.*, c.name AS car_name_lookup
                     FROM bookings b
                     LEFT JOIN cars c ON LOWER(CONCAT(b.car_make, ' ', b.car_model)) = LOWER(c.name)
                     ORDER BY b.date_submitted DESC
@@ -411,7 +411,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
             // Use car_make/car_model from the cars table if available and booking fields are empty
             const carMake = booking.car_make || booking.car_name_lookup || '';
             const carModel = booking.car_model || booking.car_name_lookup || '';
-            const dailyRate = booking.daily_rate || booking.car_daily_rate || null;
+            const dailyRate = booking.daily_rate;
             
             return {
                 id: booking.id,
@@ -694,31 +694,19 @@ app.post('/api/admin/setup-database', requireAdminAuth, async (req, res) => {
 });
 
 // Get available cars (GET /api/cars)
-app.get('/api/cars', (req, res) => {
+app.get('/api/cars', async (req, res) => {
     try {
-        // Read cars from JSON file
-        const fs = require('fs');
-        let cars = [];
-
-        try {
-            // Try to read cars.json if it exists
-            if (fs.existsSync(path.join(__dirname, 'cars.json'))) {
-                const carsData = fs.readFileSync(path.join(__dirname, 'cars.json'), 'utf8');
-                cars = JSON.parse(carsData);
-                console.log(`📋 Retrieved ${cars.length} cars from cars.json`);
-            } else {
-                // Provide default cars if file doesn't exist
-                console.log('⚠️ cars.json not found, using default empty array');
-                cars = [];
-            }
-        } catch (fileError) {
-            console.error('⚠️ Error reading cars.json:', fileError);
-            // Continue with empty cars array
+        if (!global.dbConnected) {
+            return res.status(503).json({
+                success: false,
+                error: 'Database not connected',
+                cars: []
+            });
         }
-        
+        const result = await pool.query('SELECT * FROM cars');
         return res.json({
             success: true,
-            cars: cars
+            cars: result.rows
         });
     } catch (error) {
         console.error('❌ Error fetching cars:', error);
