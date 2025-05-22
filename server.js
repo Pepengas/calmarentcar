@@ -125,11 +125,11 @@ app.post('/api/bookings', async (req, res) => {
 
         // Get the daily rate for the pickup month
         const pickup_month = new Date(booking.pickup_date).toISOString().slice(0, 7);
-        const result = await pool.query(
+        const rateResult = await pool.query(
             'SELECT monthly_pricing FROM cars WHERE car_id = $1',
             [booking.car_id]
         );
-        const daily_rate = result.rows[0].monthly_pricing[pickup_month];
+        const daily_rate = rateResult.rows[0].monthly_pricing[pickup_month];
 
         // Add calculated prices to booking
         booking.total_price = total_price;
@@ -217,7 +217,7 @@ app.post('/api/bookings', async (req, res) => {
         });
         
         // Insert booking into database
-        const result = await pool.query(`
+        const insertResult = await pool.query(`
             INSERT INTO bookings (
                 booking_reference, 
                 customer_first_name, customer_last_name, customer_email, 
