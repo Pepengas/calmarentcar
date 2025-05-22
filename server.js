@@ -114,11 +114,27 @@ function requireAdminAuth(req, res, next) {
 // Create a new booking (POST /api/bookings)
 app.post('/api/bookings', async (req, res) => {
     try {
-        // Log incoming request for debugging
-        console.log('📦 New booking request received:', JSON.stringify(req.body, null, 2));
-        
         const booking = req.body;
         
+        // Calculate total price
+        const total_price = await calculateTotalPrice(
+            booking.car_id,
+            booking.pickup_date,
+            booking.return_date
+        );
+
+        // Get the daily rate for the pickup month
+        const pickup_month = new Date(booking.pickup_date).toISOString().slice(0, 7);
+        const result = await pool.query(
+            'SELECT monthly_pricing FROM cars WHERE car_id = $1',
+            [booking.car_id]
+        );
+        const daily_rate = result.rows[0].monthly_pricing[pickup_month];
+
+        // Add calculated prices to booking
+        booking.total_price = total_price;
+        booking.daily_rate = daily_rate;
+
         // Validate required fields
         const requiredFields = [
             'customer_first_name', 'customer_last_name', 'customer_email',
@@ -736,6 +752,116 @@ app.get('/api/cars/availability', (req, res) => {
         });
     }
 });
+
+// Get price for a specific car and month
+app.get('/api/get-price', async (req, res) => {
+    try {
+        const { car_id, month } = req.query;
+        
+        if (!car_id || !month) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required parameters: car_id and month'
+            });
+        }
+
+        const result = await pool.query(
+            'SELECT monthly_pricing FROM cars WHERE car_id = $1',
+            [car_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Car not found'
+            });
+        }
+
+        const monthlyPricing = result.rows[0].monthly_pricing;
+        const price = monthlyPricing[month] || null;
+
+        if (!price) {
+            return res.status(404).json({
+                success: false,
+                error: 'Price not found for specified month'
+            });
+        }
+
+        res.json({
+            success: true,
+            price_per_day: price
+        });
+    } catch (error) {
+        console.error('Error fetching price:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch price'
+        });
+    }
+});
+
+// Update car prices
+app.post('/api/update-prices', requireAdminAuth, async (req, res) => {
+    try {
+        const { car_id, prices } = req.body;
+
+        if (!car_id || !prices) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required parameters: car_id and prices'
+            });
+        }
+
+        // Update the monthly_pricing JSONB column
+        await pool.query(
+            'UPDATE cars SET monthly_pricing = $1 WHERE car_id = $2',
+            [prices, car_id]
+        );
+
+        res.json({
+            success: true,
+            message: 'Prices updated successfully'
+        });
+    } catch (error) {
+        console.error('Error updating prices:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to update prices'
+        });
+    }
+});
+
+// Helper function to calculate total price for a booking
+async function calculateTotalPrice(car_id, pickup_date, return_date) {
+    const pickup = new Date(pickup_date);
+    const return_date_obj = new Date(return_date);
+    let total_price = 0;
+    let current_date = new Date(pickup);
+
+    while (current_date <= return_date_obj) {
+        const month = current_date.toISOString().slice(0, 7); // Format: YYYY-MM
+        const result = await pool.query(
+            'SELECT monthly_pricing FROM cars WHERE car_id = $1',
+            [car_id]
+        );
+
+        if (result.rows.length === 0) {
+            throw new Error('Car not found');
+        }
+
+        const monthlyPricing = result.rows[0].monthly_pricing;
+        const daily_rate = monthlyPricing[month];
+
+        if (!daily_rate) {
+            throw new Error(`No price found for month ${month}`);
+        }
+
+        total_price += daily_rate;
+        current_date.setDate(current_date.getDate() + 1);
+    }
+
+    return total_price;
+}
 
 /**
  * HTML Routes

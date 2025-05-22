@@ -481,5 +481,53 @@
       </div>
     </div>
   </footer>
+
+  <!-- Add this before the closing </body> tag -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Get booking dates from URL parameters or localStorage
+      const urlParams = new URLSearchParams(window.location.search);
+      const pickupDate = urlParams.get('pickup_date') || localStorage.getItem('pickup_date');
+      const returnDate = urlParams.get('return_date') || localStorage.getItem('return_date');
+
+      if (pickupDate && returnDate) {
+          // Calculate and display total prices for all cars
+          document.querySelectorAll('.car-card').forEach(async (card) => {
+              const carId = card.dataset.carId;
+              const priceElement = card.querySelector('.car-price');
+              
+              try {
+                  const totalPrice = await calculateTotalPrice(carId, pickupDate, returnDate);
+                  priceElement.textContent = `Total: €${totalPrice}`;
+              } catch (error) {
+                  console.error('Error calculating price:', error);
+                  priceElement.textContent = 'Price unavailable';
+              }
+          });
+      }
+
+      async function calculateTotalPrice(carId, pickupDate, returnDate) {
+          const pickup = new Date(pickupDate);
+          const return_date = new Date(returnDate);
+          let totalPrice = 0;
+          let currentDate = new Date(pickup);
+
+          while (currentDate <= return_date) {
+              const month = currentDate.toISOString().slice(0, 7); // Format: YYYY-MM
+              const response = await fetch(`/api/get-price?car_id=${carId}&month=${month}`);
+              const data = await response.json();
+
+              if (!data.success) {
+                  throw new Error(data.error || 'Failed to get price');
+              }
+
+              totalPrice += data.price_per_day;
+              currentDate.setDate(currentDate.getDate() + 1);
+          }
+
+          return totalPrice;
+      }
+  });
+  </script>
 </body>
 </html> 
