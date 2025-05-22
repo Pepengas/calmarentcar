@@ -464,7 +464,39 @@
             const tbody = priceEditorTable.querySelector('tbody');
             tbody.innerHTML = '';
 
-            carsData.forEach(car => {
+            // Render car tabs
+            const carTabsContainer = document.createElement('ul');
+            carTabsContainer.className = 'nav nav-tabs mb-3';
+            carTabsContainer.id = 'carTabs';
+            carsData.forEach((car, idx) => {
+                const tab = document.createElement('li');
+                tab.className = 'nav-item';
+                const tabBtn = document.createElement('button');
+                tabBtn.className = 'nav-link' + (idx === 0 ? ' active' : '');
+                tabBtn.textContent = car.name;
+                tabBtn.type = 'button';
+                tabBtn.dataset.carId = car.id;
+                tabBtn.onclick = () => showCarPriceTable(car.id);
+                tab.appendChild(tabBtn);
+                carTabsContainer.appendChild(tab);
+            });
+            // Insert tabs before the table
+            const pricePanel = priceEditorTable.closest('.bg-white');
+            if (pricePanel && !document.getElementById('carTabs')) {
+                pricePanel.insertBefore(carTabsContainer, pricePanel.firstChild);
+            }
+            // Render only the selected car's table
+            function showCarPriceTable(selectedCarId) {
+                // Remove all rows
+                const tbody = priceEditorTable.querySelector('tbody');
+                tbody.innerHTML = '';
+                // Set active tab
+                document.querySelectorAll('#carTabs .nav-link').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.carId === selectedCarId);
+                });
+                // Find the car
+                const car = carsData.find(c => c.id === selectedCarId);
+                if (!car) return;
                 const dayLabels = [
                     'Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7', 'Extra day'
                 ];
@@ -508,7 +540,11 @@
                     row.appendChild(actionsCell);
                     tbody.appendChild(row);
                 });
-            });
+            }
+            // On initial load, show the first car's table
+            if (carsData.length > 0) {
+                showCarPriceTable(carsData[0].id);
+            }
         }
 
         // Save prices for a single car
