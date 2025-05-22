@@ -142,12 +142,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Function to display available cars on the car selection page
-  function displayAvailableCars() {
+  async function displayAvailableCars() {
     console.log('Displaying available cars');
-    
     // Get URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    
     // Get booking details from URL parameters
     const pickupLocation = urlParams.get('pickup-location');
     const dropoffLocation = urlParams.get('dropoff-location');
@@ -156,7 +154,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const dropoffDate = urlParams.get('dropoff-date');
     const dropoffTime = urlParams.get('dropoff-time');
     const duration = parseInt(urlParams.get('duration') || '1');
-    
     // Display booking summary if elements exist
     const summaryContainer = document.getElementById('booking-summary');
     if (summaryContainer) {
@@ -176,22 +173,21 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
     }
-    
     // Get container for car cards
     const carContainer = document.getElementById('available-cars');
     if (!carContainer) {
       console.error('Car container not found');
       return;
     }
-    
     // Show loading state
     carContainer.innerHTML = '<div class="loading">Loading available vehicles...</div>';
-    
-    // Simulate getting available cars (in a real app, this would be an API call)
-    setTimeout(() => {
-      // Display available cars
-      carContainer.innerHTML = getAvailableCarsHTML(duration);
-      
+    try {
+      // Fetch cars from backend
+      const response = await fetch('/api/cars');
+      const data = await response.json();
+      if (!data.success) throw new Error('Failed to fetch cars');
+      const cars = data.cars;
+      carContainer.innerHTML = getAvailableCarsHTML(duration, cars);
       // Add event listeners to the car selection buttons
       const selectButtons = document.querySelectorAll('.select-car-btn');
       selectButtons.forEach(button => {
@@ -199,12 +195,10 @@ document.addEventListener('DOMContentLoaded', function() {
           const carId = this.getAttribute('data-car-id');
           const carName = this.getAttribute('data-car-name');
           const carPrice = this.getAttribute('data-car-price');
-          
           // Extract make and model from car name
           const nameParts = carName.split(' ');
           const make = nameParts[0];
           const model = nameParts.slice(1).join(' ');
-          
           // Save selected car data to localStorage for reliable access between pages
           const selectedCar = {
             id: carId,
@@ -213,24 +207,23 @@ document.addEventListener('DOMContentLoaded', function() {
             model: model,
             price: parseFloat(carPrice)
           };
-          
           // Log the data being saved
           console.log('Saving car data to localStorage:', selectedCar);
-          
           // Save to localStorage
           localStorage.setItem('selectedCar', JSON.stringify(selectedCar));
-          
           // Create URL parameters for the personal info page
           const params = new URLSearchParams(window.location.search);
           params.append('car-id', carId);
           params.append('car-name', carName);
           params.append('car-price', carPrice);
-          
           // Redirect to personal info page
           window.location.href = `personal-info.html?${params.toString()}`;
         });
       });
-    }, 1000);
+    } catch (err) {
+      carContainer.innerHTML = '<div class="loading">Failed to load cars.</div>';
+      console.error('Error fetching cars:', err);
+    }
   }
   
   // Helper function to format location names
@@ -264,156 +257,27 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Function to generate HTML for available cars
-  function getAvailableCarsHTML(duration) {
-    // Car data with detailed specifications
-    const cars = [
-      {
-        id: "aygo",
-        name: "Toyota Aygo",
-        description: "Compact and fuel-efficient, perfect for city driving.",
-        pricePerDay: 35,
-        image: "https://calmarental.com/images/CalmaAygo.jpg",
-        category: "Small",
-        group: "A1",
-        specs: {
-          engine: "1000cc",
-          passengers: 4,
-          doors: 5,
-          gearbox: "Manual",
-          airCondition: true,
-          abs: true,
-          airbag: true,
-          fuel: "Gasoline",
-          entertainment: "Radio/Bluetooth/USB"
-        }
-      },
-      {
-        id: "tiguan",
-        name: "Volkswagen Tiguan R-Line",
-        description: "Spacious SUV with advanced features for comfort.",
-        pricePerDay: 75,
-        image: "https://calmarental.com/images/CalmaTiguan.jpg",
-        category: "SUV",
-        group: "SUV",
-        specs: {
-          engine: "1600cc",
-          passengers: 5,
-          doors: 5,
-          gearbox: "Manual",
-          airCondition: true,
-          abs: true,
-          airbag: true,
-          fuel: "Gasoline",
-          entertainment: "Radio/Bluetooth/USB"
-        }
-      },
-      {
-        id: "golf",
-        name: "Volkswagen Golf TDI",
-        description: "Versatile hatchback with excellent handling.",
-        pricePerDay: 55,
-        image: "https://calmarental.com/images/CalmaGolf.jpg",
-        category: "Compact",
-        group: "C1",
-        specs: {
-          engine: "1600cc",
-          passengers: 5,
-          doors: 5,
-          gearbox: "Manual",
-          airCondition: true,
-          abs: true,
-          airbag: true,
-          fuel: "Diesel",
-          entertainment: "Radio/Bluetooth/USB"
-        }
-      },
-      {
-        id: "i10",
-        name: "Hyundai i10",
-        description: "Economical and easy to drive mini car.",
-        pricePerDay: 32,
-        image: "https://calmarental.com/images/Calmai10.jpg",
-        category: "Small",
-        group: "A1",
-        specs: {
-          engine: "1000cc",
-          passengers: 4,
-          doors: 5,
-          gearbox: "Manual",
-          airCondition: true,
-          abs: true,
-          airbag: true,
-          fuel: "Gasoline",
-          entertainment: "Radio/CD/USB"
-        }
-      },
-      {
-        id: "c3",
-        name: "Citroen C3",
-        description: "Stylish compact car with excellent comfort.",
-        pricePerDay: 40,
-        image: "https://calmarental.com/images/CalmaCitroen.jpg",
-        category: "Economy",
-        group: "B",
-        specs: {
-          engine: "1400cc",
-          passengers: 5,
-          doors: 5,
-          gearbox: "Manual",
-          airCondition: true,
-          abs: true,
-          airbag: true,
-          fuel: "Diesel",
-          entertainment: "Radio/Bluetooth/USB"
-        }
-      },
-      {
-        id: "celerio",
-        name: "Suzuki Celerio",
-        description: "Economical and reliable compact car.",
-        pricePerDay: 38,
-        image: "https://calmarental.com/images/CalmaSuzuki.jpg",
-        category: "Small",
-        group: "A1",
-        specs: {
-          engine: "1000cc",
-          passengers: 4,
-          doors: 5,
-          gearbox: "Manual",
-          airCondition: true,
-          abs: true,
-          airbag: true,
-          fuel: "Gasoline",
-          entertainment: "Radio/Bluetooth/USB"
-        }
-      }
-    ];
-
-    // Generate HTML for the cars grid
+  function getAvailableCarsHTML(duration, cars) {
     let html = '<div class="cars-grid">';
-    
     cars.forEach(car => {
-      // Calculate total price
-      const totalPrice = car.pricePerDay * duration;
-
       // Create specs HTML with icons
       let specsHTML = `
         <div class="car-specs">
           <div class="spec-item">
             <i class="fas fa-gas-pump"></i>
-            <span>Engine: ${car.specs.engine}</span>
+            <span>Engine: ${car.features?.engine || ''}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-users"></i>
-            <span>Passengers: ${car.specs.passengers}</span>
+            <span>Passengers: ${car.features?.passengers || ''}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-door-open"></i>
-            <span>Doors: ${car.specs.doors}</span>
+            <span>Doors: ${car.features?.doors || ''}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-cogs"></i>
-            <span>Gearbox: ${car.specs.gearbox}</span>
+            <span>Gearbox: ${car.features?.gearbox || ''}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-snowflake"></i>
@@ -429,15 +293,14 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           <div class="spec-item">
             <i class="fas fa-gas-pump"></i>
-            <span>Fuel: ${car.specs.fuel}</span>
+            <span>Fuel: ${car.features?.fuel || ''}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-music"></i>
-            <span>${car.specs.entertainment}</span>
+            <span>${car.features?.entertainment || ''}</span>
           </div>
         </div>
       `;
-
       html += `
         <div class="car-card" data-car-id="${car.id}">
           <div class="car-image">
@@ -447,23 +310,19 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="car-details">
             <div>
               <h3>${car.name}</h3>
-              <div class="car-group">Group ${car.group}</div>
-              <p>${car.description}</p>
+              <div class="car-group">Group ${car.group || ''}</div>
+              <p>${car.description || ''}</p>
             </div>
-            
             ${specsHTML}
-            
             <div class="mt-auto">
               <div class="car-pricing">
                 <div class="car-price">Loading...</div>
                 <div class="total-price" style="display:none;"></div>
-                <!-- Per user request, per-day price removed -->
               </div>
-              
               <button class="select-car-btn" 
                       data-car-id="${car.id}" 
                       data-car-name="${car.name}" 
-                      data-car-price="${car.pricePerDay}">
+                      data-car-price="0">
                 Select This Car
               </button>
             </div>
@@ -471,7 +330,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
     });
-    
     html += '</div>';
     return html;
   }
