@@ -555,18 +555,38 @@
             const tbody = priceEditorTable.querySelector('tbody');
             tbody.innerHTML = '';
 
-            // Render car dropdown
+            // Render car dropdown FIRST
             let carDropdown = document.getElementById('carDropdown');
+            if (!carDropdown) {
+                carDropdown = document.createElement('select');
+                carDropdown.id = 'carDropdown';
+                carDropdown.className = 'form-select form-select-lg mb-3 car-dropdown-custom';
+                carDropdown.style.maxWidth = '350px';
+                carDropdown.style.margin = '0 auto 1rem auto';
+                // Insert dropdown before the table
+                const pricePanel = priceEditorTable.closest('.bg-white');
+                if (pricePanel) {
+                    pricePanel.insertBefore(carDropdown, pricePanel.firstChild);
+                }
+            } else {
+                carDropdown.innerHTML = '';
+            }
+            // Render car title AFTER dropdown
             let carTitle = document.getElementById('carTitle');
             if (!carTitle) {
                 carTitle = document.createElement('div');
                 carTitle.id = 'carTitle';
                 carTitle.className = 'car-title-custom';
                 // Insert car title below dropdown
-                const pricePanel = priceEditorTable.closest('.bg-white');
-                if (pricePanel) {
-                    pricePanel.insertBefore(carTitle, carDropdown.nextSibling);
+                if (carDropdown && carDropdown.parentNode) {
+                    carDropdown.parentNode.insertBefore(carTitle, carDropdown.nextSibling);
                 }
+            }
+            // Fallback if no cars
+            if (!carsData || carsData.length === 0) {
+                carTitle.innerHTML = '<span style="color:#e74c3c;font-size:1.3rem;">No cars found. Please add cars to manage prices.</span>';
+                priceEditorTable.querySelector('tbody').innerHTML = '';
+                return;
             }
             carsData.forEach((car, idx) => {
                 const option = document.createElement('option');
