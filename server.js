@@ -831,33 +831,60 @@ app.post('/api/update-prices', requireAdminAuth, async (req, res) => {
 
 // Helper function to calculate total price for a booking
 async function calculateTotalPrice(car_id, pickup_date, return_date) {
+    // Fetch monthly_pricing once for the car
+    const carResult = await pool.query(
+        'SELECT monthly_pricing FROM cars WHERE car_id = $1',
+        [car_id]
+    );
+    if (carResult.rows.length === 0) {
+        console.error(`[calculateTotalPrice] Car not found: car_id=${car_id}`);
+        throw new Error('Car not found');
+    }
+    const monthlyPricing = carResult.rows[0].monthly_pricing;
+
     const pickup = new Date(pickup_date);
     const return_date_obj = new Date(return_date);
     let total_price = 0;
     let current_date = new Date(pickup);
+    let dayCount = 1;
+    let daysByMonth = {};
 
+    // Count days per month
     while (current_date <= return_date_obj) {
         const month = current_date.toISOString().slice(0, 7); // Format: YYYY-MM
-        const result = await pool.query(
-            'SELECT monthly_pricing FROM cars WHERE car_id = $1',
-            [car_id]
-        );
-
-        if (result.rows.length === 0) {
-            throw new Error('Car not found');
-        }
-
-        const monthlyPricing = result.rows[0].monthly_pricing;
-        const daily_rate = monthlyPricing[month];
-
-        if (!daily_rate) {
-            throw new Error(`No price found for month ${month}`);
-        }
-
-        total_price += daily_rate;
+        if (!daysByMonth[month]) daysByMonth[month] = 0;
+        daysByMonth[month]++;
         current_date.setDate(current_date.getDate() + 1);
+        dayCount++;
     }
 
+    // Reset for price calculation
+    current_date = new Date(pickup);
+    let globalDayIndex = 1;
+    while (current_date <= return_date_obj) {
+        const month = current_date.toISOString().slice(0, 7);
+        const monthPricing = monthlyPricing[month];
+        if (!monthPricing) {
+            console.error(`[calculateTotalPrice] No pricing for month: ${month}`);
+            throw new Error(`No price found for month ${month}`);
+        }
+        // Use per-day pricing for days 1-7, then extraDay for 8+
+        let priceForDay;
+        if (globalDayIndex <= 7) {
+            priceForDay = monthPricing[globalDayIndex] || monthPricing['1'];
+        } else {
+            priceForDay = monthPricing['extraDay'] || monthPricing['7'] || monthPricing['1'];
+        }
+        if (!priceForDay) {
+            console.error(`[calculateTotalPrice] No price for day ${globalDayIndex} in month ${month}`);
+            throw new Error(`No price for day ${globalDayIndex} in month ${month}`);
+        }
+        total_price += priceForDay;
+        current_date.setDate(current_date.getDate() + 1);
+        globalDayIndex++;
+    }
+    // Log calculation for debugging
+    console.log(`[calculateTotalPrice] car_id=${car_id}, pickup=${pickup_date}, return=${return_date}, total_price=${total_price}`);
     return total_price;
 }
 
