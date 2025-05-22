@@ -118,6 +118,15 @@
         .detail-section:last-child {
             border-bottom: none;
         }
+        .car-tabs-custom {
+            margin-bottom: 0.5rem !important;
+            padding-bottom: 0 !important;
+            border-bottom: none !important;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: thin;
+        }
         .car-tabs-custom .nav-link {
             font-size: 1.1rem;
             border-radius: 2rem;
@@ -126,6 +135,8 @@
             color: #3498db;
             border: 1px solid #e3e6ea;
             transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            min-width: 160px;
+            text-align: center;
         }
         .car-tabs-custom .nav-link.active {
             background: linear-gradient(90deg, #3498db 60%, #6dd5fa 100%);
@@ -136,6 +147,10 @@
         .car-tabs-custom .nav-link:hover {
             background: #e3e6ea;
             color: #217dbb;
+        }
+        .car-tabs-divider {
+            margin: 0 0 1rem 0;
+            border-top: 2px solid #e3e6ea;
         }
         .price-input:focus {
             border-color: #3498db;
@@ -153,6 +168,13 @@
         .fw-semibold { font-weight: 500; }
         .fw-bold { font-weight: 700; }
         .table th, .table td { vertical-align: middle; }
+        .bg-white.rounded-lg.shadow-md.p-6.mb-8 { margin-top: 0 !important; padding-top: 1.5rem !important; }
+        @media (max-width: 900px) {
+            .car-tabs-custom .nav-link { min-width: 120px; font-size: 1rem; }
+        }
+        @media (max-width: 600px) {
+            .car-tabs-custom .nav-link { min-width: 90px; font-size: 0.95rem; padding: 0.3rem 0.7rem; }
+        }
     </style>
 </head>
 <body>
@@ -501,7 +523,7 @@
 
             // Render car tabs
             const carTabsContainer = document.createElement('ul');
-            carTabsContainer.className = 'nav nav-pills mb-4 car-tabs-custom';
+            carTabsContainer.className = 'nav nav-pills mb-2 car-tabs-custom justify-content-center flex-nowrap overflow-auto';
             carTabsContainer.id = 'carTabs';
             carsData.forEach((car, idx) => {
                 const tab = document.createElement('li');
@@ -519,6 +541,10 @@
             const pricePanel = priceEditorTable.closest('.bg-white');
             if (pricePanel && !document.getElementById('carTabs')) {
                 pricePanel.insertBefore(carTabsContainer, pricePanel.firstChild);
+                // Add a divider below the tabs
+                const divider = document.createElement('hr');
+                divider.className = 'car-tabs-divider';
+                pricePanel.insertBefore(divider, carTabsContainer.nextSibling);
             }
             // Render only the selected car's table
             function showCarPriceTable(selectedCarId) {
@@ -645,9 +671,18 @@
         // Initial load
         fetchCars();
 
-        // Add custom styles for beauty
+        // Add custom styles for beauty and layout polish
         const style = document.createElement('style');
         style.innerHTML = `
+        .car-tabs-custom {
+            margin-bottom: 0.5rem !important;
+            padding-bottom: 0 !important;
+            border-bottom: none !important;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: thin;
+        }
         .car-tabs-custom .nav-link {
             font-size: 1.1rem;
             border-radius: 2rem;
@@ -656,6 +691,8 @@
             color: #3498db;
             border: 1px solid #e3e6ea;
             transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            min-width: 160px;
+            text-align: center;
         }
         .car-tabs-custom .nav-link.active {
             background: linear-gradient(90deg, #3498db 60%, #6dd5fa 100%);
@@ -666,6 +703,10 @@
         .car-tabs-custom .nav-link:hover {
             background: #e3e6ea;
             color: #217dbb;
+        }
+        .car-tabs-divider {
+            margin: 0 0 1rem 0;
+            border-top: 2px solid #e3e6ea;
         }
         .price-input:focus {
             border-color: #3498db;
@@ -683,6 +724,13 @@
         .fw-semibold { font-weight: 500; }
         .fw-bold { font-weight: 700; }
         .table th, .table td { vertical-align: middle; }
+        .bg-white.rounded-lg.shadow-md.p-6.mb-8 { margin-top: 0 !important; padding-top: 1.5rem !important; }
+        @media (max-width: 900px) {
+            .car-tabs-custom .nav-link { min-width: 120px; font-size: 1rem; }
+        }
+        @media (max-width: 600px) {
+            .car-tabs-custom .nav-link { min-width: 90px; font-size: 0.95rem; padding: 0.3rem 0.7rem; }
+        }
         `;
         document.head.appendChild(style);
     });
