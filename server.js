@@ -751,43 +751,56 @@ app.get('/api/cars/availability', (req, res) => {
     }
 });
 
-// Get price for a specific car and month
+// Get price for a specific car, month, and duration
 app.get('/api/get-price', async (req, res) => {
     try {
-        const { car_id, month } = req.query;
-        
+        const { car_id, month, days } = req.query;
         if (!car_id || !month) {
             return res.status(400).json({
                 success: false,
                 error: 'Missing required parameters: car_id and month'
             });
         }
-
         const result = await pool.query(
             'SELECT monthly_pricing FROM cars WHERE car_id = $1',
             [car_id]
         );
-
         if (result.rows.length === 0) {
             return res.status(404).json({
                 success: false,
                 error: 'Car not found'
             });
         }
-
         const monthlyPricing = result.rows[0].monthly_pricing;
-        const price = monthlyPricing[month] || null;
-
-        if (!price) {
+        const monthPricing = monthlyPricing[month];
+        if (!monthPricing) {
             return res.status(404).json({
                 success: false,
                 error: 'Price not found for specified month'
             });
         }
-
+        let total = null;
+        let nDays = parseInt(days);
+        if (!nDays || nDays < 1) nDays = 1;
+        if (nDays <= 7) {
+            total = monthPricing[nDays] || null;
+        } else {
+            if (monthPricing[7] && monthPricing['extraDay']) {
+                total = monthPricing[7] + (nDays - 7) * monthPricing['extraDay'];
+            } else {
+                total = null;
+            }
+        }
+        if (total === null) {
+            console.error(`[get-price] No price for car_id=${car_id}, month=${month}, days=${nDays}`);
+            return res.status(404).json({
+                success: false,
+                error: 'Price not found for specified duration'
+            });
+        }
         res.json({
             success: true,
-            price_per_day: price
+            total_price: total
         });
     } catch (error) {
         console.error('Error fetching price:', error);
