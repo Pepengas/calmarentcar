@@ -118,6 +118,41 @@
         .detail-section:last-child {
             border-bottom: none;
         }
+        .car-tabs-custom .nav-link {
+            font-size: 1.1rem;
+            border-radius: 2rem;
+            margin-right: 0.5rem;
+            background: #f8f9fa;
+            color: #3498db;
+            border: 1px solid #e3e6ea;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+        .car-tabs-custom .nav-link.active {
+            background: linear-gradient(90deg, #3498db 60%, #6dd5fa 100%);
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 2px 8px #3498db33;
+        }
+        .car-tabs-custom .nav-link:hover {
+            background: #e3e6ea;
+            color: #217dbb;
+        }
+        .price-input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px #3498db33;
+        }
+        .save-btn {
+            margin-top: 0.5rem;
+            border-radius: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            box-shadow: 0 2px 8px #3498db22;
+        }
+        .bg-light { background: #f8f9fa !important; }
+        .bg-white { background: #fff !important; }
+        .fw-semibold { font-weight: 500; }
+        .fw-bold { font-weight: 700; }
+        .table th, .table td { vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -466,14 +501,14 @@
 
             // Render car tabs
             const carTabsContainer = document.createElement('ul');
-            carTabsContainer.className = 'nav nav-tabs mb-3';
+            carTabsContainer.className = 'nav nav-pills mb-4 car-tabs-custom';
             carTabsContainer.id = 'carTabs';
             carsData.forEach((car, idx) => {
                 const tab = document.createElement('li');
                 tab.className = 'nav-item';
                 const tabBtn = document.createElement('button');
-                tabBtn.className = 'nav-link' + (idx === 0 ? ' active' : '');
-                tabBtn.textContent = car.name;
+                tabBtn.className = 'nav-link car-tab-btn' + (idx === 0 ? ' active' : '');
+                tabBtn.innerHTML = `<i class='fas fa-car-side me-2'></i> ${car.name}`;
                 tabBtn.type = 'button';
                 tabBtn.dataset.carId = car.id;
                 tabBtn.onclick = () => showCarPriceTable(car.id);
@@ -503,43 +538,53 @@
                 const dayKeys = [
                     'day_1', 'day_2', 'day_3', 'day_4', 'day_5', 'day_6', 'day_7', 'extra_day'
                 ];
+                const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+                const currentYear = new Date().getFullYear();
                 dayLabels.forEach((label, idx) => {
                     const row = document.createElement('tr');
-                    row.className = 'border-b hover:bg-gray-50';
+                    row.className = idx % 2 === 0 ? 'bg-light' : 'bg-white';
                     // Car name + label cell
                     const nameCell = document.createElement('td');
-                    nameCell.className = idx < 7 ? 'px-4 py-2' : 'px-4 py-2 text-muted';
-                    nameCell.textContent = car.name + ' (' + label + ')';
+                    nameCell.className = idx < 7 ? 'px-4 py-2 fw-semibold' : 'px-4 py-2 text-muted fw-semibold';
+                    nameCell.textContent = label;
                     row.appendChild(nameCell);
                     // Month price cells
-                    const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-                    const currentYear = new Date().getFullYear();
                     months.forEach(month => {
                         const monthKey = `${currentYear}-${month}`;
                         const price = car.monthly_pricing?.[monthKey]?.[dayKeys[idx]] || '';
                         const cell = document.createElement('td');
-                        cell.className = 'px-4 py-2';
+                        cell.className = 'px-2 py-2';
                         const input = document.createElement('input');
                         input.type = 'number';
-                        input.className = 'w-20 px-2 py-1 border rounded';
+                        input.className = 'form-control form-control-sm price-input';
+                        input.placeholder = '€';
                         input.value = price;
                         input.dataset.carId = car.id;
                         input.dataset.month = monthKey;
                         input.dataset.type = dayKeys[idx];
+                        input.style.transition = 'box-shadow 0.2s, border-color 0.2s';
+                        input.onfocus = function() { this.style.boxShadow = '0 0 0 2px #3498db33'; this.style.borderColor = '#3498db'; };
+                        input.onblur = function() { this.style.boxShadow = ''; this.style.borderColor = ''; };
                         cell.appendChild(input);
                         row.appendChild(cell);
                     });
                     // Actions cell
                     const actionsCell = document.createElement('td');
                     actionsCell.className = 'px-4 py-2';
-                    const saveBtn = document.createElement('button');
-                    saveBtn.className = 'text-blue-500 hover:text-blue-700';
-                    saveBtn.textContent = 'Save';
-                    saveBtn.onclick = () => saveCarPrices(car.id);
-                    actionsCell.appendChild(saveBtn);
+                    if (idx === 0) {
+                        const saveBtn = document.createElement('button');
+                        saveBtn.className = 'btn btn-primary btn-sm save-btn';
+                        saveBtn.innerHTML = `<i class='fas fa-save me-1'></i>Save Prices`;
+                        saveBtn.onclick = () => saveCarPrices(car.id);
+                        actionsCell.appendChild(saveBtn);
+                    }
                     row.appendChild(actionsCell);
                     tbody.appendChild(row);
                 });
+                // Sticky header for months
+                priceEditorTable.querySelector('thead').style.position = 'sticky';
+                priceEditorTable.querySelector('thead').style.top = '0';
+                priceEditorTable.querySelector('thead').style.background = '#f8f9fa';
             }
             // On initial load, show the first car's table
             if (carsData.length > 0) {
@@ -599,6 +644,47 @@
 
         // Initial load
         fetchCars();
+
+        // Add custom styles for beauty
+        const style = document.createElement('style');
+        style.innerHTML = `
+        .car-tabs-custom .nav-link {
+            font-size: 1.1rem;
+            border-radius: 2rem;
+            margin-right: 0.5rem;
+            background: #f8f9fa;
+            color: #3498db;
+            border: 1px solid #e3e6ea;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+        .car-tabs-custom .nav-link.active {
+            background: linear-gradient(90deg, #3498db 60%, #6dd5fa 100%);
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 2px 8px #3498db33;
+        }
+        .car-tabs-custom .nav-link:hover {
+            background: #e3e6ea;
+            color: #217dbb;
+        }
+        .price-input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px #3498db33;
+        }
+        .save-btn {
+            margin-top: 0.5rem;
+            border-radius: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            box-shadow: 0 2px 8px #3498db22;
+        }
+        .bg-light { background: #f8f9fa !important; }
+        .bg-white { background: #fff !important; }
+        .fw-semibold { font-weight: 500; }
+        .fw-bold { font-weight: 700; }
+        .table th, .table td { vertical-align: middle; }
+        `;
+        document.head.appendChild(style);
     });
 
     // Tab switching logic
