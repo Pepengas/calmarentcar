@@ -189,6 +189,32 @@
             border-color: #217dbb;
             box-shadow: 0 0 0 2px #3498db33;
         }
+        .car-title-custom {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 1.2rem 0 1.2rem 0;
+            color: #217dbb;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.7rem;
+        }
+        .car-title-icon {
+            font-size: 2.2rem;
+            color: #3498db;
+        }
+        .car-title-text {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .save-btn.btn-lg {
+            font-size: 1.1rem;
+            padding: 0.7rem 2.2rem;
+            border-radius: 2rem;
+            box-shadow: 0 2px 8px #3498db22;
+        }
     </style>
 </head>
 <body>
@@ -475,11 +501,6 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="mt-4 flex justify-end">
-                            <button id="savePricesBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                                Save All Prices
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -512,7 +533,6 @@
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const priceEditorTable = document.getElementById('priceEditorTable');
-        const savePricesBtn = document.getElementById('savePricesBtn');
         let carsData = [];
 
         // Fetch cars and their prices
@@ -537,19 +557,16 @@
 
             // Render car dropdown
             let carDropdown = document.getElementById('carDropdown');
-            if (!carDropdown) {
-                carDropdown = document.createElement('select');
-                carDropdown.id = 'carDropdown';
-                carDropdown.className = 'form-select form-select-lg mb-3 car-dropdown-custom';
-                carDropdown.style.maxWidth = '350px';
-                carDropdown.style.margin = '0 auto 1rem auto';
-                // Insert dropdown before the table
+            let carTitle = document.getElementById('carTitle');
+            if (!carTitle) {
+                carTitle = document.createElement('div');
+                carTitle.id = 'carTitle';
+                carTitle.className = 'car-title-custom';
+                // Insert car title below dropdown
                 const pricePanel = priceEditorTable.closest('.bg-white');
                 if (pricePanel) {
-                    pricePanel.insertBefore(carDropdown, pricePanel.firstChild);
+                    pricePanel.insertBefore(carTitle, carDropdown.nextSibling);
                 }
-            } else {
-                carDropdown.innerHTML = '';
             }
             carsData.forEach((car, idx) => {
                 const option = document.createElement('option');
@@ -582,6 +599,8 @@
                 ];
                 const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
                 const currentYear = new Date().getFullYear();
+                // Update car title
+                carTitle.innerHTML = `<span class='car-title-icon'><i class='fas fa-car-side'></i></span> <span class='car-title-text'>${car.name}</span>`;
                 dayLabels.forEach((label, idx) => {
                     const row = document.createElement('tr');
                     row.className = idx % 2 === 0 ? 'bg-light' : 'bg-white';
@@ -615,8 +634,9 @@
                     actionsCell.className = 'px-4 py-2';
                     if (idx === 0) {
                         const saveBtn = document.createElement('button');
-                        saveBtn.className = 'btn btn-primary btn-sm save-btn';
+                        saveBtn.className = 'btn btn-primary btn-lg save-btn';
                         saveBtn.innerHTML = `<i class='fas fa-save me-1'></i>Save Prices`;
+                        saveBtn.title = 'Save prices for this car';
                         saveBtn.onclick = () => saveCarPrices(car.id);
                         actionsCell.appendChild(saveBtn);
                     }
@@ -628,6 +648,40 @@
                 priceEditorTable.querySelector('thead').style.top = '0';
                 priceEditorTable.querySelector('thead').style.background = '#f8f9fa';
             }
+            // Remove the Save All Prices button if it exists
+            const saveAllBtn = document.getElementById('savePricesBtn');
+            if (saveAllBtn) saveAllBtn.style.display = 'none';
+            // Add custom styles for car title and save button
+            const style = document.createElement('style');
+            style.innerHTML += `
+            .car-title-custom {
+                text-align: center;
+                font-size: 2rem;
+                font-weight: 700;
+                margin: 1.2rem 0 1.2rem 0;
+                color: #217dbb;
+                letter-spacing: 0.02em;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.7rem;
+            }
+            .car-title-icon {
+                font-size: 2.2rem;
+                color: #3498db;
+            }
+            .car-title-text {
+                font-size: 2rem;
+                font-weight: 700;
+            }
+            .save-btn.btn-lg {
+                font-size: 1.1rem;
+                padding: 0.7rem 2.2rem;
+                border-radius: 2rem;
+                box-shadow: 0 2px 8px #3498db22;
+            }
+            `;
+            document.head.appendChild(style);
         }
 
         // Save prices for a single car
@@ -666,19 +720,6 @@
                 alert('Failed to save prices: ' + error.message);
             }
         }
-
-        // Save all prices
-        savePricesBtn.addEventListener('click', async () => {
-            const savePromises = carsData.map(car => saveCarPrices(car.id));
-            
-            try {
-                await Promise.all(savePromises);
-                alert('All prices saved successfully');
-            } catch (error) {
-                console.error('Error saving all prices:', error);
-                alert('Some prices failed to save. Please check the console for details.');
-            }
-        });
 
         // Initial load
         fetchCars();
