@@ -704,9 +704,20 @@ app.get('/api/cars', async (req, res) => {
             });
         }
         const result = await pool.query('SELECT * FROM cars');
+        // Map DB fields to frontend fields
+        const cars = result.rows.map(car => ({
+            id: car.car_id, // map car_id to id
+            name: car.name,
+            description: car.description,
+            image: car.image,
+            category: car.category,
+            features: car.features,
+            monthly_pricing: car.monthly_pricing,
+            available: car.available
+        }));
         return res.json({
             success: true,
-            cars: result.rows
+            cars
         });
     } catch (error) {
         console.error('❌ Error fetching cars:', error);
