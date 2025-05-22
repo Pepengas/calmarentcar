@@ -455,8 +455,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             <div class="mt-auto">
               <div class="car-pricing">
-                <div class="price">€${car.pricePerDay} per day</div>
                 <div class="total-price">€${totalPrice.toFixed(2)} total</div>
+                <!-- Per user request, per-day price removed -->
               </div>
               
               <button class="select-car-btn" 

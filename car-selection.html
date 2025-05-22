@@ -498,6 +498,7 @@
               
               try {
                   const totalPrice = await calculateTotalPrice(carId, pickupDate, returnDate);
+                  // Only show total price, per user request
                   priceElement.textContent = `Total: €${totalPrice}`;
               } catch (error) {
                   console.error('Error calculating price:', error);
