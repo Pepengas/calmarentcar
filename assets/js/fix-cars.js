@@ -232,8 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Calculate duration in days (inclusive)
             const pickup = new Date(pickupDate);
             const dropoff = new Date(dropoffDate);
-            const diffTime = dropoff - pickup;
-            let days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            let days = Math.ceil((dropoff - pickup) / (1000 * 60 * 60 * 24)) + 1;
             if (days < 1) days = 1;
             // Always use the pickup month for price lookup (per admin panel logic)
             const month = pickup.toISOString().slice(0, 7);
