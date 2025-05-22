@@ -813,7 +813,7 @@ app.post('/api/update-prices', requireAdminAuth, async (req, res) => {
         // Update the monthly_pricing JSONB column
         await pool.query(
             'UPDATE cars SET monthly_pricing = $1 WHERE car_id = $2',
-            [prices, car_id]
+            [JSON.stringify(prices), car_id]
         );
 
         res.json({
