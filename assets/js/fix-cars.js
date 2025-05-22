@@ -220,6 +220,37 @@ document.addEventListener('DOMContentLoaded', function() {
           window.location.href = `personal-info.html?${params.toString()}`;
         });
       });
+      // Fetch and update prices for each car card after rendering
+      const urlParams2 = new URLSearchParams(window.location.search);
+      const pickupDate = urlParams2.get('pickup-date') || localStorage.getItem('pickup_date');
+      const returnDate = urlParams2.get('dropoff-date') || localStorage.getItem('return_date');
+      if (pickupDate && returnDate) {
+        document.querySelectorAll('.car-card').forEach(async (card) => {
+          const carId = card.dataset.carId;
+          const priceElement = card.querySelector('.car-price');
+          try {
+            // Calculate duration in days
+            const pickup = new Date(pickupDate);
+            const return_date = new Date(returnDate);
+            const diffTime = Math.abs(return_date - pickup);
+            const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+            // Always use the pickup month for price lookup (per admin panel logic)
+            const month = pickup.toISOString().slice(0, 7);
+            console.log(`[fix-cars] Fetching price for carId=${carId}, month=${month}, days=${days}`);
+            const response = await fetch(`/api/get-price?car_id=${carId}&month=${month}&days=${days}`);
+            const data = await response.json();
+            console.log(`[fix-cars] API response for carId=${carId}:`, data);
+            if (!data.success) {
+              throw new Error(data.error || 'Failed to get price');
+            }
+            priceElement.textContent = `Total: €${data.total_price}`;
+            console.log(`[fix-cars] Set price for carId=${carId}: Total: €${data.total_price}`);
+          } catch (error) {
+            console.error('Error calculating price:', error);
+            if (priceElement) priceElement.textContent = 'Price unavailable';
+          }
+        });
+      }
     } catch (err) {
       carContainer.innerHTML = '<div class="loading">Failed to load cars.</div>';
       console.error('Error fetching cars:', err);
