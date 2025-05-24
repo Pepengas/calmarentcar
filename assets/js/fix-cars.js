@@ -167,17 +167,19 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       summaryContainer.innerHTML = `
         <div class="summary-title">Your Trip Details</div>
-        <div class="summary-item">
-          <span class="summary-label">Pickup:</span>
-          <span class="summary-value">${formatLocation(pickupLocation)} - ${formatDate(pickupDate)} at ${pickupTime}</span>
+        <div class="trip-detail">
+          <div class="trip-label"><i class="fas fa-map-marker-alt"></i> Pickup Location</div>
+          <div class="trip-value">${formatLocation(pickupLocation)}</div>
+          <div class="trip-date"><i class="fas fa-calendar-alt"></i> ${formatDate(pickupDate)}${pickupTime ? ' at ' + pickupTime : ''}</div>
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Return:</span>
-          <span class="summary-value">${formatLocation(dropoffLocation)} - ${formatDate(dropoffDate)} at ${dropoffTime}</span>
+        <div class="trip-detail">
+          <div class="trip-label"><i class="fas fa-flag-checkered"></i> Return Location</div>
+          <div class="trip-value">${formatLocation(dropoffLocation)}</div>
+          <div class="trip-date"><i class="fas fa-calendar-alt"></i> ${formatDate(dropoffDate)}${dropoffTime ? ' at ' + dropoffTime : ''}</div>
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Duration:</span>
-          <span class="summary-value">${durationDays} ${durationDays === 1 ? 'day' : 'days'}</span>
+        <div class="trip-detail duration-detail">
+          <div class="trip-label"><i class="fas fa-hourglass-half"></i> Duration</div>
+          <div class="trip-value">${durationDays} ${durationDays === 1 ? 'day' : 'days'}</div>
         </div>
       `;
     }
