@@ -732,7 +732,8 @@ app.get('/api/cars', async (req, res) => {
             category: car.category,
             features: car.features,
             monthly_pricing: car.monthly_pricing,
-            available: car.available
+            available: car.available,
+            specs: car.specs
         }));
         return res.json({
             success: true,
@@ -937,6 +938,51 @@ app.get('/', (req, res) => {
 // Booking confirmation page
 app.get('/booking-confirmation', (req, res) => {
     res.sendFile(path.join(__dirname, 'booking-confirmation.html'));
+});
+
+// Admin: Get a single car by ID (with specs)
+app.get('/api/admin/car/:id', requireAdminAuth, async (req, res) => {
+    const carId = req.params.id;
+    try {
+        const result = await pool.query('SELECT * FROM cars WHERE car_id = $1', [carId]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Car not found' });
+        }
+        return res.json({ success: true, car: result.rows[0] });
+    } catch (error) {
+        console.error(`[ADMIN] Error fetching car ${carId}:`, error);
+        return res.status(500).json({ success: false, error: 'Failed to fetch car' });
+    }
+});
+
+// Admin: Update a single car (specs and other fields)
+app.patch('/api/admin/car/:id', requireAdminAuth, async (req, res) => {
+    const carId = req.params.id;
+    const { name, description, image, category, features, specs, available } = req.body;
+    try {
+        // Build dynamic update query
+        const fields = [];
+        const values = [];
+        let idx = 1;
+        if (name !== undefined) { fields.push(`name = $${idx++}`); values.push(name); }
+        if (description !== undefined) { fields.push(`description = $${idx++}`); values.push(description); }
+        if (image !== undefined) { fields.push(`image = $${idx++}`); values.push(image); }
+        if (category !== undefined) { fields.push(`category = $${idx++}`); values.push(category); }
+        if (features !== undefined) { fields.push(`features = $${idx++}`); values.push(JSON.stringify(features)); }
+        if (specs !== undefined) { fields.push(`specs = $${idx++}`); values.push(JSON.stringify(specs)); }
+        if (available !== undefined) { fields.push(`available = $${idx++}`); values.push(available); }
+        if (fields.length === 0) {
+            return res.status(400).json({ success: false, error: 'No fields to update' });
+        }
+        values.push(carId);
+        const query = `UPDATE cars SET ${fields.join(', ')}, updated_at = NOW() WHERE car_id = $${idx}`;
+        await pool.query(query, values);
+        console.log(`[ADMIN] Updated car ${carId}:`, fields.join(', '));
+        return res.json({ success: true });
+    } catch (error) {
+        console.error(`[ADMIN] Error updating car ${carId}:`, error);
+        return res.status(500).json({ success: false, error: 'Failed to update car' });
+    }
 });
 
 // Start server
