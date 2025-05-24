@@ -320,6 +320,16 @@
       const nextYear = new Date();
       nextYear.setFullYear(today.getFullYear() + 1);
       
+      // Initialize dropoff date picker FIRST so it's in scope for pickupCalendar
+      var dropoffCalendar = new CenteredCalendar({
+        inputId: 'dropoff-date',
+        minDate: today,
+        maxDate: nextYear,
+        onSelect: function(data) {
+          console.log('Dropoff date selected:', data.formattedDate);
+        }
+      });
+
       // Initialize pickup date picker
       var pickupCalendar = new CenteredCalendar({
         inputId: 'pickup-date',
@@ -327,32 +337,21 @@
         maxDate: nextYear,
         onSelect: function(data) {
           console.log('Pickup date selected:', data.formattedDate);
-          
           // Set minimum date for dropoff calendar
           let nextDay = new Date(data.date);
           nextDay.setDate(nextDay.getDate() + 1);
-          
-          // Update dropoff calendar if it exists
+          // Update dropoff calendar if it exists and setCurrentMonth is a function
           if (dropoffCalendar) {
             dropoffCalendar.minDate = nextDay;
-            dropoffCalendar.setCurrentMonth(data.date); // Set the same month as pickup date
-
+            if (typeof dropoffCalendar.setCurrentMonth === 'function') {
+              dropoffCalendar.setCurrentMonth(data.date);
+            }
             // Always set dropoff date to nextDay if not set or before nextDay
             if (!dropoffCalendar.selectedDate || dropoffCalendar.selectedDate < nextDay) {
               document.getElementById('dropoff-date').value = dropoffCalendar.formatDate(nextDay);
               dropoffCalendar.selectedDate = new Date(nextDay);
             }
           }
-        }
-      });
-      
-      // Initialize dropoff date picker
-      var dropoffCalendar = new CenteredCalendar({
-        inputId: 'dropoff-date',
-        minDate: today,
-        maxDate: nextYear,
-        onSelect: function(data) {
-          console.log('Dropoff date selected:', data.formattedDate);
         }
       });
 
