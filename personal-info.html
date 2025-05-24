@@ -1652,6 +1652,7 @@
             if (fullInsurance) totalPrice += 25 * durationDays;
             if (gpsNavigation) totalPrice += 8 * durationDays;
             if (childSeat) totalPrice += 5 * durationDays;
+            console.log('Fetched totalPrice before booking:', totalPrice);
             if (!totalPrice || totalPrice <= 0) {
               alert('Could not fetch price for this car and dates. Please try again or contact support.');
               resetSubmitButton();
@@ -1751,6 +1752,18 @@
             termsModal.style.display = 'none';
           }
         });
+      }
+      
+      // Add resetSubmitButton function to re-enable the button and hide overlay
+      function resetSubmitButton() {
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('disabled');
+        submitBtn.innerHTML = 'Proceed to Payment <i class="fas fa-credit-card"></i>';
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay) {
+          loadingOverlay.style.display = 'none';
+        }
       }
     });
   </script>
