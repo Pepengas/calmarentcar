@@ -332,9 +332,10 @@
           // Update dropoff calendar if it exists
           if (dropoffCalendar) {
             dropoffCalendar.minDate = nextDay;
-            
-            // If current dropoff date is before new pickup date + 1 day, update it
-            if (dropoffCalendar.selectedDate < nextDay) {
+            dropoffCalendar.setCurrentMonth(data.date); // Set the same month as pickup date
+
+            // Always set dropoff date to nextDay if not set or before nextDay
+            if (!dropoffCalendar.selectedDate || dropoffCalendar.selectedDate < nextDay) {
               document.getElementById('dropoff-date').value = dropoffCalendar.formatDate(nextDay);
               dropoffCalendar.selectedDate = new Date(nextDay);
             }

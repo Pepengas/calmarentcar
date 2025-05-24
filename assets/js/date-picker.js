@@ -271,27 +271,22 @@ export class DateRangePicker {
     }
     
     handleDateClick(date) {
-        // Reset selection if both dates are selected
-        if (this.selectedStart && this.selectedEnd) {
+        // If no start date selected or start date already selected and clicking before it
+        if (!this.selectedStart || (this.selectedStart && date < this.selectedStart)) {
             this.selectedStart = date;
             this.selectedEnd = null;
-        } 
-        // Set end date if start date is already selected
-        else if (this.selectedStart) {
-            // Ensure end date is after start date
-            if (date < this.selectedStart) {
-                this.selectedEnd = this.selectedStart;
-                this.selectedStart = date;
-            } else {
-                this.selectedEnd = date;
-            }
-        } 
-        // Set start date if nothing is selected
-        else {
-            this.selectedStart = date;
+            // Set current month to the selected date's month
+            this.setCurrentMonth(date);
+        } else {
+            // If start date selected, set end date
+            this.selectedEnd = date;
         }
         
-        // Re-render calendar
+        this.renderCalendar();
+    }
+    
+    setCurrentMonth(date) {
+        this.currentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
         this.renderCalendar();
     }
     
