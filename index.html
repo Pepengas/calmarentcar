@@ -266,6 +266,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <!-- Add Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Add Choices.js for searchable dropdowns -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 </head>
 <body>
     <!-- Initialize date and time pickers immediately after body -->
@@ -361,6 +364,9 @@
           dropoffCalendar.setCurrentMonth(pickupDate);
         }
       });
+
+      new Choices('#pickup-location', { searchEnabled: true, itemSelectText: '' });
+      new Choices('#dropoff-location', { searchEnabled: true, itemSelectText: '' });
     });
     </script>
 
@@ -449,11 +455,19 @@
                                 <div class="form-group">
                                     <label for="pickup-location">Pick-up Location <span class="required">*</span></label>
                                     <select id="pickup-location" name="pickup-location" required aria-required="true">
-                                        <option value="" disabled selected>Select location</option>
+                                        <!-- <option value="" disabled selected>Select location</option> -->
                                         <option value="airport">Chania Airport</option>
                                         <option value="port">Chania Port</option>
                                         <option value="city">Chania City Center</option>
                                         <option value="hotel">Your Hotel/Villa</option>
+                                        <option value="platanias">Platanias</option>
+                                        <option value="agia-marina">Agia Marina</option>
+                                        <option value="stalos">Stalos</option>
+                                        <option value="agioi-apostoloi">Agioi Apostoloi</option>
+                                        <option value="souda-bay">Souda Bay</option>
+                                        <option value="gerani-chania">Gerani Chania</option>
+                                        <option value="maleme">Maleme</option>
+                                        <option value="chania-center">Chania Center</option>
                                     </select>
                                     <div class="validation-message" id="pickup-location-error"></div>
                                 </div>
@@ -462,11 +476,19 @@
                                 <div class="form-group">
                                     <label for="dropoff-location">Drop-off Location <span class="required">*</span></label>
                                     <select id="dropoff-location" name="dropoff-location" required aria-required="true">
-                                        <option value="" disabled selected>Select location</option>
+                                        <!-- <option value="" disabled selected>Select location</option> -->
                                         <option value="airport">Chania Airport</option>
                                         <option value="port">Chania Port</option>
                                         <option value="city">Chania City Center</option>
                                         <option value="hotel">Your Hotel/Villa</option>
+                                        <option value="platanias">Platanias</option>
+                                        <option value="agia-marina">Agia Marina</option>
+                                        <option value="stalos">Stalos</option>
+                                        <option value="agioi-apostoloi">Agioi Apostoloi</option>
+                                        <option value="souda-bay">Souda Bay</option>
+                                        <option value="gerani-chania">Gerani Chania</option>
+                                        <option value="maleme">Maleme</option>
+                                        <option value="chania-center">Chania Center</option>
                                     </select>
                                     <div class="validation-message" id="dropoff-location-error"></div>
                                 </div>
@@ -585,7 +607,7 @@
                             <h3>Toyota Aygo</h3>
                             <p>Compact and fuel-efficient, perfect for city driving.</p>
                             <div class="car-pricing">
-                                <span class="price">From €35/day</span>
+                                <span class="car-feature">Available</span>
                                 <span class="price-note">· Free cancellation</span>
                             </div>
                             <a href="#" class="btn btn-primary">Book Now</a>
@@ -601,7 +623,7 @@
                             <h3>Volkswagen Tiguan</h3>
                             <p>Spacious SUV with advanced features for comfort.</p>
                             <div class="car-pricing">
-                                <span class="price">From €75/day</span>
+                                <span class="car-feature">Available</span>
                                 <span class="price-note">· Free cancellation</span>
                             </div>
                             <a href="#" class="btn btn-primary">Book Now</a>
@@ -617,7 +639,7 @@
                             <h3>Volkswagen Golf</h3>
                             <p>Versatile hatchback with excellent handling.</p>
                             <div class="car-pricing">
-                                <span class="price">From €55/day</span>
+                                <span class="car-feature">Available</span>
                                 <span class="price-note">· Free cancellation</span>
                             </div>
                             <a href="#" class="btn btn-primary">Book Now</a>
@@ -633,7 +655,7 @@
                             <h3>Hyundai i10</h3>
                             <p>Economical and easy to drive mini car.</p>
                             <div class="car-pricing">
-                                <span class="price">From €32/day</span>
+                                <span class="car-feature">Available</span>
                                 <span class="price-note">· Free cancellation</span>
                             </div>
                             <a href="#" class="btn btn-primary">Book Now</a>
@@ -649,7 +671,7 @@
                             <h3>Citroen C3</h3>
                             <p>Stylish compact car with excellent comfort.</p>
                             <div class="car-pricing">
-                                <span class="price">From €40/day</span>
+                                <span class="car-feature">Available</span>
                                 <span class="price-note">· Free cancellation</span>
                             </div>
                             <a href="#" class="btn btn-primary">Book Now</a>
@@ -665,7 +687,7 @@
                             <h3>Suzuki Swift</h3>
                             <p>Sporty and nimble, ideal for exploring Crete.</p>
                             <div class="car-pricing">
-                                <span class="price">From €38/day</span>
+                                <span class="car-feature">Available</span>
                                 <span class="price-note">· Free cancellation</span>
                             </div>
                             <a href="#" class="btn btn-primary">Book Now</a>
