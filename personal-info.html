@@ -1602,43 +1602,38 @@
           const carPrice = parseFloat(urlParams.get('car-price') || 0);
           
           // Get car data more reliably - try to get from local storage if URL params are missing
+          let finalCarId = urlParams.get('car-id') || '';
           let finalCarMake = carMake;
           let finalCarModel = carModel; 
           let finalDailyRate = carPrice;
-          
-          // Try to get from localStorage if URL parameters are incomplete
-          if (!finalCarMake || !finalCarModel || !finalDailyRate) {
-            try {
-              const storedCarData = JSON.parse(localStorage.getItem('selectedCar'));
-              if (storedCarData) {
-                finalCarMake = finalCarMake || storedCarData.make;
-                finalCarModel = finalCarModel || storedCarData.model;
-                finalDailyRate = finalDailyRate || storedCarData.price;
-                console.log('Retrieved car data from localStorage:', storedCarData);
-              }
-            } catch (e) {
-              console.error('Error retrieving car data from localStorage:', e);
+          try {
+            const storedCarData = JSON.parse(localStorage.getItem('selectedCar'));
+            if (storedCarData) {
+              finalCarId = finalCarId || storedCarData.id;
+              finalCarMake = finalCarMake || storedCarData.make;
+              finalCarModel = finalCarModel || storedCarData.model;
+              finalDailyRate = finalDailyRate || storedCarData.price;
+              console.log('Retrieved car data from localStorage:', storedCarData);
             }
+          } catch (e) {
+            console.error('Error retrieving car data from localStorage:', e);
           }
-          
           // Calculate total price based on duration and selected car
           const durationDays = parseInt(urlParams.get('duration') || 1);
           let totalPrice = finalDailyRate * durationDays;
-          
           // Check additional options
           const additionalDriver = document.getElementById('additionalDriver').checked;
           const fullInsurance = document.getElementById('fullInsurance').checked;
           const gpsNavigation = document.getElementById('gpsNavigation').checked;
           const childSeat = document.getElementById('childSeat').checked;
-          
           // Add additional options costs
           if (additionalDriver) totalPrice += 15 * durationDays;
           if (fullInsurance) totalPrice += 25 * durationDays;
           if (gpsNavigation) totalPrice += 8 * durationDays;
           if (childSeat) totalPrice += 5 * durationDays;
-          
           // Create booking data with snake_case field names for server
           const bookingData = {
+            car_id: finalCarId,
             customer_first_name: firstName,
             customer_last_name: lastName,
             customer_email: email,
@@ -1661,13 +1656,7 @@
             child_seat: childSeat,
             special_requests: document.getElementById('specialRequests').value
           };
-          
-          console.log('Submitting booking with car data:', {
-            car_make: finalCarMake,
-            car_model: finalCarModel,
-            daily_rate: finalDailyRate,
-            total_price: totalPrice
-          });
+          console.log('Submitting booking with data:', bookingData);
           
           // Button is already disabled above, and loading overlay already shown
           
