@@ -1620,98 +1620,114 @@
           }
           // Calculate total price based on duration and selected car
           const durationDays = parseInt(urlParams.get('duration') || 1);
-          let totalPrice = finalDailyRate * durationDays;
-          // Check additional options
-          const additionalDriver = document.getElementById('additionalDriver').checked;
-          const fullInsurance = document.getElementById('fullInsurance').checked;
-          const gpsNavigation = document.getElementById('gpsNavigation').checked;
-          const childSeat = document.getElementById('childSeat').checked;
-          // Add additional options costs
-          if (additionalDriver) totalPrice += 15 * durationDays;
-          if (fullInsurance) totalPrice += 25 * durationDays;
-          if (gpsNavigation) totalPrice += 8 * durationDays;
-          if (childSeat) totalPrice += 5 * durationDays;
-          // Create booking data with snake_case field names for server
-          const bookingData = {
-            car_id: finalCarId,
-            customer_first_name: firstName,
-            customer_last_name: lastName,
-            customer_email: email,
-            customer_phone: phone,
-            driver_license: driverLicense,
-            license_expiration: licenseExpiry,
-            customer_age: age,
-            country: nationality,
-            pickup_date: urlParams.get('pickup-date'),
-            return_date: urlParams.get('dropoff-date'),
-            pickup_location: urlParams.get('pickup-location'),
-            dropoff_location: urlParams.get('dropoff-location'),
-            car_make: finalCarMake,
-            car_model: finalCarModel,
-            daily_rate: finalDailyRate,
-            total_price: totalPrice,
-            additional_driver: additionalDriver,
-            full_insurance: fullInsurance,
-            gps_navigation: gpsNavigation,
-            child_seat: childSeat,
-            special_requests: document.getElementById('specialRequests').value
+          // Fetch total price from backend before submitting
+          const fetchTotalPrice = async () => {
+            const carId = finalCarId;
+            const pickupDate = urlParams.get('pickup-date');
+            const returnDate = urlParams.get('dropoff-date');
+            if (!carId || !pickupDate || !returnDate) return 0;
+            // Calculate month and days
+            const pickupMonth = new Date(pickupDate).toISOString().slice(0, 7);
+            const pickup = new Date(pickupDate);
+            const dropoff = new Date(returnDate);
+            const days = Math.ceil((dropoff - pickup) / (1000 * 60 * 60 * 24)) + 1;
+            try {
+              const resp = await fetch(`/api/get-price?car_id=${encodeURIComponent(carId)}&month=${encodeURIComponent(pickupMonth)}&days=${days}`);
+              const data = await resp.json();
+              if (data.success && data.total_price) return data.total_price;
+              return 0;
+            } catch (e) {
+              return 0;
+            }
           };
-          console.log('Submitting booking with data:', bookingData);
-          
-          // Button is already disabled above, and loading overlay already shown
-          
-          fetch("/api/bookings", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(bookingData)
-          })
-          .then(async (response) => {
-            const contentType = response.headers.get("content-type");
-            const rawBody = await response.clone().text();
+          fetchTotalPrice().then(async (basePrice) => {
+            let totalPrice = basePrice;
+            // Check additional options
+            const additionalDriver = document.getElementById('additionalDriver').checked;
+            const fullInsurance = document.getElementById('fullInsurance').checked;
+            const gpsNavigation = document.getElementById('gpsNavigation').checked;
+            const childSeat = document.getElementById('childSeat').checked;
+            // Add additional options costs
+            if (additionalDriver) totalPrice += 15 * durationDays;
+            if (fullInsurance) totalPrice += 25 * durationDays;
+            if (gpsNavigation) totalPrice += 8 * durationDays;
+            if (childSeat) totalPrice += 5 * durationDays;
+            if (!totalPrice || totalPrice <= 0) {
+              alert('Could not fetch price for this car and dates. Please try again or contact support.');
+              resetSubmitButton();
+              return;
+            }
+            // Create booking data with snake_case field names for server
+            const bookingData = {
+              car_id: finalCarId,
+              customer_first_name: firstName,
+              customer_last_name: lastName,
+              customer_email: email,
+              customer_phone: phone,
+              driver_license: driverLicense,
+              license_expiration: licenseExpiry,
+              customer_age: age,
+              country: nationality,
+              pickup_date: urlParams.get('pickup-date'),
+              return_date: urlParams.get('dropoff-date'),
+              pickup_location: urlParams.get('pickup-location'),
+              dropoff_location: urlParams.get('dropoff-location'),
+              car_make: finalCarMake,
+              car_model: finalCarModel,
+              daily_rate: finalDailyRate,
+              total_price: totalPrice,
+              additional_driver: additionalDriver,
+              full_insurance: fullInsurance,
+              gps_navigation: gpsNavigation,
+              child_seat: childSeat,
+              special_requests: document.getElementById('specialRequests').value
+            };
+            console.log('Submitting booking with data:', bookingData);
             
-            console.log(`Booking API response status: ${response.status} ${response.statusText}`);
-            console.log('Raw response body:', rawBody);
-          
-            if (!response.ok) {
-              throw new Error(`Booking failed. Status: ${response.status}. Message: ${rawBody}`);
-            }
-          
-            if (!contentType || !contentType.includes("application/json")) {
-              throw new Error(`Unexpected response format. Raw body: ${rawBody}`);
-            }
-          
-            const data = await response.json();
-            if (!data.success) {
-              throw new Error(`Booking failed. Server responded: ${JSON.stringify(data)}`);
-            }
-          
-            // Show success message
-            showSuccessMessage();
+            // Button is already disabled above, and loading overlay already shown
+            
+            fetch("/api/bookings", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(bookingData)
+            })
+            .then(async (response) => {
+              const contentType = response.headers.get("content-type");
+              const rawBody = await response.clone().text();
               
-            // Redirect after a short delay
-            setTimeout(() => {
-              window.location.href = `booking-confirmation.html?reference=${data.booking_reference}`;
-            }, 1000);
-          })
-          .catch((error) => {
-            console.error('Booking error:', error);
-            alert(`Booking error: ${error.message}`);
-            resetSubmitButton();
-          })
-          .finally(() => {
-            isSubmitting = false;
+              console.log(`Booking API response status: ${response.status} ${response.statusText}`);
+              console.log('Raw response body:', rawBody);
+            
+              if (!response.ok) {
+                throw new Error(`Booking failed. Status: ${response.status}. Message: ${rawBody}`);
+              }
+            
+              if (!contentType || !contentType.includes("application/json")) {
+                throw new Error(`Unexpected response format. Raw body: ${rawBody}`);
+              }
+            
+              const data = await response.json();
+              if (!data.success) {
+                throw new Error(`Booking failed. Server responded: ${JSON.stringify(data)}`);
+              }
+            
+              // Show success message
+              showSuccessMessage();
+                
+              // Redirect after a short delay
+              setTimeout(() => {
+                window.location.href = `booking-confirmation.html?reference=${data.booking_reference}`;
+              }, 1000);
+            })
+            .catch((error) => {
+              console.error('Booking error:', error);
+              alert(`Booking error: ${error.message}`);
+              resetSubmitButton();
+            })
+            .finally(() => {
+              isSubmitting = false;
+            });
           });
-          
-          // Function to reset button and flags
-          function resetSubmitButton() {
-            isSubmitting = false;
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('disabled');
-            submitBtn.innerHTML = 'Proceed to Payment <i class="fas fa-credit-card"></i>';
-            if (loadingOverlay) {
-              loadingOverlay.style.display = 'none';
-            }
-          }
         });
       }
       
