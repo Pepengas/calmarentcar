@@ -115,21 +115,40 @@ function requireAdminAuth(req, res, next) {
 app.post('/api/bookings', async (req, res) => {
     try {
         const booking = req.body;
+        console.log('--- Incoming booking request ---');
+        console.log('Payload:', JSON.stringify(booking, null, 2));
         
         // Calculate total price
-        const total_price = await calculateTotalPrice(
-            booking.car_id,
-            booking.pickup_date,
-            booking.return_date
-        );
+        let total_price = null;
+        try {
+            total_price = await calculateTotalPrice(
+                booking.car_id,
+                booking.pickup_date,
+                booking.return_date
+            );
+            console.log(`[Booking] Calculated total_price: ${total_price} for car_id=${booking.car_id}`);
+        } catch (err) {
+            console.error(`[Booking] Error in calculateTotalPrice:`, err.message);
+        }
 
         // Get the daily rate for the pickup month
-        const pickup_month = new Date(booking.pickup_date).toISOString().slice(0, 7);
-        const rateResult = await pool.query(
-            'SELECT monthly_pricing FROM cars WHERE car_id = $1',
-            [booking.car_id]
-        );
-        const daily_rate = rateResult.rows[0].monthly_pricing[pickup_month];
+        let daily_rate = null;
+        let pickup_month = null;
+        try {
+            pickup_month = new Date(booking.pickup_date).toISOString().slice(0, 7);
+            const rateResult = await pool.query(
+                'SELECT monthly_pricing FROM cars WHERE car_id = $1',
+                [booking.car_id]
+            );
+            if (rateResult.rows.length === 0) {
+                console.error(`[Booking] No car found for car_id=${booking.car_id}`);
+            } else {
+                daily_rate = rateResult.rows[0].monthly_pricing[pickup_month];
+                console.log(`[Booking] Fetched daily_rate for month ${pickup_month}:`, daily_rate);
+            }
+        } catch (err) {
+            console.error(`[Booking] Error fetching daily_rate:`, err.message);
+        }
 
         // Add calculated prices to booking
         booking.total_price = total_price;
