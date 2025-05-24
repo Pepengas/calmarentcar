@@ -905,9 +905,9 @@ async function calculateTotalPrice(car_id, pickup_date, return_date) {
         // Use per-day pricing for days 1-7, then extraDay for 8+
         let priceForDay;
         if (globalDayIndex <= 7) {
-            priceForDay = monthPricing[globalDayIndex] || monthPricing['1'];
+            priceForDay = monthPricing[`day_${globalDayIndex}`] || monthPricing[globalDayIndex] || monthPricing['day_1'] || monthPricing['1'];
         } else {
-            priceForDay = monthPricing['extraDay'] || monthPricing['7'] || monthPricing['1'];
+            priceForDay = monthPricing['extra_day'] || monthPricing['extraDay'] || monthPricing['day_7'] || monthPricing[7] || monthPricing['day_1'] || monthPricing['1'];
         }
         if (!priceForDay) {
             console.error(`[calculateTotalPrice] No price for day ${globalDayIndex} in month ${month}`);
