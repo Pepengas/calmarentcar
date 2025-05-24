@@ -878,44 +878,38 @@ async function calculateTotalPrice(car_id, pickup_date, return_date) {
 
     const pickup = new Date(pickup_date);
     const return_date_obj = new Date(return_date);
+    // Calculate total days (inclusive)
+    const totalDays = Math.ceil((return_date_obj - pickup) / (1000 * 60 * 60 * 24)) + 1;
     let total_price = 0;
-    let current_date = new Date(pickup);
-    let dayCount = 1;
-    let daysByMonth = {};
-
-    // Count days per month
-    while (current_date <= return_date_obj) {
-        const month = current_date.toISOString().slice(0, 7); // Format: YYYY-MM
-        if (!daysByMonth[month]) daysByMonth[month] = 0;
-        daysByMonth[month]++;
-        current_date.setDate(current_date.getDate() + 1);
-        dayCount++;
-    }
-
-    // Reset for price calculation
-    current_date = new Date(pickup);
-    let globalDayIndex = 1;
-    while (current_date <= return_date_obj) {
-        const month = current_date.toISOString().slice(0, 7);
+    // If rental is 1-7 days, use package price
+    if (totalDays <= 7) {
+        const month = pickup.toISOString().slice(0, 7);
         const monthPricing = monthlyPricing[month];
         if (!monthPricing) {
             console.error(`[calculateTotalPrice] No pricing for month: ${month}`);
             throw new Error(`No price found for month ${month}`);
         }
-        // Use per-day pricing for days 1-7, then extraDay for 8+
-        let priceForDay;
-        if (globalDayIndex <= 7) {
-            priceForDay = monthPricing[`day_${globalDayIndex}`] || monthPricing[globalDayIndex] || monthPricing['day_1'] || monthPricing['1'];
-        } else {
-            priceForDay = monthPricing['extra_day'] || monthPricing['extraDay'] || monthPricing['day_7'] || monthPricing[7] || monthPricing['day_1'] || monthPricing['1'];
+        let packagePrice = monthPricing[`day_${totalDays}`] || monthPricing[totalDays] || monthPricing['day_1'] || monthPricing['1'];
+        if (!packagePrice) {
+            console.error(`[calculateTotalPrice] No package price for ${totalDays} days in month ${month}`);
+            throw new Error(`No package price for ${totalDays} days in month ${month}`);
         }
-        if (!priceForDay) {
-            console.error(`[calculateTotalPrice] No price for day ${globalDayIndex} in month ${month}`);
-            throw new Error(`No price for day ${globalDayIndex} in month ${month}`);
+        total_price = packagePrice;
+    } else {
+        // For rentals >7 days, use day_7 + (N-7)*extra_day
+        const month = pickup.toISOString().slice(0, 7);
+        const monthPricing = monthlyPricing[month];
+        if (!monthPricing) {
+            console.error(`[calculateTotalPrice] No pricing for month: ${month}`);
+            throw new Error(`No price found for month ${month}`);
         }
-        total_price += priceForDay;
-        current_date.setDate(current_date.getDate() + 1);
-        globalDayIndex++;
+        let basePrice = monthPricing['day_7'] || monthPricing[7] || monthPricing['day_1'] || monthPricing['1'];
+        let extraDayPrice = monthPricing['extra_day'] || monthPricing['extraDay'];
+        if (!basePrice || !extraDayPrice) {
+            console.error(`[calculateTotalPrice] No base or extra day price for month: ${month}`);
+            throw new Error(`No base or extra day price for month ${month}`);
+        }
+        total_price = basePrice + (totalDays - 7) * extraDayPrice;
     }
     // Log calculation for debugging
     console.log(`[calculateTotalPrice] car_id=${car_id}, pickup=${pickup_date}, return=${return_date}, total_price=${total_price}`);
