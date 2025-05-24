@@ -32,6 +32,8 @@ const CustomerInfo = {
         this.bindEvents();
         this.populateBookingSummary();
         this.updateTotalPrice();
+        // Add country code autofill for phone
+        this.setupCountryPhoneAutofill();
     },
     
     /**
@@ -773,5 +775,66 @@ const CustomerInfo = {
         }
         
         return (dailyRate * days).toFixed(2);
+    },
+    
+    /**
+     * Set up country code autofill for phone input
+     */
+    setupCountryPhoneAutofill: function() {
+        // Country name to code mapping (add more as needed)
+        const countryCodes = {
+            'Greece': '+30',
+            'United Kingdom': '+44',
+            'United States': '+1',
+            'France': '+33',
+            'Germany': '+49',
+            'Italy': '+39',
+            'Spain': '+34',
+            'Netherlands': '+31',
+            'Belgium': '+32',
+            'Sweden': '+46',
+            'Norway': '+47',
+            'Denmark': '+45',
+            'Finland': '+358',
+            'Switzerland': '+41',
+            'Austria': '+43',
+            'Portugal': '+351',
+            'Ireland': '+353',
+            'Poland': '+48',
+            'Czech Republic': '+420',
+            'Slovakia': '+421',
+            'Hungary': '+36',
+            'Romania': '+40',
+            'Bulgaria': '+359',
+            'Serbia': '+381',
+            'Croatia': '+385',
+            'Slovenia': '+386',
+            'Turkey': '+90',
+            'Russia': '+7',
+            'Ukraine': '+380',
+            'Australia': '+61',
+            'Canada': '+1',
+            'Cyprus': '+357',
+            // ... add more as needed ...
+        };
+        const phoneInput = this.elements.phone;
+        const countrySelect = this.elements.nationality;
+        if (!phoneInput || !countrySelect) return;
+        // On country change, prefill phone code if needed
+        countrySelect.addEventListener('change', function() {
+            const country = countrySelect.value;
+            const code = countryCodes[country];
+            if (!code) return;
+            // Only prefill if empty or starts with a previous code
+            if (!phoneInput.value || phoneInput.value.match(/^\+\d{1,4}$/)) {
+                phoneInput.value = code;
+            } else {
+                // If the field starts with a different code, optionally update it
+                const prevCode = Object.values(countryCodes).find(c => phoneInput.value.startsWith(c));
+                if (prevCode) {
+                    phoneInput.value = code + phoneInput.value.slice(prevCode.length);
+                }
+            }
+        });
     }
 }; 
