@@ -202,18 +202,40 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
           const carId = this.getAttribute('data-car-id');
           const carName = this.getAttribute('data-car-name');
-          const carPrice = this.getAttribute('data-car-price');
+          const carPrice = parseFloat(this.getAttribute('data-car-price'));
           // Extract make and model from car name
           const nameParts = carName.split(' ');
           const make = nameParts[0];
           const model = nameParts.slice(1).join(' ');
+          // Get duration from URL params
+          const urlParams = new URLSearchParams(window.location.search);
+          let durationDays = parseInt(urlParams.get('duration') || '1');
+          if (isNaN(durationDays) || durationDays < 1) durationDays = 1;
+          // Try to get total price from the car card if available
+          let totalPrice = 0;
+          const card = this.closest('.car-card');
+          if (card) {
+            const priceElement = card.querySelector('.car-price');
+            if (priceElement && priceElement.textContent.includes('€')) {
+              const match = priceElement.textContent.match(/€([\d\.]+)/);
+              if (match) {
+                totalPrice = parseFloat(match[1]);
+              }
+            }
+          }
+          // Fallback: calculate total price
+          if (!totalPrice && carPrice > 0 && durationDays > 0) {
+            totalPrice = carPrice * durationDays;
+          }
           // Save selected car data to localStorage for reliable access between pages
           const selectedCar = {
             id: carId,
             name: carName,
             make: make,
             model: model,
-            price: parseFloat(carPrice)
+            price: carPrice,
+            totalPrice: totalPrice,
+            durationDays: durationDays
           };
           // Log the data being saved
           console.log('Saving car data to localStorage:', selectedCar);
