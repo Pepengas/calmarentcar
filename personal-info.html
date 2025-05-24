@@ -968,6 +968,37 @@
         margin-right: 0;
       }
     }
+
+    /* Mobile-friendly add-ons and terms checkboxes */
+    @media (max-width: 600px) {
+      .form-check {
+        margin-bottom: 0.7rem;
+        padding: 0.6rem 0.7rem;
+        border-radius: 8px;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        font-size: 0.98rem;
+      }
+      .form-check input[type="checkbox"] {
+        width: 1.1em;
+        height: 1.1em;
+        margin-right: 0.7em;
+      }
+      .form-group {
+        margin-bottom: 0.8rem;
+      }
+      .form-group label, .form-check label {
+        font-size: 1rem;
+      }
+      /* Group add-ons in a card */
+      .addons-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        padding: 0.5rem 0.7rem 0.2rem 0.7rem;
+        margin-bottom: 1.2rem;
+      }
+    }
   </style>
   <!-- Add progress tracker CSS -->
   <link rel="stylesheet" href="assets/css/progress-tracker.css">
@@ -1146,30 +1177,38 @@
           </div>
 
           <div class="form-group">
-            <div class="form-check">
-              <input type="checkbox" id="additionalDriver" name="additionalDriver">
-              <label for="additionalDriver">Additional Driver (+€15/day)</label>
+            <div class="addons-card">
+              <div class="form-check">
+                <input type="checkbox" id="additionalDriver" name="additionalDriver">
+                <label for="additionalDriver">Additional Driver (+€15/day)</label>
+              </div>
             </div>
           </div>
 
           <div class="form-group">
-            <div class="form-check">
-              <input type="checkbox" id="fullInsurance" name="fullInsurance">
-              <label for="fullInsurance">Full Insurance (+€25/day)</label>
+            <div class="addons-card">
+              <div class="form-check">
+                <input type="checkbox" id="fullInsurance" name="fullInsurance">
+                <label for="fullInsurance">Full Insurance (+€25/day)</label>
+              </div>
             </div>
           </div>
 
           <div class="form-group">
-            <div class="form-check">
-              <input type="checkbox" id="gpsNavigation" name="gpsNavigation">
-              <label for="gpsNavigation">GPS Navigation (+€8/day)</label>
+            <div class="addons-card">
+              <div class="form-check">
+                <input type="checkbox" id="gpsNavigation" name="gpsNavigation">
+                <label for="gpsNavigation">GPS Navigation (+€8/day)</label>
+              </div>
             </div>
           </div>
 
           <div class="form-group">
-            <div class="form-check">
-              <input type="checkbox" id="childSeat" name="childSeat">
-              <label for="childSeat">Child Seat (+€5/day)</label>
+            <div class="addons-card">
+              <div class="form-check">
+                <input type="checkbox" id="childSeat" name="childSeat">
+                <label for="childSeat">Child Seat (+€5/day)</label>
+              </div>
             </div>
           </div>
         </div>
