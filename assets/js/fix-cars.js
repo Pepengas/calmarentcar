@@ -317,48 +317,88 @@ document.addEventListener('DOMContentLoaded', function() {
     return `${months[month]} ${day}, ${year}`;
   }
   
+  // Function to extract car specs from features array
+  function extractSpecsFromFeatures(featuresArr) {
+    // Default values
+    const specs = {
+      engine: '',
+      passengers: '',
+      doors: '',
+      gearbox: '',
+      airCondition: false,
+      abs: false,
+      airbag: false,
+      fuel: '',
+      entertainment: ''
+    };
+    if (!Array.isArray(featuresArr)) return specs;
+    featuresArr.forEach(f => {
+      const val = f.toLowerCase();
+      if (val.includes('automatic')) specs.gearbox = 'Automatic';
+      if (val.includes('manual')) specs.gearbox = 'Manual';
+      if (val.match(/\d+\s*seats?/)) specs.passengers = val.match(/\d+/)[0];
+      if (val.match(/\d+\s*doors?/)) specs.doors = val.match(/\d+/)[0];
+      if (val.includes('air conditioning') || val.includes('a/c')) specs.airCondition = true;
+      if (val.includes('abs')) specs.abs = true;
+      if (val.includes('airbag')) specs.airbag = true;
+      if (val.includes('petrol')) specs.fuel = 'Petrol';
+      if (val.includes('diesel')) specs.fuel = 'Diesel';
+      if (val.includes('hybrid')) specs.fuel = 'Hybrid';
+      if (val.includes('electric')) specs.fuel = 'Electric';
+      if (val.includes('bluetooth')) specs.entertainment = 'Bluetooth';
+      if (val.includes('usb')) specs.entertainment = 'USB';
+      if (val.includes('radio')) specs.entertainment = 'Radio';
+      if (val.includes('cd')) specs.entertainment = 'CD Player';
+      if (val.includes('cruise control')) specs.entertainment = 'Cruise Control';
+      // Add more as needed
+    });
+    return specs;
+  }
+  
   // Function to generate HTML for available cars
   function getAvailableCarsHTML(duration, cars) {
     let html = '<div class="cars-grid">';
     cars.forEach(car => {
+      // Parse features array into specs object
+      const specs = extractSpecsFromFeatures(car.features);
       // Create specs HTML with icons
       let specsHTML = `
         <div class="car-specs">
           <div class="spec-item">
             <i class="fas fa-gas-pump"></i>
-            <span>Engine: ${car.features?.engine || ''}</span>
+            <span>Engine: ${specs.engine || specs.fuel || '-'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-users"></i>
-            <span>Passengers: ${car.features?.passengers || ''}</span>
+            <span>Passengers: ${specs.passengers || '-'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-door-open"></i>
-            <span>Doors: ${car.features?.doors || ''}</span>
+            <span>Doors: ${specs.doors || '-'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-cogs"></i>
-            <span>Gearbox: ${car.features?.gearbox || ''}</span>
+            <span>Gearbox: ${specs.gearbox || '-'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-snowflake"></i>
-            <span>Air Condition</span>
+            <span>Air Condition${specs.airCondition ? '' : ': -'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-car-crash"></i>
-            <span>ABS</span>
+            <span>ABS${specs.abs ? '' : ': -'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-shield-alt"></i>
-            <span>Airbag</span>
+            <span>Airbag${specs.airbag ? '' : ': -'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-gas-pump"></i>
-            <span>Fuel: ${car.features?.fuel || ''}</span>
+            <span>Fuel: ${specs.fuel || '-'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-music"></i>
-            <span>${car.features?.entertainment || ''}</span>
+            <span>${specs.entertainment || '-'}</span>
           </div>
         </div>
       `;
