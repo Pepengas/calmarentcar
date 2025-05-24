@@ -381,15 +381,15 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           <div class="spec-item">
             <i class="fas fa-snowflake"></i>
-            <span>Air Condition${specs.airCondition ? '' : ': -'}</span>
+            <span>Air Condition: ${specs.airCondition ? 'Yes' : '-'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-car-crash"></i>
-            <span>ABS${specs.abs ? '' : ': -'}</span>
+            <span>ABS: ${specs.abs ? 'Yes' : '-'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-shield-alt"></i>
-            <span>Airbag${specs.airbag ? '' : ': -'}</span>
+            <span>Airbag: ${specs.airbag ? 'Yes' : '-'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-gas-pump"></i>
