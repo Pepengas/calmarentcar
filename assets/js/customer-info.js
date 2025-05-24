@@ -415,7 +415,6 @@ const CustomerInfo = {
             { element: this.elements.firstName, errorId: 'firstName-error', message: 'First name is required' },
             { element: this.elements.lastName, errorId: 'lastName-error', message: 'Last name is required' },
             { element: this.elements.email, errorId: 'email-error', message: 'Email address is required' },
-            { element: this.elements.phone, errorId: 'phone-error', message: 'Phone number is required' },
             { element: this.elements.driverLicense, errorId: 'driverLicense-error', message: 'Driver\'s license number is required' },
             { element: this.elements.licenseExpiry, errorId: 'licenseExpiry-error', message: 'License expiry date is required' },
             { element: this.elements.age, errorId: 'age-error', message: 'Age is required' },
@@ -438,16 +437,36 @@ const CustomerInfo = {
             }
         });
         
+        // Phone validation (country code + number)
+        const phoneCode = document.getElementById('phoneCountryCode');
+        const phoneInput = this.elements.phone;
+        const phoneError = document.getElementById('phone-error');
+        phoneError.textContent = '';
+        phoneError.style.display = 'none';
+        phoneCode.classList.remove('invalid');
+        phoneInput.classList.remove('invalid');
+        if (!phoneCode.value.trim() || !phoneInput.value.trim()) {
+            isValid = false;
+            phoneError.textContent = 'Phone number and country code are required';
+            phoneError.style.display = 'block';
+            phoneCode.classList.add('invalid');
+            phoneInput.classList.add('invalid');
+        } else if (!/^\+\d{1,4}$/.test(phoneCode.value.trim())) {
+            isValid = false;
+            phoneError.textContent = 'Country code must start with + and be 2-5 characters (e.g. +30)';
+            phoneError.style.display = 'block';
+            phoneCode.classList.add('invalid');
+        } else if (!/^\d{6,15}$/.test(phoneInput.value.trim())) {
+            isValid = false;
+            phoneError.textContent = 'Phone number must be 6-15 digits';
+            phoneError.style.display = 'block';
+            phoneInput.classList.add('invalid');
+        }
+        
         // Email format validation
         if (this.elements.email.value.trim() && !this.isValidEmail(this.elements.email.value)) {
             isValid = false;
             this.showFieldError(this.elements.email, 'email-error', 'Please enter a valid email address');
-        }
-        
-        // Phone number format validation
-        if (this.elements.phone.value.trim() && !this.isValidPhone(this.elements.phone.value)) {
-            isValid = false;
-            this.showFieldError(this.elements.phone, 'phone-error', 'Please enter a valid phone number');
         }
         
         // Age validation
@@ -492,23 +511,16 @@ const CustomerInfo = {
     },
     
     /**
-     * Validate phone number format
-     */
-    isValidPhone: function(phone) {
-        // Simple validation - can be enhanced for specific formats
-        const phonePattern = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
-        return phonePattern.test(phone);
-    },
-    
-    /**
      * Collect form data
      */
     collectFormData: function() {
+        const phoneCode = document.getElementById('phoneCountryCode');
+        const phoneInput = this.elements.phone;
         return {
             firstName: this.elements.firstName.value.trim(),
             lastName: this.elements.lastName.value.trim(),
             email: this.elements.email.value.trim(),
-            phone: this.elements.phone.value.trim(),
+            phone: (phoneCode.value.trim() + phoneInput.value.trim()),
             driverLicense: this.elements.driverLicense.value.trim(),
             licenseExpiry: this.elements.licenseExpiry.value,
             age: parseInt(this.elements.age.value),

@@ -1105,7 +1105,10 @@
           
           <div class="form-group">
             <label class="required">Phone Number</label>
-            <input type="tel" id="phone" name="phone" required>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="text" id="phoneCountryCode" name="phoneCountryCode" value="+" maxlength="5" required style="width: 60px; text-align: center;" placeholder="+30">
+              <input type="tel" id="phone" name="phone" required placeholder="69844536" style="flex: 1;">
+            </div>
             <div id="phone-error" class="validation-message"></div>
           </div>
           
