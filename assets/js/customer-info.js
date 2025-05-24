@@ -781,7 +781,6 @@ const CustomerInfo = {
      * Set up country code autofill for phone input
      */
     setupCountryPhoneAutofill: function() {
-        // Country name to code mapping (add more as needed)
         const countryCodes = {
             'Greece': '+30',
             'United Kingdom': '+44',
@@ -820,9 +819,8 @@ const CustomerInfo = {
         const phoneInput = this.elements.phone;
         const countrySelect = this.elements.nationality;
         if (!phoneInput || !countrySelect) return;
-        // On country change, prefill phone code if needed
-        countrySelect.addEventListener('change', function() {
-            const country = countrySelect.value;
+        // Helper to set phone code
+        function setPhoneCode(country) {
             const code = countryCodes[country];
             if (!code) return;
             if (!phoneInput.value || phoneInput.value.match(/^\+\d{1,4}$/)) {
@@ -833,22 +831,29 @@ const CustomerInfo = {
                     phoneInput.value = code + phoneInput.value.slice(prevCode.length);
                 }
             }
+            console.log('[CountryCode] Set phone code for', country, '->', code);
+        }
+        // Native change event
+        countrySelect.addEventListener('change', function() {
+            setPhoneCode(countrySelect.value);
         });
-        // Also support Select2 custom event
-        if (window.jQuery && $(countrySelect).data('select2')) {
-            $(countrySelect).on('select2:select', function(e) {
-                const country = countrySelect.value;
-                const code = countryCodes[country];
-                if (!code) return;
-                if (!phoneInput.value || phoneInput.value.match(/^\+\d{1,4}$/)) {
-                    phoneInput.value = code;
-                } else {
-                    const prevCode = Object.values(countryCodes).find(c => phoneInput.value.startsWith(c));
-                    if (prevCode) {
-                        phoneInput.value = code + phoneInput.value.slice(prevCode.length);
-                    }
-                }
-            });
+        // Robust Select2 event handler
+        function attachSelect2Handler() {
+            if (window.jQuery && $(countrySelect).data('select2')) {
+                $(countrySelect).off('select2:select.countrycode');
+                $(countrySelect).on('select2:select.countrycode', function(e) {
+                    setPhoneCode(countrySelect.value);
+                });
+                console.log('[CountryCode] Select2 handler attached');
+            } else {
+                // Retry after a short delay if Select2 not ready
+                setTimeout(attachSelect2Handler, 300);
+            }
+        }
+        attachSelect2Handler();
+        // On page load, if a country is already selected, prefill code
+        if (countrySelect.value && countryCodes[countrySelect.value]) {
+            setPhoneCode(countrySelect.value);
         }
     }
 }; 
