@@ -825,16 +825,30 @@ const CustomerInfo = {
             const country = countrySelect.value;
             const code = countryCodes[country];
             if (!code) return;
-            // Only prefill if empty or starts with a previous code
             if (!phoneInput.value || phoneInput.value.match(/^\+\d{1,4}$/)) {
                 phoneInput.value = code;
             } else {
-                // If the field starts with a different code, optionally update it
                 const prevCode = Object.values(countryCodes).find(c => phoneInput.value.startsWith(c));
                 if (prevCode) {
                     phoneInput.value = code + phoneInput.value.slice(prevCode.length);
                 }
             }
         });
+        // Also support Select2 custom event
+        if (window.jQuery && $(countrySelect).data('select2')) {
+            $(countrySelect).on('select2:select', function(e) {
+                const country = countrySelect.value;
+                const code = countryCodes[country];
+                if (!code) return;
+                if (!phoneInput.value || phoneInput.value.match(/^\+\d{1,4}$/)) {
+                    phoneInput.value = code;
+                } else {
+                    const prevCode = Object.values(countryCodes).find(c => phoneInput.value.startsWith(c));
+                    if (prevCode) {
+                        phoneInput.value = code + phoneInput.value.slice(prevCode.length);
+                    }
+                }
+            });
+        }
     }
 }; 
