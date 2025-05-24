@@ -1425,7 +1425,6 @@
         document.getElementById('summary-return-date').textContent = formatDate(returnDate, returnTime);
         document.getElementById('summary-duration').textContent = `${durationDays} day${durationDays > 1 ? 's' : ''}`;
         document.getElementById('summary-car').textContent = `${carMake} ${carModel}`;
-        // Removed daily rate from summary
         // Calculate and display total price (show N/A if price is missing)
         let totalPrice = (carPrice && durationDays) ? carPrice * durationDays : 0;
         document.getElementById('summary-total').textContent = (totalPrice > 0) ? `€${totalPrice.toFixed(2)}` : 'N/A';
