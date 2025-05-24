@@ -1013,6 +1013,50 @@
         margin-bottom: 0.5rem;
       }
     }
+
+    /* Add-ons grid: 4 in a row on desktop, 2x2 on mobile */
+    .addons-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+    .addons-card {
+      padding: 1rem 0.7rem;
+      margin-bottom: 0;
+      min-width: 0;
+      background: #f8f9fa;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .addons-card label {
+      font-size: 1.05rem;
+    }
+    .addons-card input[type="checkbox"] {
+      width: 1.2em;
+      height: 1.2em;
+      margin-right: 0.7em;
+    }
+    @media (max-width: 600px) {
+      .addons-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.7rem;
+      }
+      .addons-card {
+        padding: 0.5rem 0.3rem;
+      }
+      .addons-card label {
+        font-size: 0.97rem;
+      }
+      .addons-card input[type="checkbox"] {
+        width: 1em;
+        height: 1em;
+        margin-right: 0.5em;
+      }
+    }
   </style>
   <!-- Add progress tracker CSS -->
   <link rel="stylesheet" href="assets/css/progress-tracker.css">
