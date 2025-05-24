@@ -1363,16 +1363,18 @@
         let carName = urlParams.get('car-name') || '';
         let carMake = '';
         let carModel = '';
-        let carPrice = parseFloat(urlParams.get('car-price') || '0');
+        let carPrice = 0;
         let totalPrice = 0;
-        // Try to get car data from localStorage if URL parameters are missing
         try {
           const storedCarData = JSON.parse(localStorage.getItem('selectedCar') || '{}');
+          console.log('Loaded selectedCar from localStorage:', storedCarData);
           if (storedCarData) {
             carMake = carMake || storedCarData.make;
             carModel = carModel || storedCarData.model;
-            carPrice = carPrice || storedCarData.price;
-            if (storedCarData.totalPrice) {
+            if (storedCarData.price && storedCarData.price > 0) {
+              carPrice = storedCarData.price;
+            }
+            if (storedCarData.totalPrice && storedCarData.totalPrice > 0) {
               totalPrice = storedCarData.totalPrice;
             }
           }
@@ -1380,9 +1382,10 @@
           console.error('Error getting car data from localStorage:', e);
         }
         // If no totalPrice from storage, calculate
-        if (!totalPrice) {
-          totalPrice = (carPrice && durationDays) ? carPrice * durationDays : 0;
+        if (!totalPrice && carPrice > 0 && durationDays > 0) {
+          totalPrice = carPrice * durationDays;
         }
+        console.log('Summary values:', {carMake, carModel, carPrice, durationDays, totalPrice});
         // Format dates for display
         function formatDate(dateStr, timeStr) {
           if (!dateStr) return 'N/A';
