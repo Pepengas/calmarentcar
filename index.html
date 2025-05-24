@@ -352,6 +352,15 @@
           console.log('Dropoff date selected:', data.formattedDate);
         }
       });
+
+      // Ensure dropoff calendar opens to the pickup month if pickup date is set
+      document.getElementById('dropoff-date').addEventListener('click', function() {
+        var pickupDateStr = document.getElementById('pickup-date').value;
+        if (pickupDateStr) {
+          var pickupDate = new Date(pickupDateStr);
+          dropoffCalendar.setCurrentMonth(pickupDate);
+        }
+      });
     });
     </script>
 
@@ -391,8 +400,8 @@
             <div class="hero-bg" style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('images/CalmaBackground.jpg');"></div>
             <div class="container">
                 <div class="hero-content" style="padding-top: 0;">
-                    <h1 style="margin-bottom: 10px;">Premium Car Rental in Chania</h1>
-                    <p class="tagline" style="margin-bottom: 15px;">"Calma... and let the journey begin. Explore Crete with ease, comfort, and a smile – your adventure starts here."</p>
+                    <h1 style="margin-bottom: 10px;">Car Rental in Chania</h1>
+                    <p class="tagline" style="margin-bottom: 15px;">"Calma.. and let you holidays begin"</p>
                     
                     <!-- Booking Form -->
                     <div class="booking-form" style="margin-top: 5px; padding: 15px 20px;">
