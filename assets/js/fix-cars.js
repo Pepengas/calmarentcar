@@ -359,14 +359,13 @@ document.addEventListener('DOMContentLoaded', function() {
   function getAvailableCarsHTML(duration, cars) {
     let html = '<div class="cars-grid">';
     cars.forEach(car => {
-      // Parse features array into specs object
-      const specs = extractSpecsFromFeatures(car.features);
-      // Create specs HTML with icons
+      // Prefer specs field if present
+      const specs = car.specs && Object.keys(car.specs).length > 0 ? car.specs : extractSpecsFromFeatures(car.features);
       let specsHTML = `
         <div class="car-specs">
           <div class="spec-item">
             <i class="fas fa-gas-pump"></i>
-            <span>Engine: ${specs.engine || specs.fuel || '-'}</span>
+            <span>Engine: ${specs.engine || '-'}</span>
           </div>
           <div class="spec-item">
             <i class="fas fa-users"></i>

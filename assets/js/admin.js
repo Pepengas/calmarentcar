@@ -108,6 +108,142 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load bookings data
     loadBookings();
+
+    // Tab elements
+    const editCarTab = document.getElementById('editCarTab');
+    const editCarContent = document.getElementById('editCarContent');
+    const dashboardContent = document.getElementById('dashboardContent');
+    const carsContent = document.getElementById('carsContent');
+
+    // Form elements
+    const editCarDropdown = document.getElementById('editCarDropdown');
+    const editCarForm = document.getElementById('editCarForm');
+    const editCarMsg = document.getElementById('editCarMsg');
+
+    // Tab switching
+    if (editCarTab) {
+        editCarTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Hide other content
+            if (dashboardContent) dashboardContent.style.display = 'none';
+            if (carsContent) carsContent.style.display = 'none';
+            // Show edit car content
+            if (editCarContent) editCarContent.style.display = 'block';
+            // Remove active from other tabs
+            document.querySelectorAll('.sidebar .nav-link').forEach(tab => tab.classList.remove('active'));
+            editCarTab.classList.add('active');
+            // Load cars into dropdown
+            loadEditCarDropdown();
+        });
+    }
+
+    // Load all cars into dropdown
+    async function loadEditCarDropdown() {
+        try {
+            const res = await fetch('/api/cars');
+            const data = await res.json();
+            if (!data.success) throw new Error('Failed to fetch cars');
+            editCarDropdown.innerHTML = '';
+            data.cars.forEach(car => {
+                const opt = document.createElement('option');
+                opt.value = car.id;
+                opt.textContent = car.name;
+                editCarDropdown.appendChild(opt);
+            });
+            if (data.cars.length > 0) {
+                loadCarDetails(data.cars[0].id);
+            }
+        } catch (err) {
+            editCarMsg.textContent = 'Error loading cars: ' + err.message;
+            editCarMsg.className = 'alert alert-danger';
+        }
+    }
+
+    // When car is selected, load its details
+    if (editCarDropdown) {
+        editCarDropdown.addEventListener('change', function() {
+            loadCarDetails(this.value);
+        });
+    }
+
+    // Load car details into form
+    async function loadCarDetails(carId) {
+        try {
+            editCarMsg.textContent = '';
+            const res = await fetch(`/api/admin/car/${carId}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'Failed to fetch car');
+            const car = data.car;
+            // Fill form fields
+            editCarForm.elements['name'].value = car.name || '';
+            editCarForm.elements['category'].value = car.category || '';
+            editCarForm.elements['description'].value = car.description || '';
+            editCarForm.elements['image'].value = car.image || '';
+            editCarForm.elements['features'].value = Array.isArray(car.features) ? car.features.join(', ') : '';
+            // Specs
+            const specs = car.specs || {};
+            editCarForm.elements['engine'].value = specs.engine || '';
+            editCarForm.elements['doors'].value = specs.doors || '';
+            editCarForm.elements['passengers'].value = specs.passengers || '';
+            editCarForm.elements['gearbox'].value = specs.gearbox || '';
+            editCarForm.elements['fuel'].value = specs.fuel || '';
+            editCarForm.elements['airCondition'].checked = !!specs.airCondition;
+            editCarForm.elements['abs'].checked = !!specs.abs;
+            editCarForm.elements['airbag'].checked = !!specs.airbag;
+            editCarForm.elements['entertainment'].value = specs.entertainment || '';
+            editCarForm.elements['available'].value = car.available ? 'true' : 'false';
+        } catch (err) {
+            editCarMsg.textContent = 'Error loading car details: ' + err.message;
+            editCarMsg.className = 'alert alert-danger';
+        }
+    }
+
+    // Handle form submit
+    if (editCarForm) {
+        editCarForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            editCarMsg.textContent = '';
+            const carId = editCarDropdown.value;
+            // Gather form data
+            const name = editCarForm.elements['name'].value.trim();
+            const category = editCarForm.elements['category'].value.trim();
+            const description = editCarForm.elements['description'].value.trim();
+            const image = editCarForm.elements['image'].value.trim();
+            const features = editCarForm.elements['features'].value.split(',').map(f => f.trim()).filter(f => f);
+            const specs = {
+                engine: editCarForm.elements['engine'].value.trim(),
+                doors: editCarForm.elements['doors'].value.trim(),
+                passengers: editCarForm.elements['passengers'].value.trim(),
+                gearbox: editCarForm.elements['gearbox'].value,
+                fuel: editCarForm.elements['fuel'].value,
+                airCondition: editCarForm.elements['airCondition'].checked,
+                abs: editCarForm.elements['abs'].checked,
+                airbag: editCarForm.elements['airbag'].checked,
+                entertainment: editCarForm.elements['entertainment'].value.trim()
+            };
+            const available = editCarForm.elements['available'].value === 'true';
+            // PATCH to backend
+            try {
+                const res = await fetch(`/api/admin/car/${carId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    },
+                    body: JSON.stringify({ name, category, description, image, features, specs, available })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Failed to update car');
+                editCarMsg.textContent = 'Car updated successfully!';
+                editCarMsg.className = 'alert alert-success';
+            } catch (err) {
+                editCarMsg.textContent = 'Error saving car: ' + err.message;
+                editCarMsg.className = 'alert alert-danger';
+            }
+        });
+    }
 });
 
 /**

@@ -258,6 +258,9 @@
                             Settings
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="editCarTab" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a>
+                    </li>
                     <li class="nav-item mt-3">
                         <a class="nav-link text-danger" href="#" id="logoutBtn">
                             <i class="fas fa-sign-out-alt me-2"></i>
@@ -501,6 +504,101 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Add Edit Car Content Section (hidden by default) -->
+                <div id="editCarContent" style="display:none;">
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                        <h2 class="text-xl font-semibold mb-4">Edit Car Details</h2>
+                        <div class="mb-4">
+                            <label for="editCarDropdown" class="form-label">Select Car</label>
+                            <select id="editCarDropdown" class="form-select"></select>
+                        </div>
+                        <form id="editCarForm">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="editCarName" class="form-label">Name</label>
+                                    <input type="text" class="form-control" id="editCarName" name="name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editCarCategory" class="form-label">Category</label>
+                                    <input type="text" class="form-control" id="editCarCategory" name="category">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editCarDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="editCarDescription" name="description" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editCarImage" class="form-label">Image URL</label>
+                                <input type="text" class="form-control" id="editCarImage" name="image">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editCarFeatures" class="form-label">Features (comma separated)</label>
+                                <input type="text" class="form-control" id="editCarFeatures" name="features">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label for="editCarEngine" class="form-label">Engine</label>
+                                    <input type="text" class="form-control" id="editCarEngine" name="engine">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="editCarDoors" class="form-label">Doors</label>
+                                    <input type="number" class="form-control" id="editCarDoors" name="doors">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="editCarPassengers" class="form-label">Passengers</label>
+                                    <input type="number" class="form-control" id="editCarPassengers" name="passengers">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="editCarGearbox" class="form-label">Gearbox</label>
+                                    <select class="form-select" id="editCarGearbox" name="gearbox">
+                                        <option value="">Select</option>
+                                        <option value="Automatic">Automatic</option>
+                                        <option value="Manual">Manual</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="editCarFuel" class="form-label">Fuel</label>
+                                    <select class="form-select" id="editCarFuel" name="fuel">
+                                        <option value="">Select</option>
+                                        <option value="Petrol">Petrol</option>
+                                        <option value="Diesel">Diesel</option>
+                                        <option value="Hybrid">Hybrid</option>
+                                        <option value="Electric">Electric</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="editCarAirCondition" name="airCondition">
+                                        <label class="form-check-label" for="editCarAirCondition">Air Condition</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="editCarABS" name="abs">
+                                        <label class="form-check-label" for="editCarABS">ABS</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="editCarAirbag" name="airbag">
+                                        <label class="form-check-label" for="editCarAirbag">Airbag</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editCarEntertainment" class="form-label">Entertainment</label>
+                                    <input type="text" class="form-control" id="editCarEntertainment" name="entertainment" placeholder="e.g. Bluetooth, Radio, USB">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <div id="editCarMsg" class="mt-3"></div>
+                        </form>
                     </div>
                 </div>
             </div>
