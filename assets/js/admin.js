@@ -193,7 +193,6 @@ document.addEventListener('DOMContentLoaded', function() {
             editCarForm.elements['abs'].checked = !!specs.abs;
             editCarForm.elements['airbag'].checked = !!specs.airbag;
             editCarForm.elements['entertainment'].value = specs.entertainment || '';
-            editCarForm.elements['available'].value = car.available ? 'true' : 'false';
         } catch (err) {
             editCarMsg.textContent = 'Error loading car details: ' + err.message;
             editCarMsg.className = 'alert alert-danger';
