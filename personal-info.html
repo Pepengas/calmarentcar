@@ -1675,7 +1675,7 @@
               dropoff_location: urlParams.get('dropoff-location'),
               car_make: finalCarMake,
               car_model: finalCarModel,
-              daily_rate: finalDailyRate,
+              daily_rate: Math.round(basePrice / durationDays),
               total_price: totalPrice,
               additional_driver: additionalDriver,
               full_insurance: fullInsurance,
@@ -1683,7 +1683,7 @@
               child_seat: childSeat,
               special_requests: document.getElementById('specialRequests').value
             };
-            console.log('Submitting booking with data:', bookingData);
+            console.log('FINAL booking payload to send:', bookingData);
             
             // Button is already disabled above, and loading overlay already shown
             
