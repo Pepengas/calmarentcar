@@ -1064,10 +1064,6 @@
           <span class="summary-label">Selected Car:</span>
           <span class="summary-value" id="summary-car"></span>
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Daily Rate:</span>
-          <span class="summary-value" id="summary-daily-rate"></span>
-        </div>
         <div class="summary-section">
           <h4>Additional Options</h4>
           <div id="additional-options-summary">
@@ -1429,11 +1425,10 @@
         document.getElementById('summary-return-date').textContent = formatDate(returnDate, returnTime);
         document.getElementById('summary-duration').textContent = `${durationDays} day${durationDays > 1 ? 's' : ''}`;
         document.getElementById('summary-car').textContent = `${carMake} ${carModel}`;
-        document.getElementById('summary-daily-rate').textContent = carPrice ? `€${carPrice.toFixed(2)}/day` : 'N/A';
-        
-        // Calculate and display total price
-        let totalPrice = carPrice * durationDays;
-        document.getElementById('summary-total').textContent = `€${totalPrice.toFixed(2)}`;
+        // Removed daily rate from summary
+        // Calculate and display total price (show N/A if price is missing)
+        let totalPrice = (carPrice && durationDays) ? carPrice * durationDays : 0;
+        document.getElementById('summary-total').textContent = (totalPrice > 0) ? `€${totalPrice.toFixed(2)}` : 'N/A';
         
         console.log('Trip details populated successfully');
       }
