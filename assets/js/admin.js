@@ -222,8 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 airbag: editCarForm.elements['airbag'].checked,
                 entertainment: editCarForm.elements['entertainment'].value.trim()
             };
-            const available = editCarForm.elements['available'].value === 'true';
-            // PATCH to backend
+            // PATCH to backend (removed 'available')
             try {
                 const res = await fetch(`/api/admin/car/${carId}`, {
                     method: 'PATCH',
@@ -231,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                     },
-                    body: JSON.stringify({ name, category, description, image, features, specs, available })
+                    body: JSON.stringify({ name, category, description, image, features, specs })
                 });
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error || 'Failed to update car');
