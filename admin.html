@@ -215,6 +215,15 @@
             border-radius: 2rem;
             box-shadow: 0 2px 8px #3498db22;
         }
+        #editCarContent .bg-white.rounded-3xl.shadow-lg.p-8.mb-8.border.border-blue-100 {
+            max-width: 1000px !important;
+            margin: 2rem auto !important;
+        }
+        @media (max-width: 1100px) {
+            #editCarContent .bg-white.rounded-3xl.shadow-lg.p-8.mb-8.border.border-blue-100 {
+                max-width: 98vw !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -907,6 +916,31 @@
             dashboardTab.classList.remove('active');
             dashboardContent.style.display = 'none';
             carsContent.style.display = 'block';
+        });
+
+        const editCarTab = document.getElementById('editCarTab');
+        const editCarContent = document.getElementById('editCarContent');
+        // Hide dashboard and show Edit Car when Edit Car tab is clicked
+        editCarTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            dashboardContent.style.display = 'none';
+            editCarContent.style.display = 'block';
+            // Remove Dashboard title if present
+            const h1 = document.querySelector('.h2');
+            if (h1 && h1.textContent.trim() === 'Dashboard') {
+                h1.style.display = 'none';
+            }
+        });
+        // Show dashboard and hide Edit Car when Dashboard tab is clicked
+        dashboardTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            dashboardContent.style.display = 'block';
+            editCarContent.style.display = 'none';
+            // Restore Dashboard title
+            const h1 = document.querySelector('.h2');
+            if (h1 && h1.textContent.trim() === 'Dashboard') {
+                h1.style.display = '';
+            }
         });
     });
     </script>
