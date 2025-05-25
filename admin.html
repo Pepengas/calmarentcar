@@ -1,4 +1,4 @@
-<!-- Version: 1.0.1 - Admin Dashboard -->
+<!-- Version: 1.0.2 - Hide mobile sidebar on desktop fix -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -535,6 +535,11 @@
             .table-responsive {
                 margin: 0;
                 padding: 0;
+            }
+        }
+        @media (min-width: 768px) {
+            .mobile-sidebar {
+                display: none !important;
             }
         }
     </style>
