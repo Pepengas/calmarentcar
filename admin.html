@@ -620,13 +620,13 @@
                 </div>
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">
+                        <a class="nav-link active" id="dashboardTab" href="#">
                             <i class="fas fa-tachometer-alt me-2"></i>
                             Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" id="carsTab" href="#">
                             <i class="fas fa-car me-2"></i>
                             Cars
                         </a>
@@ -1071,33 +1071,35 @@
             const target = document.getElementById(section + 'Content');
             if (target) target.classList.remove('d-none');
             
-            // Update active state in navigation
-            document.querySelectorAll('.sidebar .nav-link, .mobile-nav button').forEach(btn => {
-                btn.classList.remove('active', 'text-primary');
-                btn.classList.add('text-muted');
-            });
-            
-            // Update desktop sidebar
-            const desktopNav = document.querySelector(`.sidebar .nav-link[href="#"]`);
-            if (desktopNav) {
-                desktopNav.classList.add('active');
-                desktopNav.classList.remove('text-muted');
-            }
-            
-            // Update mobile navigation
-            const mobileBtn = document.querySelector(`.mobile-nav button[onclick="showSection('${section}')"]`);
-            if (mobileBtn) {
-                mobileBtn.classList.add('text-primary');
-                mobileBtn.classList.remove('text-muted');
-            }
-            
             // Scroll to top
             window.scrollTo(0, 0);
         }
 
-        // Initialize active state
+        function setActive(tab) {
+            document.querySelectorAll('.sidebar .nav-link').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            // Default to dashboard
             showSection('dashboard');
+            setActive(document.getElementById('dashboardTab'));
+            // Sidebar tab click handlers
+            document.getElementById('dashboardTab').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('dashboard');
+                setActive(this);
+            });
+            document.getElementById('carsTab').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('cars');
+                setActive(this);
+            });
+            document.getElementById('editCarTab').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('editCar');
+                setActive(this);
+            });
         });
     </script>
 
