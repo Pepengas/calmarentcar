@@ -1,5 +1,6 @@
 /**
  * Calma Car Rental - Admin Dashboard JavaScript
+ * Version: 1.0.1
  */
 
 // API variables
@@ -466,6 +467,15 @@ function updateDashboardStats() {
 function renderBookings(bookings) {
     console.log(`[Admin] renderBookings: Called with ${bookings ? bookings.length : 'null/undefined'} bookings.`);
 
+    // Debug table layout mode
+    const tableDebugInfo = document.getElementById('tableDebugInfo');
+    const tableLayoutMode = document.getElementById('tableLayoutMode');
+    if (tableDebugInfo && tableLayoutMode) {
+        const isMobile = window.innerWidth < 768;
+        tableLayoutMode.textContent = isMobile ? 'Mobile' : 'Desktop';
+        tableDebugInfo.style.display = 'block';
+    }
+
     if (!bookingsTableBody) {
         console.error("[Admin] renderBookings: bookingsTableBody element not found in DOM. Cannot render.");
         return;
@@ -475,11 +485,11 @@ function renderBookings(bookings) {
         console.info('[Admin] renderBookings: No bookings to display or bookings array is empty.');
         bookingsTableBody.innerHTML = `
             <tr>
-                <td colspan="12" class="text-center py-5">
+                <td colspan="9" class="text-center py-5">
                     <div class="my-4">
                         <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
                         <p class="mb-2">No bookings found</p>
-                        <p class="text-muted small">Try changing your filter criteria or add new bookings. If you just added a booking, it might take a moment to appear.</p>
+                        <p class="text-muted small">Try changing your filter criteria or add new bookings.</p>
                     </div>
                 </td>
             </tr>
@@ -492,15 +502,13 @@ function renderBookings(bookings) {
     
     console.log('[Admin] renderBookings: Starting to render each booking.');
     bookings.forEach((booking, index) => {
-        console.log(`[Admin] renderBookings: Processing booking ${index + 1}:`, JSON.parse(JSON.stringify(booking))); // Log a deep copy
+        console.log(`[Admin] renderBookings: Processing booking ${index + 1}:`, JSON.parse(JSON.stringify(booking)));
 
         const customer = booking.customer || {};
-        // Fallback for customer names if not nested
         const firstName = customer.firstName || booking.customer_first_name || 'N/A';
         const lastName = customer.lastName || booking.customer_last_name || '';
         const customerName = `${firstName} ${lastName}`.trim();
 
-        // Handle missing car model data more gracefully
         let carName = 'N/A';
         if (booking.car_make && booking.car_model) {
             carName = `${booking.car_make} ${booking.car_model}`;
@@ -510,33 +518,34 @@ function renderBookings(bookings) {
             carName = booking.car_model;
         }
         
-        // Ensure total price is properly formatted even if it's 0
         const price = parseFloat(booking.total_price);
         const formattedPrice = isNaN(price) ? 'N/A' : formatCurrency(price);
         
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${booking.booking_reference || booking.id || 'N/A'}</td>
-            <td>
+            <td data-label="ID/Reference" class="align-middle">${booking.booking_reference || booking.id || 'N/A'}</td>
+            <td data-label="Customer" class="align-middle">
                 <div>${customerName}</div>
                 <small class="text-muted">${customer.email || booking.customer_email || 'N/A'}</small>
             </td>
-            <td>${carName}</td>
-            <td>${formatDate(booking.pickup_date)}</td>
-            <td>${formatDate(booking.return_date)}</td>
-            <td>${formattedPrice}</td>
-            <td><span class="booking-status ${getStatusClass(booking.status)}">${booking.status || 'N/A'}</span></td>
-            <td>${formatDate(booking.date_submitted)}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary me-1 view-details-btn" title="View Details" data-booking-id="${booking.id}">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-secondary me-1 edit-status-btn" title="Edit Status" data-booking-id="${booking.id}" data-current-status="${booking.status}">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger delete-booking-btn" title="Delete Booking" data-booking-id="${booking.id}" data-booking-ref="${booking.booking_reference || booking.id}">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
+            <td data-label="Car" class="align-middle">${carName}</td>
+            <td data-label="Pickup Date" class="align-middle">${formatDate(booking.pickup_date)}</td>
+            <td data-label="Return Date" class="align-middle">${formatDate(booking.return_date)}</td>
+            <td data-label="Total Price" class="align-middle">${formattedPrice}</td>
+            <td data-label="Status" class="align-middle"><span class="booking-status ${getStatusClass(booking.status)}">${booking.status || 'N/A'}</span></td>
+            <td data-label="Submitted" class="align-middle">${formatDate(booking.date_submitted)}</td>
+            <td data-label="Actions" class="align-middle">
+                <div class="d-flex gap-1 justify-content-start">
+                    <button class="btn btn-sm btn-outline-primary view-details-btn" title="View Details" data-booking-id="${booking.id}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary edit-status-btn" title="Edit Status" data-booking-id="${booking.id}" data-current-status="${booking.status}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger delete-booking-btn" title="Delete Booking" data-booking-id="${booking.id}" data-booking-ref="${booking.booking_reference || booking.id}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
             </td>
         `;
         
@@ -546,8 +555,8 @@ function renderBookings(bookings) {
 
     if (bookingsCount) bookingsCount.textContent = bookings.length;
 
-    // Re-attach event listeners for view/edit buttons if necessary, or use event delegation
-    attachActionListeners(); 
+    // Re-attach event listeners
+    attachActionListeners();
 }
 
 function attachActionListeners() {
@@ -1026,5 +1035,15 @@ function handleDeleteBookingClick(event) {
         hideLoader();
     });
 }
+
+// Add window resize handler to update table layout mode
+window.addEventListener('resize', function() {
+    const tableDebugInfo = document.getElementById('tableDebugInfo');
+    const tableLayoutMode = document.getElementById('tableLayoutMode');
+    if (tableDebugInfo && tableLayoutMode) {
+        const isMobile = window.innerWidth < 768;
+        tableLayoutMode.textContent = isMobile ? 'Mobile' : 'Desktop';
+    }
+});
 
        

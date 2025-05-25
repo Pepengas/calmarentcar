@@ -1,3 +1,4 @@
+<!-- Version: 1.0.1 - Admin Dashboard -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -60,6 +61,9 @@
         }
         .table-responsive {
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0;
+            padding: 0;
         }
         .booking-status {
             font-size: 0.8rem;
@@ -422,6 +426,117 @@
                 margin-right: 0 !important;
             }
         }
+        /* Table Styles */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0;
+            padding: 0;
+        }
+
+        #bookingsTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        #bookingsTable thead {
+            background-color: var(--light-bg);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        #bookingsTable th {
+            white-space: nowrap;
+            padding: 0.75rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            border-bottom: 2px solid #dee2e6;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        #bookingsTable td {
+            padding: 0.75rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #dee2e6;
+            text-align: left;
+        }
+
+        /* Mobile Table Styles */
+        @media (max-width: 767px) {
+            #bookingsTable thead {
+                display: none;
+            }
+
+            #bookingsTable tbody tr {
+                display: block;
+                margin-bottom: 1rem;
+                background: #fff;
+                border-radius: 0.5rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                padding: 0.5rem;
+            }
+
+            #bookingsTable td {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
+                border: none;
+                padding: 0.5rem;
+                text-align: right;
+            }
+
+            #bookingsTable td:before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: var(--primary-color);
+                margin-right: 1rem;
+                text-align: left;
+                min-width: 120px;
+            }
+
+            #bookingsTable td:last-child {
+                border-bottom: none;
+            }
+
+            /* Adjust action buttons for mobile */
+            #bookingsTable td[data-label="Actions"] {
+                justify-content: flex-end;
+                gap: 0.5rem;
+            }
+
+            #bookingsTable td[data-label="Actions"] .btn {
+                padding: 0.25rem 0.5rem;
+            }
+        }
+
+        /* Desktop Table Styles */
+        @media (min-width: 768px) {
+            #bookingsTable thead {
+                display: table-header-group !important;
+            }
+
+            #bookingsTable tbody tr {
+                display: table-row !important;
+            }
+
+            #bookingsTable td {
+                display: table-cell !important;
+                text-align: left !important;
+            }
+
+            #bookingsTable td:before {
+                display: none !important;
+            }
+
+            .table-responsive {
+                margin: 0;
+                padding: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -652,6 +767,10 @@
                     <div class="card shadow-sm">
                         <div class="card-body">
                             <h5 class="card-title mb-3">All Bookings</h5>
+                            <!-- Debug info for table layout -->
+                            <div id="tableDebugInfo" class="alert alert-info mb-3" style="display: none;">
+                                <small>Table Layout Mode: <span id="tableLayoutMode">Unknown</span></small>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table table-striped table-sm" id="bookingsTable">
                                     <thead>
