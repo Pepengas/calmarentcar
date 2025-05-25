@@ -140,9 +140,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load all cars into dropdown
     async function loadEditCarDropdown() {
+        console.log('[DEBUG] loadEditCarDropdown called');
         try {
             const res = await fetch('/api/cars');
+            console.log('[DEBUG] /api/cars response:', res);
             const data = await res.json();
+            console.log('[DEBUG] /api/cars data:', data);
             if (!data.success) throw new Error('Failed to fetch cars');
             editCarDropdown.innerHTML = '';
             data.cars.forEach(car => {
@@ -157,7 +160,13 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (err) {
             editCarMsg.textContent = 'Error loading cars: ' + err.message;
             editCarMsg.className = 'alert alert-danger';
+            console.error('[DEBUG] Error in loadEditCarDropdown:', err);
         }
+    }
+
+    // Call loadEditCarDropdown on page load if Edit Car tab is active
+    if (editCarContent && editCarContent.style.display !== 'none') {
+        loadEditCarDropdown();
     }
 
     // When car is selected, load its details
