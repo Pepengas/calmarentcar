@@ -846,4 +846,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return result;
     }
+
+    // Development Notice Banner
+    function closeDevNotice() {
+        const notice = document.getElementById('dev-notice');
+        if (notice) {
+            notice.classList.add('hidden');
+            // Store the state in localStorage
+            localStorage.setItem('devNoticeClosed', 'true');
+        }
+    }
+
+    // Check if notice was previously closed
+    const notice = document.getElementById('dev-notice');
+    if (notice && localStorage.getItem('devNoticeClosed') === 'true') {
+        notice.classList.add('hidden');
+    }
 }); 

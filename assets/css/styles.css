@@ -2025,4 +2025,119 @@ select#pickup-location, select#dropoff-location {
 .choices__list--dropdown .choices__item--selectable:hover {
   background: #e6f0fa;
   color: #0072bc;
+}
+
+/* Development Notice Banner */
+.dev-notice {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to right, #ff4d4f, #ff7875);
+    color: white;
+    z-index: 10000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(0);
+    transition: transform 0.3s ease-in-out;
+}
+
+.dev-notice.hidden {
+    transform: translateY(-100%);
+}
+
+.dev-notice-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.dev-notice-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    padding: 4px;
+}
+
+.dev-notice-icon svg {
+    color: white;
+}
+
+.dev-notice-text {
+    flex-grow: 1;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.dev-notice-text p {
+    margin: 0;
+}
+
+.dev-notice-text p + p {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.dev-notice-text a {
+    color: white;
+    text-decoration: underline;
+    font-weight: 500;
+    transition: opacity 0.2s;
+}
+
+.dev-notice-text a:hover {
+    opacity: 0.8;
+}
+
+.dev-notice-close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: white;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.dev-notice-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dev-notice-close:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+    .dev-notice-content {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    .dev-notice-text {
+        font-size: 0.9rem;
+    }
+
+    .dev-notice-text p + p {
+        font-size: 0.85rem;
+    }
+
+    .dev-notice-icon {
+        width: 28px;
+        height: 28px;
+    }
 } 
