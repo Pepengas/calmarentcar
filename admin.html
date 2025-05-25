@@ -311,10 +311,53 @@
             #editCarContent .bg-white.rounded-3xl.shadow-lg.p-8.mb-8.border.border-blue-100 {
                 padding: 1rem !important;
             }
+            #bookingsTable thead {
+                display: none;
+            }
+            #bookingsTable tbody tr {
+                display: block;
+                margin-bottom: 1.2rem;
+                background: #fff;
+                border-radius: 1.2rem;
+                box-shadow: 0 2px 8px #0001;
+                padding: 1rem;
+            }
+            #bookingsTable td {
+                display: flex;
+                width: 100%;
+                justify-content: flex-start;
+                align-items: center;
+                border: none;
+                padding: 0.3rem 0.5rem;
+                font-size: 1rem;
+            }
+            #bookingsTable td:before {
+                content: attr(data-label);
+                font-weight: bold;
+                min-width: 120px;
+                color: #217dbb;
+                margin-right: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Mobile Navbar and Sidebar (moved to top) -->
+    <div class="mobile-navbar" style="display:none;">
+        <button class="hamburger" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+        <span class="navbar-title">Calma Car Rental Admin</span>
+    </div>
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" id="mobileDashboardTab" href="#"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileCarsTab" href="#"><i class="fas fa-car me-2"></i>Cars</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileCustomersTab" href="#"><i class="fas fa-users me-2"></i>Customers</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileReportsTab" href="#"><i class="fas fa-chart-line me-2"></i>Reports</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileSettingsTab" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileEditCarTab" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a></li>
+            <li class="nav-item mt-3"><a class="nav-link text-danger" id="mobileLogoutBtn" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+        </ul>
+    </div>
     <div class="loader" id="pageLoader"></div>
     <div class="container-fluid">
         <div class="row">
@@ -542,9 +585,17 @@
                                         </tr>
                                     </thead>
                                     <tbody id="bookingsTableBody">
-                                        <!-- Bookings will be loaded here via JavaScript -->
-                                        <tr class="text-center">
-                                            <td colspan="9">Loading bookings...</td>
+                                        <!-- Example row for reference, actual rows are rendered by JS -->
+                                        <tr>
+                                            <td data-label="ID/Reference">BK-XXXX</td>
+                                            <td data-label="Customer">John Doe</td>
+                                            <td data-label="Car">Toyota Aygo</td>
+                                            <td data-label="Pickup Date">2024-06-01</td>
+                                            <td data-label="Return Date">2024-06-05</td>
+                                            <td data-label="Total Price">€100</td>
+                                            <td data-label="Status">Confirmed</td>
+                                            <td data-label="Submitted">2024-05-25</td>
+                                            <td data-label="Actions"><button>View</button></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -759,23 +810,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Mobile Navbar and Sidebar -->
-    <div class="mobile-navbar" style="display:none;">
-        <button class="hamburger" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
-        <span class="navbar-title">Calma Car Rental Admin</span>
-    </div>
-    <div class="mobile-sidebar" id="mobileSidebar">
-        <ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link" id="mobileDashboardTab" href="#"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileCarsTab" href="#"><i class="fas fa-car me-2"></i>Cars</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileCustomersTab" href="#"><i class="fas fa-users me-2"></i>Customers</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileReportsTab" href="#"><i class="fas fa-chart-line me-2"></i>Reports</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileSettingsTab" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileEditCarTab" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a></li>
-            <li class="nav-item mt-3"><a class="nav-link text-danger" id="mobileLogoutBtn" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-        </ul>
     </div>
 
     <!-- Bootstrap Bundle with Popper -->
