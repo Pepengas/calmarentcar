@@ -663,31 +663,31 @@
 
             <!-- Main Content -->
             <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Dashboard</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group me-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-download me-1"></i> Export
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-plus me-1"></i> New Booking
-                            </button>
+                <!-- Dashboard Section -->
+                <div id="dashboardContent" class="content-section">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Dashboard</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-download me-1"></i> Export
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-plus me-1"></i> New Booking
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Error container for displaying messages -->
-                <div id="adminErrorContainer" style="display: none;"></div>
+                    <!-- Error container for displaying messages -->
+                    <div id="adminErrorContainer" style="display: none;"></div>
 
-                <!-- Debug info for developers -->
-                <div id="debugInfo" class="alert alert-info mb-3" style="display: none;">
-                    <h6><i class="fas fa-bug me-2"></i>Debug Information</h6>
-                    <div id="debugContent"></div>
-                </div>
+                    <!-- Debug info for developers -->
+                    <div id="debugInfo" class="alert alert-info mb-3" style="display: none;">
+                        <h6><i class="fas fa-bug me-2"></i>Debug Information</h6>
+                        <div id="debugContent"></div>
+                    </div>
 
-                <!-- Dashboard Content (visible by default) -->
-                <div id="dashboardContent" style="display: block;">
                     <!-- Stats Cards -->
                     <div class="row mb-4">
                         <div class="col-md-4 mb-3">
@@ -760,7 +760,7 @@
                         <div class="card-body">
                             <h5 class="card-title">Filters</h5>
                             <form id="filterForm" class="row g-3">
-                                <!-- New Search Input -->
+                                <!-- Search Input -->
                                 <div class="col-md-12 mb-2">
                                     <label for="textSearchFilter" class="form-label">Search Bookings</label>
                                     <div class="input-group">
@@ -820,10 +820,6 @@
                     <div class="card shadow-sm">
                         <div class="card-body">
                             <h5 class="card-title mb-3">All Bookings</h5>
-                            <!-- Debug info for table layout -->
-                            <div id="tableDebugInfo" class="alert alert-info mb-3" style="display: none;">
-                                <small>Table Layout Mode: <span id="tableLayoutMode">Unknown</span></small>
-                            </div>
                             <div class="table-responsive">
                                 <table class="table table-striped table-sm" id="bookingsTable">
                                     <thead>
@@ -865,9 +861,9 @@
                     </div>
                 </div>
 
-                <!-- Cars Content (hidden by default) -->
-                <div id="carsContent" style="display:none;">
-                    <!-- Price Editor Panel moved here -->
+                <!-- Cars Section -->
+                <div id="carsContent" class="content-section d-none">
+                    <!-- Price Editor Panel -->
                     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
                         <h2 class="text-xl font-semibold mb-4">Car Price Management</h2>
                         <div class="overflow-x-auto">
@@ -898,8 +894,8 @@
                     </div>
                 </div>
 
-                <!-- Add Edit Car Content Section (hidden by default) -->
-                <div id="editCarContent" style="display:none;">
+                <!-- Edit Car Section -->
+                <div id="editCarContent" class="content-section d-none">
                     <div class="bg-white rounded-3xl shadow-lg p-8 mb-8 border border-blue-100" style="max-width: 700px; margin: 0 auto; background: linear-gradient(120deg, #f8faff 80%, #e3f0fa 100%);">
                         <h2 class="text-2xl font-bold mb-6 text-blue-700 flex items-center gap-2"><i class="fas fa-edit"></i> Edit Car Details</h2>
                         <div class="mb-6">
@@ -1036,752 +1032,78 @@
         </div>
     </div>
 
-    <!-- Booking Details Modal -->
-    <div class="modal fade" id="bookingDetailsModal" tabindex="-1" aria-labelledby="bookingDetailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="bookingDetailsModalLabel">Booking Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="bookingDetailsContent">
-                    <!-- Booking details will be loaded here -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="updateStatusBtn">Update Status</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bottom Navigation for Mobile -->
-    <nav class="mobile-nav fixed-bottom bg-white border-top">
-        <div class="row g-0">
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav fixed-bottom bg-white border-top d-md-none">
+        <div class="row g-0 text-center">
             <div class="col">
-                <button id="mobileDashboardTab" class="btn btn-link w-100 py-3 text-primary" onclick="showSection('dashboard')">
-                    <i class="fas fa-chart-line d-block mb-1"></i>
+                <button onclick="showSection('dashboard')" class="btn btn-link w-100 py-2 text-muted">
+                    <i class="fas fa-chart-line d-block"></i>
                     <small>Dashboard</small>
                 </button>
             </div>
             <div class="col">
-                <button id="mobileCarsTab" class="btn btn-link w-100 py-3 text-muted" onclick="showSection('cars')">
-                    <i class="fas fa-car d-block mb-1"></i>
+                <button onclick="showSection('cars')" class="btn btn-link w-100 py-2 text-muted">
+                    <i class="fas fa-car d-block"></i>
                     <small>Cars</small>
                 </button>
             </div>
             <div class="col">
-                <button id="mobileEditCarTab" class="btn btn-link w-100 py-3 text-muted" onclick="showSection('editCar')">
-                    <i class="fas fa-edit d-block mb-1"></i>
+                <button onclick="showSection('editCar')" class="btn btn-link w-100 py-2 text-muted">
+                    <i class="fas fa-edit d-block"></i>
                     <small>Edit Car</small>
                 </button>
             </div>
             <div class="col">
-                <button id="mobileLogoutBtn" class="btn btn-link w-100 py-3 text-muted" onclick="logout()">
-                    <i class="fas fa-sign-out-alt d-block mb-1"></i>
+                <button onclick="logout()" class="btn btn-link w-100 py-2 text-muted">
+                    <i class="fas fa-sign-out-alt d-block"></i>
                     <small>Logout</small>
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- Filter Section -->
-    <div class="filter-section d-md-none">
-        <button class="filter-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
-            <span>Filters</span>
-            <i class="fas fa-chevron-down"></i>
-        </button>
-        <div class="collapse" id="filterCollapse">
-            <div class="mt-3">
-                <div class="mb-3">
-                    <label for="filterStatus" class="form-label">Status</label>
-                    <select class="form-select" id="filterStatus">
-                        <option value="">All</option>
-                        <option value="pending">Pending</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="filterDate" class="form-label">Date Range</label>
-                    <input type="date" class="form-control" id="filterDate">
-                </div>
-                <button class="btn btn-primary w-100" onclick="applyFilters()">
-                    Apply Filters
-                </button>
-            </div>
-        </div>
-    </div>
+    <script>
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(el => el.classList.add('d-none'));
+            
+            // Show selected section
+            const target = document.getElementById(section + 'Content');
+            if (target) target.classList.remove('d-none');
+            
+            // Update active state in navigation
+            document.querySelectorAll('.sidebar .nav-link, .mobile-nav button').forEach(btn => {
+                btn.classList.remove('active', 'text-primary');
+                btn.classList.add('text-muted');
+            });
+            
+            // Update desktop sidebar
+            const desktopNav = document.querySelector(`.sidebar .nav-link[href="#"]`);
+            if (desktopNav) {
+                desktopNav.classList.add('active');
+                desktopNav.classList.remove('text-muted');
+            }
+            
+            // Update mobile navigation
+            const mobileBtn = document.querySelector(`.mobile-nav button[onclick="showSection('${section}')"]`);
+            if (mobileBtn) {
+                mobileBtn.classList.add('text-primary');
+                mobileBtn.classList.remove('text-muted');
+            }
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
 
-    <!-- Mobile Layout (hidden on desktop) -->
-    <div class="d-block d-md-none mobile-layout">
-        <!-- Mobile Header -->
-        <header class="mobile-header bg-primary text-white p-3 sticky-top">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1 class="h5 mb-0">Admin Dashboard</h1>
-                <button class="btn btn-link text-white p-0" id="mobileMenuBtn">
-                    <i class="fas fa-bars fa-lg"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- Mobile Content -->
-        <div class="mobile-content p-3">
-            <!-- Dashboard Section -->
-            <div id="mobileDashboardSection" class="mobile-section">
-                <!-- Stats Cards -->
-                <div class="row g-3 mb-4">
-                    <div class="col-12">
-                        <div class="card border-0 shadow-sm rounded-4">
-                            <div class="card-body p-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="flex-grow-1">
-                                        <h6 class="text-muted mb-1">Total Bookings</h6>
-                                        <h3 class="mb-0" id="mobileTotalBookings">0</h3>
-                                    </div>
-                                    <div class="icon-circle bg-primary bg-opacity-10 text-primary">
-                                        <i class="fas fa-calendar-check"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="card border-0 shadow-sm rounded-4">
-                            <div class="card-body p-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="flex-grow-1">
-                                        <h6 class="text-muted mb-1">Total Revenue</h6>
-                                        <h3 class="mb-0" id="mobileTotalRevenue">$0</h3>
-                                    </div>
-                                    <div class="icon-circle bg-success bg-opacity-10 text-success">
-                                        <i class="fas fa-euro-sign"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="card border-0 shadow-sm rounded-4">
-                            <div class="card-body p-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="flex-grow-1">
-                                        <h6 class="text-muted mb-1">Cars Booked Today</h6>
-                                        <h3 class="mb-0" id="mobileCarsBookedToday">0</h3>
-                                    </div>
-                                    <div class="icon-circle bg-warning bg-opacity-10 text-warning">
-                                        <i class="fas fa-car"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mobile Filters -->
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-body p-3">
-                        <button class="btn btn-link text-dark p-0 w-100 text-start d-flex justify-content-between align-items-center" 
-                                type="button" 
-                                data-bs-toggle="collapse" 
-                                data-bs-target="#mobileFilters">
-                            <span class="fw-semibold">Filters</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="collapse mt-3" id="mobileFilters">
-                            <div class="mb-3">
-                                <label class="form-label">Search</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0">
-                                        <i class="fas fa-search text-muted"></i>
-                                    </span>
-                                    <input type="text" class="form-control border-start-0" placeholder="Search bookings...">
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Status</label>
-                                <select class="form-select">
-                                    <option value="">All Statuses</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="confirmed">Confirmed</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Date Range</label>
-                                <select class="form-select">
-                                    <option value="">All Time</option>
-                                    <option value="today">Today</option>
-                                    <option value="week">This Week</option>
-                                    <option value="month">This Month</option>
-                                </select>
-                            </div>
-                            <button class="btn btn-primary w-100">Apply Filters</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mobile Bookings List -->
-                <div class="card border-0 shadow-sm rounded-4">
-                    <div class="card-body p-3">
-                        <h5 class="card-title mb-3">Recent Bookings</h5>
-                        <div id="mobileBookingsList" class="bookings-list">
-                            <!-- Booking items will be dynamically added here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cars Section -->
-            <div id="mobileCarsSection" class="mobile-section d-none">
-                <!-- Original cars content will be shown here -->
-                <div id="carsContent"></div>
-            </div>
-
-            <!-- Edit Car Section -->
-            <div id="mobileEditCarSection" class="mobile-section d-none">
-                <!-- Original edit car content will be shown here -->
-                <div id="editCarContent"></div>
-            </div>
-        </div>
-
-        <!-- Mobile Bottom Navigation -->
-        <nav class="mobile-nav fixed-bottom bg-white border-top">
-            <div class="row g-0">
-                <div class="col">
-                    <button id="mobileDashboardTab" class="btn btn-link w-100 py-3 text-primary" onclick="showSection('dashboard')">
-                        <i class="fas fa-chart-line d-block mb-1"></i>
-                        <small>Dashboard</small>
-                    </button>
-                </div>
-                <div class="col">
-                    <button id="mobileCarsTab" class="btn btn-link w-100 py-3 text-muted" onclick="showSection('cars')">
-                        <i class="fas fa-car d-block mb-1"></i>
-                        <small>Cars</small>
-                    </button>
-                </div>
-                <div class="col">
-                    <button id="mobileEditCarTab" class="btn btn-link w-100 py-3 text-muted" onclick="showSection('editCar')">
-                        <i class="fas fa-edit d-block mb-1"></i>
-                        <small>Edit Car</small>
-                    </button>
-                </div>
-                <div class="col">
-                    <button id="mobileLogoutBtn" class="btn btn-link w-100 py-3 text-muted" onclick="logout()">
-                        <i class="fas fa-sign-out-alt d-block mb-1"></i>
-                        <small>Logout</small>
-                    </button>
-                </div>
-            </div>
-        </nav>
-    </div>
+        // Initialize active state
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('dashboard');
+        });
+    </script>
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Admin Dashboard JavaScript -->
     <script src="assets/js/admin.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const priceEditorTable = document.getElementById('priceEditorTable');
-        let carsData = [];
-
-        // Fetch cars and their prices
-        async function fetchCars() {
-            try {
-                const response = await fetch('/api/cars');
-                const data = await response.json();
-                
-                if (data.success) {
-                    carsData = data.cars;
-                    renderPriceEditor();
-                }
-            } catch (error) {
-                console.error('Error fetching cars:', error);
-            }
-        }
-
-        // Render price editor table
-        function renderPriceEditor() {
-            const tbody = priceEditorTable.querySelector('tbody');
-            tbody.innerHTML = '';
-
-            // Render car dropdown FIRST
-            let carDropdown = document.getElementById('carDropdown');
-            if (!carDropdown) {
-                carDropdown = document.createElement('select');
-                carDropdown.id = 'carDropdown';
-                carDropdown.className = 'form-select form-select-lg mb-3 car-dropdown-custom';
-                carDropdown.style.maxWidth = '350px';
-                carDropdown.style.margin = '0 auto 1rem auto';
-                // Insert dropdown before the table
-                const pricePanel = priceEditorTable.closest('.bg-white');
-                if (pricePanel) {
-                    pricePanel.insertBefore(carDropdown, pricePanel.firstChild);
-                }
-            } else {
-                carDropdown.innerHTML = '';
-            }
-            // Render car title AFTER dropdown
-            let carTitle = document.getElementById('carTitle');
-            if (!carTitle) {
-                carTitle = document.createElement('div');
-                carTitle.id = 'carTitle';
-                carTitle.className = 'car-title-custom';
-                // Insert car title below dropdown
-                if (carDropdown && carDropdown.parentNode) {
-                    carDropdown.parentNode.insertBefore(carTitle, carDropdown.nextSibling);
-                }
-            }
-            // Fallback if no cars
-            if (!carsData || carsData.length === 0) {
-                carTitle.innerHTML = '<span style="color:#e74c3c;font-size:1.3rem;">No cars found. Please add cars to manage prices.</span>';
-                priceEditorTable.querySelector('tbody').innerHTML = '';
-                return;
-            }
-            carsData.forEach((car, idx) => {
-                const option = document.createElement('option');
-                option.value = car.id;
-                option.textContent = car.name;
-                carDropdown.appendChild(option);
-            });
-            // On change, show selected car's table
-            carDropdown.onchange = function() {
-                showCarPriceTable(this.value);
-            };
-            // On initial load, show the first car's table
-            if (carsData.length > 0) {
-                carDropdown.value = carsData[0].id;
-                showCarPriceTable(carsData[0].id);
-            }
-            // Render only the selected car's table
-            function showCarPriceTable(selectedCarId) {
-                // Remove all rows
-                const tbody = priceEditorTable.querySelector('tbody');
-                tbody.innerHTML = '';
-                // Find the car
-                const car = carsData.find(c => c.id === selectedCarId);
-                if (!car) return;
-                const dayLabels = [
-                    'Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7', 'Extra day'
-                ];
-                const dayKeys = [
-                    'day_1', 'day_2', 'day_3', 'day_4', 'day_5', 'day_6', 'day_7', 'extra_day'
-                ];
-                const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-                const currentYear = new Date().getFullYear();
-                // Update car title
-                carTitle.innerHTML = `<span class='car-title-icon'><i class='fas fa-car-side'></i></span> <span class='car-title-text'>${car.name}</span>`;
-                dayLabels.forEach((label, idx) => {
-                    const row = document.createElement('tr');
-                    row.className = idx % 2 === 0 ? 'bg-light' : 'bg-white';
-                    // Car name + label cell
-                    const nameCell = document.createElement('td');
-                    nameCell.className = idx < 7 ? 'px-4 py-2 fw-semibold' : 'px-4 py-2 text-muted fw-semibold';
-                    nameCell.textContent = label;
-                    row.appendChild(nameCell);
-                    // Month price cells
-                    months.forEach(month => {
-                        const monthKey = `${currentYear}-${month}`;
-                        const price = car.monthly_pricing?.[monthKey]?.[dayKeys[idx]] || '';
-                        const cell = document.createElement('td');
-                        cell.className = 'px-2 py-2';
-                        const input = document.createElement('input');
-                        input.type = 'number';
-                        input.className = 'form-control form-control-sm price-input';
-                        input.placeholder = '€';
-                        input.value = price;
-                        input.dataset.carId = car.id;
-                        input.dataset.month = monthKey;
-                        input.dataset.type = dayKeys[idx];
-                        input.style.transition = 'box-shadow 0.2s, border-color 0.2s';
-                        input.onfocus = function() { this.style.boxShadow = '0 0 0 2px #3498db33'; this.style.borderColor = '#3498db'; };
-                        input.onblur = function() { this.style.boxShadow = ''; this.style.borderColor = ''; };
-                        cell.appendChild(input);
-                        row.appendChild(cell);
-                    });
-                    // Actions cell
-                    const actionsCell = document.createElement('td');
-                    actionsCell.className = 'px-4 py-2';
-                    if (idx === 0) {
-                        const saveBtn = document.createElement('button');
-                        saveBtn.className = 'btn btn-primary btn-lg save-btn';
-                        saveBtn.innerHTML = `<i class='fas fa-save me-1'></i>Save Prices`;
-                        saveBtn.title = 'Save prices for this car';
-                        saveBtn.onclick = () => saveCarPrices(car.id);
-                        actionsCell.appendChild(saveBtn);
-                    }
-                    row.appendChild(actionsCell);
-                    tbody.appendChild(row);
-                });
-                // Sticky header for months
-                priceEditorTable.querySelector('thead').style.position = 'sticky';
-                priceEditorTable.querySelector('thead').style.top = '0';
-                priceEditorTable.querySelector('thead').style.background = '#f8f9fa';
-            }
-            // Remove the Save All Prices button if it exists
-            const saveAllBtn = document.getElementById('savePricesBtn');
-            if (saveAllBtn) saveAllBtn.style.display = 'none';
-            // Add custom styles for car title and save button
-            const style = document.createElement('style');
-            style.innerHTML += `
-            .car-title-custom {
-                text-align: center;
-                font-size: 2rem;
-                font-weight: 700;
-                margin: 1.2rem 0 1.2rem 0;
-                color: #217dbb;
-                letter-spacing: 0.02em;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.7rem;
-            }
-            .car-title-icon {
-                font-size: 2.2rem;
-                color: #3498db;
-            }
-            .car-title-text {
-                font-size: 2rem;
-                font-weight: 700;
-            }
-            .save-btn.btn-lg {
-                font-size: 1.1rem;
-                padding: 0.7rem 2.2rem;
-                border-radius: 2rem;
-                box-shadow: 0 2px 8px #3498db22;
-            }
-            `;
-            document.head.appendChild(style);
-        }
-
-        // Save prices for a single car
-        async function saveCarPrices(carId) {
-            const inputs = document.querySelectorAll(`input[data-car-id="${carId}"]`);
-            const prices = {};
-            inputs.forEach(input => {
-                const month = input.dataset.month;
-                const type = input.dataset.type;
-                if (!prices[month]) prices[month] = {};
-                if (input.value) prices[month][type] = parseFloat(input.value);
-            });
-
-            try {
-                const response = await fetch('/api/update-prices', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                    },
-                    body: JSON.stringify({
-                        car_id: carId,
-                        prices: prices
-                    })
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('Prices saved successfully');
-                } else {
-                    throw new Error(data.error);
-                }
-            } catch (error) {
-                console.error('Error saving prices:', error);
-                alert('Failed to save prices: ' + error.message);
-            }
-        }
-
-        // Initial load
-        fetchCars();
-
-        // Sidebar tab switching logic
-        const dashboardTab = document.querySelector('.sidebar .nav-link:has(.fa-tachometer-alt)');
-        const carsTab = document.querySelector('.sidebar .nav-link:has(.fa-car)');
-        const customersTab = document.querySelector('.sidebar .nav-link:has(.fa-users)');
-        const reportsTab = document.querySelector('.sidebar .nav-link:has(.fa-chart-line)');
-        const settingsTab = document.querySelector('.sidebar .nav-link:has(.fa-cog)');
-        const editCarTab = document.getElementById('editCarTab');
-        const dashboardContent = document.getElementById('dashboardContent');
-        const carsContent = document.getElementById('carsContent');
-        const editCarContent = document.getElementById('editCarContent');
-        // Hide all content except dashboard by default
-        dashboardContent.style.display = 'block';
-        carsContent.style.display = 'none';
-        editCarContent.style.display = 'none';
-        // Tab click handlers
-        dashboardTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            dashboardContent.style.display = 'block';
-            carsContent.style.display = 'none';
-            editCarContent.style.display = 'none';
-            setActive(this);
-        });
-        carsTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            dashboardContent.style.display = 'none';
-            carsContent.style.display = 'block';
-            editCarContent.style.display = 'none';
-            setActive(this);
-        });
-        editCarTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            dashboardContent.style.display = 'none';
-            carsContent.style.display = 'none';
-            editCarContent.style.display = 'block';
-            setActive(this);
-        });
-        function setActive(tab) {
-            document.querySelectorAll('.sidebar .nav-link').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-        }
-
-        // Mobile menu toggle
-        function isMobile() { return window.innerWidth <= 768; }
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileNavbar = document.querySelector('.mobile-navbar');
-            const mobileSidebar = document.getElementById('mobileSidebar');
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            if (isMobile()) {
-                mobileNavbar.style.display = 'flex';
-            }
-            mobileMenuBtn.addEventListener('click', function() {
-                mobileSidebar.classList.toggle('active');
-            });
-            // Hide sidebar when clicking outside
-            document.addEventListener('click', function(e) {
-                if (isMobile() && mobileSidebar.classList.contains('active') && !mobileSidebar.contains(e.target) && e.target !== mobileMenuBtn) {
-                    mobileSidebar.classList.remove('active');
-                }
-            });
-            // Mobile tab switching
-            const tabMap = {
-                mobileDashboardTab: 'dashboardContent',
-                mobileCarsTab: 'carsContent',
-                mobileEditCarTab: 'editCarContent',
-                // Add more if needed
-            };
-            Object.keys(tabMap).forEach(tabId => {
-                const tab = document.getElementById(tabId);
-                if (tab) {
-                    tab.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        // Hide all main contents
-                        Object.values(tabMap).forEach(contentId => {
-                            const el = document.getElementById(contentId);
-                            if (el) el.style.display = 'none';
-                        });
-                        // Show selected
-                        const showEl = document.getElementById(tabMap[tabId]);
-                        if (showEl) showEl.style.display = 'block';
-                        // Hide sidebar
-                        mobileSidebar.classList.remove('active');
-                    });
-                }
-            });
-        });
-        window.addEventListener('resize', function() {
-            const mobileNavbar = document.querySelector('.mobile-navbar');
-            if (isMobile()) {
-                mobileNavbar.style.display = 'flex';
-            } else {
-                mobileNavbar.style.display = 'none';
-                document.getElementById('mobileSidebar').classList.remove('active');
-            }
-        });
-
-        // Mobile Navigation
-        function showSection(section) {
-            // Hide all sections
-            document.querySelectorAll('.content-section').forEach(el => {
-                el.style.display = 'none';
-            });
-            
-            // Show selected section
-            document.getElementById(section + 'Section').style.display = 'block';
-            
-            // Update active state in bottom nav
-            document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.currentTarget.classList.add('active');
-            
-            // Scroll to top
-            window.scrollTo(0, 0);
-        }
-
-        // Filter Functionality
-        function applyFilters() {
-            const status = document.getElementById('filterStatus').value;
-            const date = document.getElementById('filterDate').value;
-            
-            // Get all booking rows
-            const rows = document.querySelectorAll('#bookingsTable tbody tr');
-            
-            rows.forEach(row => {
-                let show = true;
-                
-                // Filter by status
-                if (status) {
-                    const rowStatus = row.getAttribute('data-status');
-                    if (rowStatus !== status) {
-                        show = false;
-                    }
-                }
-                
-                // Filter by date
-                if (date) {
-                    const rowDate = row.getAttribute('data-date');
-                    if (rowDate !== date) {
-                        show = false;
-                    }
-                }
-                
-                // Show/hide row
-                row.style.display = show ? '' : 'none';
-            });
-            
-            // Close filter section on mobile
-            if (window.innerWidth < 768) {
-                const filterCollapse = document.getElementById('filterCollapse');
-                const bsCollapse = new bootstrap.Collapse(filterCollapse);
-                bsCollapse.hide();
-            }
-        }
-
-        // Initialize active state for bottom nav
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentSection = document.querySelector('.content-section[style*="display: block"]');
-            if (currentSection) {
-                const sectionId = currentSection.id.replace('Section', '');
-                const navBtn = document.querySelector(`.bottom-nav .nav-btn[onclick*="${sectionId}"]`);
-                if (navBtn) {
-                    navBtn.classList.add('active');
-                }
-            }
-        });
-
-        // Handle filter toggle animation
-        document.querySelector('.filter-toggle').addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            icon.style.transform = this.getAttribute('aria-expanded') === 'true' ? 'rotate(0deg)' : 'rotate(180deg)';
-        });
-
-        // Mobile-specific JavaScript
-        function showMobileSection(section) {
-            // Hide all sections
-            document.querySelectorAll('.mobile-section').forEach(el => {
-                el.classList.add('d-none');
-            });
-            
-            // Show selected section
-            document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Section`).classList.remove('d-none');
-            
-            // Update active state in bottom nav
-            document.querySelectorAll('.mobile-nav .btn-link').forEach(btn => {
-                btn.classList.remove('active', 'text-primary');
-                btn.classList.add('text-muted');
-            });
-            event.currentTarget.classList.add('active', 'text-primary');
-            event.currentTarget.classList.remove('text-muted');
-            
-            // Scroll to top
-            window.scrollTo(0, 0);
-        }
-
-        // Initialize mobile bookings list
-        function initializeMobileBookings() {
-            const bookingsList = document.getElementById('mobileBookingsList');
-            // This will be populated by your existing booking data
-            // Example structure:
-            /*
-            <div class="booking-item">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h6 class="mb-0">Booking #123</h6>
-                    <span class="status-badge bg-success text-white">Completed</span>
-                </div>
-                <p class="text-muted small mb-2">John Doe - Toyota Corolla</p>
-                <div class="d-flex justify-content-between text-muted small">
-                    <span>Pickup: 2024-03-20</span>
-                    <span>Return: 2024-03-25</span>
-                </div>
-            </div>
-            */
-        }
-
-        // Initialize mobile view
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeMobileBookings();
-            // Show dashboard by default
-            showMobileSection('dashboard');
-        });
-
-        // Update mobile navigation active state
-        function updateMobileNavActive(tabId) {
-            document.querySelectorAll('.mobile-nav .btn-link').forEach(btn => {
-                btn.classList.remove('active', 'text-primary');
-                btn.classList.add('text-muted');
-            });
-            const activeBtn = document.getElementById(tabId);
-            if (activeBtn) {
-                activeBtn.classList.add('active', 'text-primary');
-                activeBtn.classList.remove('text-muted');
-            }
-        }
-
-        // Update showSection function to handle mobile navigation
-        function showSection(section) {
-            // Hide all sections
-            document.querySelectorAll('.content-section, .mobile-section').forEach(el => {
-                el.style.display = 'none';
-            });
-            
-            // Show selected section
-            const sectionId = section + 'Content';
-            const mobileSectionId = 'mobile' + section.charAt(0).toUpperCase() + section.slice(1) + 'Section';
-            
-            const desktopSection = document.getElementById(sectionId);
-            const mobileSection = document.getElementById(mobileSectionId);
-            
-            if (desktopSection) desktopSection.style.display = 'block';
-            if (mobileSection) mobileSection.classList.remove('d-none');
-            
-            // Update active state in both desktop and mobile nav
-            document.querySelectorAll('.sidebar .nav-link, .bottom-nav .nav-btn, .mobile-nav .btn-link').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Update mobile nav active state
-            const mobileTabId = 'mobile' + section.charAt(0).toUpperCase() + section.slice(1) + 'Tab';
-            updateMobileNavActive(mobileTabId);
-            
-            // Scroll to top
-            window.scrollTo(0, 0);
-        }
-
-        // Initialize mobile navigation
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set initial active state
-            updateMobileNavActive('mobileDashboardTab');
-            
-            // Add click handlers for mobile navigation
-            document.getElementById('mobileDashboardTab').addEventListener('click', function() {
-                showSection('dashboard');
-            });
-            
-            document.getElementById('mobileCarsTab').addEventListener('click', function() {
-                showSection('cars');
-            });
-            
-            document.getElementById('mobileEditCarTab').addEventListener('click', function() {
-                showSection('editCar');
-            });
-            
-            document.getElementById('mobileLogoutBtn').addEventListener('click', function() {
-                logout();
-            });
-        });
-    });
-    </script>
 </body>
 </html> 
