@@ -1056,24 +1056,34 @@
     </div>
 
     <!-- Bottom Navigation for Mobile -->
-    <div class="bottom-nav d-md-none">
-        <button class="nav-btn" onclick="showSection('dashboard')">
-            <i class="fas fa-chart-line"></i>
-            <span>Dashboard</span>
-        </button>
-        <button class="nav-btn" onclick="showSection('cars')">
-            <i class="fas fa-car"></i>
-            <span>Cars</span>
-        </button>
-        <button class="nav-btn" onclick="showSection('bookings')">
-            <i class="fas fa-calendar-check"></i>
-            <span>Bookings</span>
-        </button>
-        <button class="nav-btn" onclick="showSection('settings')">
-            <i class="fas fa-cog"></i>
-            <span>Settings</span>
-        </button>
-    </div>
+    <nav class="mobile-nav fixed-bottom bg-white border-top">
+        <div class="row g-0">
+            <div class="col">
+                <button id="mobileDashboardTab" class="btn btn-link w-100 py-3 text-primary" onclick="showSection('dashboard')">
+                    <i class="fas fa-chart-line d-block mb-1"></i>
+                    <small>Dashboard</small>
+                </button>
+            </div>
+            <div class="col">
+                <button id="mobileCarsTab" class="btn btn-link w-100 py-3 text-muted" onclick="showSection('cars')">
+                    <i class="fas fa-car d-block mb-1"></i>
+                    <small>Cars</small>
+                </button>
+            </div>
+            <div class="col">
+                <button id="mobileEditCarTab" class="btn btn-link w-100 py-3 text-muted" onclick="showSection('editCar')">
+                    <i class="fas fa-edit d-block mb-1"></i>
+                    <small>Edit Car</small>
+                </button>
+            </div>
+            <div class="col">
+                <button id="mobileLogoutBtn" class="btn btn-link w-100 py-3 text-muted" onclick="logout()">
+                    <i class="fas fa-sign-out-alt d-block mb-1"></i>
+                    <small>Logout</small>
+                </button>
+            </div>
+        </div>
+    </nav>
 
     <!-- Filter Section -->
     <div class="filter-section d-md-none">
@@ -1240,25 +1250,25 @@
         <nav class="mobile-nav fixed-bottom bg-white border-top">
             <div class="row g-0">
                 <div class="col">
-                    <button class="btn btn-link w-100 py-3 text-primary" onclick="showMobileSection('dashboard')">
+                    <button id="mobileDashboardTab" class="btn btn-link w-100 py-3 text-primary" onclick="showSection('dashboard')">
                         <i class="fas fa-chart-line d-block mb-1"></i>
                         <small>Dashboard</small>
                     </button>
                 </div>
                 <div class="col">
-                    <button class="btn btn-link w-100 py-3 text-muted" onclick="showMobileSection('cars')">
+                    <button id="mobileCarsTab" class="btn btn-link w-100 py-3 text-muted" onclick="showSection('cars')">
                         <i class="fas fa-car d-block mb-1"></i>
                         <small>Cars</small>
                     </button>
                 </div>
                 <div class="col">
-                    <button class="btn btn-link w-100 py-3 text-muted" onclick="showMobileSection('editCar')">
+                    <button id="mobileEditCarTab" class="btn btn-link w-100 py-3 text-muted" onclick="showSection('editCar')">
                         <i class="fas fa-edit d-block mb-1"></i>
                         <small>Edit Car</small>
                     </button>
                 </div>
                 <div class="col">
-                    <button class="btn btn-link w-100 py-3 text-muted" onclick="logout()">
+                    <button id="mobileLogoutBtn" class="btn btn-link w-100 py-3 text-muted" onclick="logout()">
                         <i class="fas fa-sign-out-alt d-block mb-1"></i>
                         <small>Logout</small>
                     </button>
@@ -1704,6 +1714,72 @@
             initializeMobileBookings();
             // Show dashboard by default
             showMobileSection('dashboard');
+        });
+
+        // Update mobile navigation active state
+        function updateMobileNavActive(tabId) {
+            document.querySelectorAll('.mobile-nav .btn-link').forEach(btn => {
+                btn.classList.remove('active', 'text-primary');
+                btn.classList.add('text-muted');
+            });
+            const activeBtn = document.getElementById(tabId);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'text-primary');
+                activeBtn.classList.remove('text-muted');
+            }
+        }
+
+        // Update showSection function to handle mobile navigation
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.content-section, .mobile-section').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Show selected section
+            const sectionId = section + 'Content';
+            const mobileSectionId = 'mobile' + section.charAt(0).toUpperCase() + section.slice(1) + 'Section';
+            
+            const desktopSection = document.getElementById(sectionId);
+            const mobileSection = document.getElementById(mobileSectionId);
+            
+            if (desktopSection) desktopSection.style.display = 'block';
+            if (mobileSection) mobileSection.classList.remove('d-none');
+            
+            // Update active state in both desktop and mobile nav
+            document.querySelectorAll('.sidebar .nav-link, .bottom-nav .nav-btn, .mobile-nav .btn-link').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Update mobile nav active state
+            const mobileTabId = 'mobile' + section.charAt(0).toUpperCase() + section.slice(1) + 'Tab';
+            updateMobileNavActive(mobileTabId);
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Initialize mobile navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial active state
+            updateMobileNavActive('mobileDashboardTab');
+            
+            // Add click handlers for mobile navigation
+            document.getElementById('mobileDashboardTab').addEventListener('click', function() {
+                showSection('dashboard');
+            });
+            
+            document.getElementById('mobileCarsTab').addEventListener('click', function() {
+                showSection('cars');
+            });
+            
+            document.getElementById('mobileEditCarTab').addEventListener('click', function() {
+                showSection('editCar');
+            });
+            
+            document.getElementById('mobileLogoutBtn').addEventListener('click', function() {
+                logout();
+            });
         });
     });
     </script>
