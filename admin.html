@@ -1073,6 +1073,13 @@
             
             // Scroll to top
             window.scrollTo(0, 0);
+            // --- Ensure car data loads when switching tabs ---
+            if (section === 'cars' && typeof loadCarsForPricing === 'function') {
+                loadCarsForPricing();
+            }
+            if (section === 'editCar' && typeof loadEditCarDropdown === 'function') {
+                loadEditCarDropdown();
+            }
         }
 
         function setActive(tab) {
