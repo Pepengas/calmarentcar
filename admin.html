@@ -545,6 +545,51 @@
                 display: none !important;
             }
         }
+        /* Mobile-specific styles */
+        .mobile-layout {
+            padding-bottom: 70px; /* Space for bottom nav */
+        }
+        .mobile-header {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .mobile-nav {
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        .mobile-nav .btn-link {
+            text-decoration: none;
+            color: #6c757d;
+        }
+        .mobile-nav .btn-link.active {
+            color: var(--bs-primary);
+        }
+        .bookings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .booking-item {
+            background: #fff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .booking-item .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+        }
+        .mobile-section {
+            min-height: calc(100vh - 130px);
+        }
     </style>
 </head>
 <body>
@@ -1058,6 +1103,170 @@
         </div>
     </div>
 
+    <!-- Mobile Layout (hidden on desktop) -->
+    <div class="d-block d-md-none mobile-layout">
+        <!-- Mobile Header -->
+        <header class="mobile-header bg-primary text-white p-3 sticky-top">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h5 mb-0">Admin Dashboard</h1>
+                <button class="btn btn-link text-white p-0" id="mobileMenuBtn">
+                    <i class="fas fa-bars fa-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mobile Content -->
+        <div class="mobile-content p-3">
+            <!-- Dashboard Section -->
+            <div id="mobileDashboardSection" class="mobile-section">
+                <!-- Stats Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-muted mb-1">Total Bookings</h6>
+                                        <h3 class="mb-0" id="mobileTotalBookings">0</h3>
+                                    </div>
+                                    <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-muted mb-1">Total Revenue</h6>
+                                        <h3 class="mb-0" id="mobileTotalRevenue">$0</h3>
+                                    </div>
+                                    <div class="icon-circle bg-success bg-opacity-10 text-success">
+                                        <i class="fas fa-euro-sign"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-muted mb-1">Cars Booked Today</h6>
+                                        <h3 class="mb-0" id="mobileCarsBookedToday">0</h3>
+                                    </div>
+                                    <div class="icon-circle bg-warning bg-opacity-10 text-warning">
+                                        <i class="fas fa-car"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Filters -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-3">
+                        <button class="btn btn-link text-dark p-0 w-100 text-start d-flex justify-content-between align-items-center" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#mobileFilters">
+                            <span class="fw-semibold">Filters</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="collapse mt-3" id="mobileFilters">
+                            <div class="mb-3">
+                                <label class="form-label">Search</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="fas fa-search text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0" placeholder="Search bookings...">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select">
+                                    <option value="">All Statuses</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Date Range</label>
+                                <select class="form-select">
+                                    <option value="">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary w-100">Apply Filters</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Bookings List -->
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-3">
+                        <h5 class="card-title mb-3">Recent Bookings</h5>
+                        <div id="mobileBookingsList" class="bookings-list">
+                            <!-- Booking items will be dynamically added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cars Section -->
+            <div id="mobileCarsSection" class="mobile-section d-none">
+                <!-- Original cars content will be shown here -->
+                <div id="carsContent"></div>
+            </div>
+
+            <!-- Edit Car Section -->
+            <div id="mobileEditCarSection" class="mobile-section d-none">
+                <!-- Original edit car content will be shown here -->
+                <div id="editCarContent"></div>
+            </div>
+        </div>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-nav fixed-bottom bg-white border-top">
+            <div class="row g-0">
+                <div class="col">
+                    <button class="btn btn-link w-100 py-3 text-primary" onclick="showMobileSection('dashboard')">
+                        <i class="fas fa-chart-line d-block mb-1"></i>
+                        <small>Dashboard</small>
+                    </button>
+                </div>
+                <div class="col">
+                    <button class="btn btn-link w-100 py-3 text-muted" onclick="showMobileSection('cars')">
+                        <i class="fas fa-car d-block mb-1"></i>
+                        <small>Cars</small>
+                    </button>
+                </div>
+                <div class="col">
+                    <button class="btn btn-link w-100 py-3 text-muted" onclick="showMobileSection('editCar')">
+                        <i class="fas fa-edit d-block mb-1"></i>
+                        <small>Edit Car</small>
+                    </button>
+                </div>
+                <div class="col">
+                    <button class="btn btn-link w-100 py-3 text-muted" onclick="logout()">
+                        <i class="fas fa-sign-out-alt d-block mb-1"></i>
+                        <small>Logout</small>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </div>
+
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Admin Dashboard JavaScript -->
@@ -1446,6 +1655,55 @@
         document.querySelector('.filter-toggle').addEventListener('click', function() {
             const icon = this.querySelector('i');
             icon.style.transform = this.getAttribute('aria-expanded') === 'true' ? 'rotate(0deg)' : 'rotate(180deg)';
+        });
+
+        // Mobile-specific JavaScript
+        function showMobileSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.mobile-section').forEach(el => {
+                el.classList.add('d-none');
+            });
+            
+            // Show selected section
+            document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Section`).classList.remove('d-none');
+            
+            // Update active state in bottom nav
+            document.querySelectorAll('.mobile-nav .btn-link').forEach(btn => {
+                btn.classList.remove('active', 'text-primary');
+                btn.classList.add('text-muted');
+            });
+            event.currentTarget.classList.add('active', 'text-primary');
+            event.currentTarget.classList.remove('text-muted');
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Initialize mobile bookings list
+        function initializeMobileBookings() {
+            const bookingsList = document.getElementById('mobileBookingsList');
+            // This will be populated by your existing booking data
+            // Example structure:
+            /*
+            <div class="booking-item">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="mb-0">Booking #123</h6>
+                    <span class="status-badge bg-success text-white">Completed</span>
+                </div>
+                <p class="text-muted small mb-2">John Doe - Toyota Corolla</p>
+                <div class="d-flex justify-content-between text-muted small">
+                    <span>Pickup: 2024-03-20</span>
+                    <span>Return: 2024-03-25</span>
+                </div>
+            </div>
+            */
+        }
+
+        // Initialize mobile view
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMobileBookings();
+            // Show dashboard by default
+            showMobileSection('dashboard');
         });
     });
     </script>
