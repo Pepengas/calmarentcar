@@ -45,9 +45,19 @@ const totalBookings = document.getElementById('totalBookings');
 const totalRevenue = document.getElementById('totalRevenue');
 const carsBookedToday = document.getElementById('carsBookedToday');
 const filterForm = document.getElementById('filterForm');
-const bookingDetailsModal = new bootstrap.Modal(document.getElementById('bookingDetailsModal'));
 const bookingDetailsContent = document.getElementById('bookingDetailsContent');
 const updateStatusBtn = document.getElementById('updateStatusBtn');
+
+// Only initialize bookingDetailsModal if the modal element exists
+let bookingDetailsModal = null;
+const bookingDetailsModalElem = document.getElementById('bookingDetailsModal');
+if (bookingDetailsModalElem) {
+    bookingDetailsModal = new bootstrap.Modal(bookingDetailsModalElem);
+}
+
+// --- Cars Tab: Monthly Pricing Management ---
+const carsContent = document.getElementById('carsContent');
+const priceEditorTable = document.getElementById('priceEditorTable');
 
 // Initialize the dashboard when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -250,6 +260,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 editCarMsg.textContent = 'Error saving car: ' + err.message;
                 editCarMsg.className = 'alert alert-danger';
             }
+        });
+    }
+
+    // --- Ensure Edit Car Dropdown Loads on Page Load and Tab Switch ---
+    function ensureEditCarDropdownLoaded() {
+        if (editCarContent && window.getComputedStyle(editCarContent).display !== 'none') {
+            loadEditCarDropdown();
+        }
+    }
+    // Call on DOMContentLoaded
+    ensureEditCarDropdownLoaded();
+    // Observe for tab switches (visibility changes)
+    if (editCarContent) {
+        const observer = new MutationObserver(() => {
+            if (window.getComputedStyle(editCarContent).display !== 'none') {
+                loadEditCarDropdown();
+            }
+        });
+        observer.observe(editCarContent, { attributes: true, attributeFilter: ['style', 'class'] });
+    }
+    // --- Modal Error Debugging ---
+    try {
+        if (!document.getElementById('bookingDetailsModal')) {
+            console.warn('[Admin] bookingDetailsModal element is missing from the DOM. Modal features may not work.');
+        }
+    } catch (e) {
+        console.error('[Admin] Error checking for bookingDetailsModal:', e);
+    }
+
+    // Load cars for pricing when Cars tab is shown
+    if (carsContent && priceEditorTable) {
+        document.getElementById('carsTab').addEventListener('click', function() {
+            loadCarsForPricing();
         });
     }
 });
@@ -1054,5 +1097,76 @@ window.addEventListener('resize', function() {
         tableLayoutMode.textContent = isMobile ? 'Mobile' : 'Desktop';
     }
 });
+
+async function loadCarsForPricing() {
+    if (!carsContent || !priceEditorTable) return;
+    try {
+        const res = await fetch('/api/cars');
+        const data = await res.json();
+        if (!data.success) throw new Error('Failed to fetch cars');
+        const cars = data.cars;
+        const tbody = priceEditorTable.querySelector('tbody');
+        tbody.innerHTML = '';
+        cars.forEach(car => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${car.name}</td>
+                ${renderMonthlyPricingInputs(car)}
+                <td><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        const tbody = priceEditorTable.querySelector('tbody');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="14" class="text-danger">Error loading cars: ${err.message}</td></tr>`;
+        console.error('[Cars Tab] Error loading cars for pricing:', err);
+    }
+}
+
+function renderMonthlyPricingInputs(car) {
+    // car.monthly_pricing is expected to be an object with month names as keys
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    let html = '';
+    let pricing = {};
+    try {
+        pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
+    } catch (e) {
+        pricing = {};
+    }
+    months.forEach(month => {
+        html += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month] || ''}" data-month="${month}" data-carid="${car.id}"></td>`;
+    });
+    return html;
+}
+
+window.saveMonthlyPricing = async function(carId, btn) {
+    // Find all inputs for this car
+    const row = btn.closest('tr');
+    const inputs = row.querySelectorAll('input[data-month]');
+    const monthly_pricing = {};
+    inputs.forEach(input => {
+        monthly_pricing[input.dataset.month] = parseFloat(input.value) || 0;
+    });
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    try {
+        const res = await fetch(`/api/admin/car/${carId}/pricing`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            body: JSON.stringify({ monthly_pricing })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to update pricing');
+        btn.textContent = 'Saved!';
+        setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 1200);
+    } catch (err) {
+        btn.textContent = 'Error';
+        setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 2000);
+        alert('Failed to save pricing: ' + err.message);
+    }
+};
 
        
