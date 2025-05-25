@@ -6,6 +6,32 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the customer information page
     CustomerInfo.init();
+    // Add handler for back to car selection
+    const backBtn = document.getElementById('back-to-car-selection');
+    if (backBtn) {
+        backBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Try to get booking data from sessionStorage
+            const bookingDataRaw = sessionStorage.getItem('bookingData');
+            if (bookingDataRaw) {
+                const bookingData = JSON.parse(bookingDataRaw);
+                // Build URL params
+                const params = new URLSearchParams();
+                if (bookingData.pickupLocation) params.append('pickup-location', bookingData.pickupLocation);
+                if (bookingData.dropoffLocation) params.append('dropoff-location', bookingData.dropoffLocation);
+                if (bookingData.pickupDate) params.append('pickup-date', bookingData.pickupDate);
+                if (bookingData.pickupTime) params.append('pickup-time', bookingData.pickupTime);
+                if (bookingData.returnDate) params.append('dropoff-date', bookingData.returnDate);
+                if (bookingData.returnTime) params.append('dropoff-time', bookingData.returnTime);
+                if (bookingData.duration) params.append('duration', bookingData.duration);
+                // Redirect with params
+                window.location.href = 'car-selection.html?' + params.toString();
+            } else {
+                // Fallback: just go to car-selection.html
+                window.location.href = 'car-selection.html';
+            }
+        });
+    }
 });
 
 const CustomerInfo = {

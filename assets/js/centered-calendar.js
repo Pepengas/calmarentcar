@@ -259,15 +259,10 @@ window.CenteredCalendar.prototype.attachEvents = function() {
 // Show the calendar
 window.CenteredCalendar.prototype.show = function() {
   // Center the calendar in the screen
-  // Position in the center of the viewport
   this.calendarContainer.style.top = '50%';
   this.calendarContainer.style.left = '50%';
   this.calendarContainer.style.transform = 'translate(-50%, -50%) scale(0.95)';
-  
-  // Apply responsive sizing
   this.adjustResponsiveSizing();
-  
-  // Add a backdrop overlay
   if (!this.backdrop) {
     this.backdrop = document.createElement('div');
     this.backdrop.className = 'calendar-backdrop';
@@ -277,37 +272,30 @@ window.CenteredCalendar.prototype.show = function() {
     this.backdrop.style.right = '0';
     this.backdrop.style.bottom = '0';
     this.backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-    this.backdrop.style.zIndex = '9998'; // One less than the calendar
+    this.backdrop.style.zIndex = '9998';
     this.backdrop.style.opacity = '0';
     this.backdrop.style.transition = 'opacity 0.2s ease';
-    
-    // Close when clicking the backdrop
     this.backdrop.addEventListener('click', this.hide.bind(this));
-    
     document.body.appendChild(this.backdrop);
   }
-  
-  // Add a subtle animation
   this.calendarContainer.style.transition = 'opacity 0.2s, transform 0.2s';
   this.calendarContainer.style.opacity = '0';
-  
-  // Show the backdrop
+  this.calendarContainer.style.transform = 'translate(-50%, -50%) scale(0.95)';
   this.backdrop.style.display = 'block';
-  
-  // Show the calendar
   this.calendarContainer.style.display = 'block';
-  
-  // Re-render the calendar with current date
+  // Always set the calendar to the month of the input value if present
+  if (this.inputElement.value) {
+    const inputDate = new Date(this.inputElement.value);
+    if (!isNaN(inputDate.getTime())) {
+      this.currentMonth = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
+    }
+  }
   this.renderCalendar();
-  
-  // Trigger animation
   setTimeout(() => {
     this.backdrop.style.opacity = '1';
     this.calendarContainer.style.opacity = '1';
     this.calendarContainer.style.transform = 'translate(-50%, -50%) scale(1)';
   }, 10);
-  
-  // Store the current visibility
   this.isVisible = true;
 };
 
@@ -504,7 +492,6 @@ window.CenteredCalendar.prototype.applySelection = function() {
   if (this.selectedDate) {
     const formattedDate = this.formatDate(this.selectedDate);
     this.inputElement.value = formattedDate;
-    
     // Call the onSelect callback
     if (typeof this.onSelect === 'function') {
       this.onSelect({
@@ -513,8 +500,7 @@ window.CenteredCalendar.prototype.applySelection = function() {
       });
     }
   }
-  
-  this.hide();
+  this.hide(); // Always close the calendar
 };
 
 // Handle keyboard navigation
@@ -568,5 +554,13 @@ window.CenteredCalendar.prototype.adjustResponsiveSizing = function() {
     this.calendarContainer.style.width = '280px';
   } else {
     this.calendarContainer.style.width = '300px';
+  }
+};
+
+// Add a method to set the current month externally
+window.CenteredCalendar.prototype.setCurrentMonth = function(date) {
+  if (date instanceof Date && !isNaN(date.getTime())) {
+    this.currentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    this.renderCalendar();
   }
 }; 

@@ -69,6 +69,24 @@ document.addEventListener('DOMContentLoaded', function() {
           dropoffTime
         });
         
+        // Save booking data to sessionStorage for restoration
+        const bookingData = {
+          pickupLocation,
+          dropoffLocation,
+          pickupDate,
+          pickupTime,
+          returnDate: dropoffDate,
+          returnTime: dropoffTime,
+          duration: null // will set below
+        };
+        // Calculate rental duration in days
+        const pickupDateTime = new Date(`${pickupDate} ${pickupTime}`);
+        const dropoffDateTime = new Date(`${dropoffDate} ${dropoffTime}`);
+        const durationMs = dropoffDateTime - pickupDateTime;
+        const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24));
+        bookingData.duration = durationDays;
+        sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
+        
         // Create URL parameters
         const params = new URLSearchParams();
         params.append('pickup-location', pickupLocation);
@@ -77,13 +95,6 @@ document.addEventListener('DOMContentLoaded', function() {
         params.append('pickup-time', pickupTime);
         params.append('dropoff-date', dropoffDate);
         params.append('dropoff-time', dropoffTime);
-        
-        // Calculate rental duration in days
-        const pickupDateTime = new Date(`${pickupDate} ${pickupTime}`);
-        const dropoffDateTime = new Date(`${dropoffDate} ${dropoffTime}`);
-        const durationMs = dropoffDateTime - pickupDateTime;
-        const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24));
-        
         params.append('duration', durationDays);
         
         // Redirect to car selection page
@@ -134,6 +145,38 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     });
+  }
+  
+  // Restore booking data from sessionStorage if URL params are missing or null
+  if (window.location.pathname.includes('car-selection.html')) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const keys = ['pickup-location', 'dropoff-location', 'pickup-date', 'dropoff-date', 'duration'];
+    let missing = false;
+    for (const key of keys) {
+      const val = urlParams.get(key);
+      if (!val || val === 'null' || val === 'undefined') {
+        missing = true;
+        break;
+      }
+    }
+    if (missing) {
+      // Try to get from sessionStorage
+      const bookingDataRaw = sessionStorage.getItem('bookingData');
+      if (bookingDataRaw) {
+        const bookingData = JSON.parse(bookingDataRaw);
+        const params = new URLSearchParams();
+        if (bookingData.pickupLocation) params.append('pickup-location', bookingData.pickupLocation);
+        if (bookingData.dropoffLocation) params.append('dropoff-location', bookingData.dropoffLocation);
+        if (bookingData.pickupDate) params.append('pickup-date', bookingData.pickupDate);
+        if (bookingData.pickupTime) params.append('pickup-time', bookingData.pickupTime);
+        if (bookingData.returnDate) params.append('dropoff-date', bookingData.returnDate);
+        if (bookingData.returnTime) params.append('dropoff-time', bookingData.returnTime);
+        if (bookingData.duration) params.append('duration', bookingData.duration);
+        // Redirect with params
+        window.location.href = 'car-selection.html?' + params.toString();
+        return; // Prevent further execution
+      }
+    }
   }
   
   // Check if we're on the car selection page
