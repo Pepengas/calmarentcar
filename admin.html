@@ -249,166 +249,169 @@
                 z-index: 1000;
             }
             .mobile-navbar .navbar-title {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
                 font-weight: bold;
                 color: #fff;
             }
             .mobile-navbar .hamburger {
-                font-size: 2rem;
+                font-size: 1.8rem;
                 background: none;
                 border: none;
                 color: #fff;
+                padding: 0.3rem;
             }
             .mobile-sidebar {
                 display: none;
                 position: fixed;
                 top: 0;
                 left: 0;
-                width: 70vw;
-                max-width: 320px;
+                width: 80vw;
+                max-width: 300px;
                 height: 100vh;
                 background: var(--primary-color);
                 z-index: 2000;
                 box-shadow: 2px 0 12px #0002;
-                padding: 2rem 1rem 1rem 1rem;
-                transition: left 0.3s;
+                padding: 1.5rem 1rem;
+                transition: transform 0.3s ease;
+                transform: translateX(-100%);
             }
             .mobile-sidebar.active {
                 display: block;
+                transform: translateX(0);
             }
             .mobile-sidebar .nav-link {
-                color: #fff;
-                font-size: 1.1rem;
-                margin-bottom: 1.2rem;
+                color: rgba(255,255,255,.85);
+                font-size: 1rem;
+                margin-bottom: 0.8rem;
                 display: flex;
                 align-items: center;
+                padding: 0.8rem 1rem;
+                border-radius: 0.5rem;
+                transition: all 0.2s ease;
             }
             .mobile-sidebar .nav-link.active {
                 background: var(--secondary-color);
                 color: #fff;
-                border-radius: 1rem;
+                border-radius: 0.5rem;
+            }
+            .mobile-sidebar .nav-link:hover {
+                background: rgba(255,255,255,.1);
+                color: #fff;
             }
             .container-fluid, .row, .col-md-9, .col-lg-10, .px-md-4 {
-                padding: 0 !important;
+                padding: 0.8rem !important;
                 margin: 0 !important;
-                width: 100vw !important;
-                max-width: 100vw !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }
             .card, .card-stats, .card-revenue, .card-bookings, .card-cars {
                 width: 100% !important;
-                margin: 0 0 1.2rem 0 !important;
-                border-radius: 1.2rem !important;
-                font-size: 1rem !important;
+                margin: 0 0 1rem 0 !important;
+                border-radius: 0.8rem !important;
+                font-size: 0.95rem !important;
+                padding: 1rem !important;
             }
             .card-title, .h2 {
-                font-size: 1.1rem !important;
+                font-size: 1.05rem !important;
+                margin-bottom: 0.8rem !important;
             }
             .btn-toolbar, .btn-group {
                 flex-direction: column;
                 width: 100%;
+                gap: 0.5rem;
             }
             .form-label, .form-control, .form-select, .input-group-text {
-                font-size: 0.98rem !important;
+                font-size: 0.95rem !important;
             }
             .table-responsive {
-                font-size: 0.95rem;
-            }
-            #editCarContent .bg-white.rounded-3xl.shadow-lg.p-8.mb-8.border.border-blue-100 {
-                padding: 0.5rem !important;
-            }
-            #bookingsTable thead {
-                display: none;
-            }
-            #bookingsTable tbody tr {
-                display: block;
-                margin-bottom: 1.2rem;
-                background: #fff;
-                border-radius: 1.2rem;
-                box-shadow: 0 2px 8px #0001;
-                padding: 1rem;
-            }
-            #bookingsTable td {
-                display: flex;
-                width: 100%;
-                justify-content: flex-start;
-                align-items: center;
-                border: none;
-                padding: 0.3rem 0.5rem;
-                font-size: 1rem;
-            }
-            #bookingsTable td:before {
-                content: attr(data-label);
-                font-weight: bold;
-                min-width: 120px;
-                color: #217dbb;
-                margin-right: 0.5rem;
+                font-size: 0.9rem;
+                margin: 0 -0.8rem;
+                padding: 0 0.8rem;
             }
             .bottom-nav {
                 display: flex !important;
                 position: fixed;
                 bottom: 0;
                 left: 0;
-                width: 100vw;
+                width: 100%;
                 background: var(--primary-color);
                 z-index: 3000;
-                height: 54px;
-                box-shadow: 0 -2px 8px #0002;
+                height: 60px;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
                 justify-content: space-around;
                 align-items: center;
+                padding: 0.5rem 0;
             }
             .bottom-nav .nav-btn {
                 flex: 1;
                 text-align: center;
-                color: #fff;
+                color: rgba(255,255,255,.7);
                 font-size: 1.1rem;
                 background: none;
                 border: none;
                 outline: none;
-                padding: 0.2rem 0;
-                transition: color 0.2s;
+                padding: 0.5rem 0;
+                transition: all 0.2s ease;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.2rem;
+            }
+            .bottom-nav .nav-btn i {
+                font-size: 1.3rem;
+                margin-bottom: 0.2rem;
+            }
+            .bottom-nav .nav-btn span {
+                font-size: 0.75rem;
+                font-weight: 500;
             }
             .bottom-nav .nav-btn.active {
                 color: var(--secondary-color);
             }
-            .mobile-navbar, .mobile-sidebar { display: none !important; }
-            body { padding-bottom: 60px !important; }
-            html, body {
-                font-size: 15px !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                width: 100vw !important;
-                max-width: 100vw !important;
-                overflow-x: hidden !important;
+            .bottom-nav .nav-btn:active {
+                transform: scale(0.95);
             }
-            .container-fluid, .row, .col-md-9, .col-lg-10, .px-md-4 {
-                padding: 0 !important;
-                margin: 0 !important;
-                width: 100vw !important;
-                max-width: 100vw !important;
+            body { 
+                padding-bottom: 70px !important;
+                font-size: 14px !important;
             }
-            .card, .card-stats, .card-revenue, .card-bookings, .card-cars {
-                width: 100% !important;
-                margin: 0 0 1.2rem 0 !important;
-                border-radius: 1.2rem !important;
-                font-size: 1rem !important;
+            .filter-section {
+                margin-bottom: 1rem;
+                padding: 0.8rem;
+                background: #fff;
+                border-radius: 0.8rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             }
-            .card-title, .h2 {
-                font-size: 1.1rem !important;
+            .filter-section .btn-filter {
+                width: 100%;
+                margin-bottom: 0.5rem;
+                padding: 0.5rem;
+                font-size: 0.9rem;
             }
-            .form-label, .form-control, .form-select, .input-group-text {
-                font-size: 0.98rem !important;
+            .filter-section .form-control,
+            .filter-section .form-select {
+                margin-bottom: 0.5rem;
             }
-            .table-responsive {
-                font-size: 0.95rem;
+            .filter-section .collapse {
+                margin-top: 0.5rem;
             }
-            #editCarContent .bg-white.rounded-3xl.shadow-lg.p-8.mb-8.border.border-blue-100 {
-                padding: 0.5rem !important;
+            .filter-toggle {
+                width: 100%;
+                text-align: left;
+                padding: 0.5rem;
+                background: none;
+                border: none;
+                color: var(--primary-color);
+                font-weight: 500;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
             }
-            .bottom-nav {
-                height: 54px;
+            .filter-toggle i {
+                transition: transform 0.2s ease;
             }
-            .bottom-nav .nav-btn {
-                font-size: 1.1rem;
+            .filter-toggle[aria-expanded="true"] i {
+                transform: rotate(180deg);
             }
         }
         @media (min-width: 769px) {
@@ -1007,12 +1010,52 @@
         </div>
     </div>
 
-    <!-- Bottom Nav -->
-    <div class="bottom-nav" style="display:none;">
-        <button class="nav-btn" id="navDashboard" title="Dashboard"><i class="fas fa-tachometer-alt"></i><div style="font-size:0.7rem;">Dashboard</div></button>
-        <button class="nav-btn" id="navCars" title="Cars"><i class="fas fa-car"></i><div style="font-size:0.7rem;">Cars</div></button>
-        <button class="nav-btn" id="navEditCar" title="Edit Car"><i class="fas fa-edit"></i><div style="font-size:0.7rem;">Edit Car</div></button>
-        <button class="nav-btn" id="navLogout" title="Logout"><i class="fas fa-sign-out-alt"></i><div style="font-size:0.7rem;">Logout</div></button>
+    <!-- Bottom Navigation for Mobile -->
+    <div class="bottom-nav d-md-none">
+        <button class="nav-btn" onclick="showSection('dashboard')">
+            <i class="fas fa-chart-line"></i>
+            <span>Dashboard</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('cars')">
+            <i class="fas fa-car"></i>
+            <span>Cars</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('bookings')">
+            <i class="fas fa-calendar-check"></i>
+            <span>Bookings</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('settings')">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </button>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section d-md-none">
+        <button class="filter-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+            <span>Filters</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="collapse" id="filterCollapse">
+            <div class="mt-3">
+                <div class="mb-3">
+                    <label for="filterStatus" class="form-label">Status</label>
+                    <select class="form-select" id="filterStatus">
+                        <option value="">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="filterDate" class="form-label">Date Range</label>
+                    <input type="date" class="form-control" id="filterDate">
+                </div>
+                <button class="btn btn-primary w-100" onclick="applyFilters()">
+                    Apply Filters
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap Bundle with Popper -->
@@ -1326,6 +1369,83 @@
                 mobileNavbar.style.display = 'none';
                 document.getElementById('mobileSidebar').classList.remove('active');
             }
+        });
+
+        // Mobile Navigation
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Show selected section
+            document.getElementById(section + 'Section').style.display = 'block';
+            
+            // Update active state in bottom nav
+            document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Filter Functionality
+        function applyFilters() {
+            const status = document.getElementById('filterStatus').value;
+            const date = document.getElementById('filterDate').value;
+            
+            // Get all booking rows
+            const rows = document.querySelectorAll('#bookingsTable tbody tr');
+            
+            rows.forEach(row => {
+                let show = true;
+                
+                // Filter by status
+                if (status) {
+                    const rowStatus = row.getAttribute('data-status');
+                    if (rowStatus !== status) {
+                        show = false;
+                    }
+                }
+                
+                // Filter by date
+                if (date) {
+                    const rowDate = row.getAttribute('data-date');
+                    if (rowDate !== date) {
+                        show = false;
+                    }
+                }
+                
+                // Show/hide row
+                row.style.display = show ? '' : 'none';
+            });
+            
+            // Close filter section on mobile
+            if (window.innerWidth < 768) {
+                const filterCollapse = document.getElementById('filterCollapse');
+                const bsCollapse = new bootstrap.Collapse(filterCollapse);
+                bsCollapse.hide();
+            }
+        }
+
+        // Initialize active state for bottom nav
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentSection = document.querySelector('.content-section[style*="display: block"]');
+            if (currentSection) {
+                const sectionId = currentSection.id.replace('Section', '');
+                const navBtn = document.querySelector(`.bottom-nav .nav-btn[onclick*="${sectionId}"]`);
+                if (navBtn) {
+                    navBtn.classList.add('active');
+                }
+            }
+        });
+
+        // Handle filter toggle animation
+        document.querySelector('.filter-toggle').addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            icon.style.transform = this.getAttribute('aria-expanded') === 'true' ? 'rotate(0deg)' : 'rotate(180deg)';
         });
     });
     </script>
