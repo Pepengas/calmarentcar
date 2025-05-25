@@ -1121,143 +1121,100 @@
         // Initial load
         fetchCars();
 
-        // Tab switching logic
-        const dashboardTab = document.querySelector('.nav-link:has(.fa-tachometer-alt)');
-        const carsTab = document.querySelector('.nav-link:has(.fa-car)');
+        // Sidebar tab switching logic
+        const dashboardTab = document.querySelector('.sidebar .nav-link:has(.fa-tachometer-alt)');
+        const carsTab = document.querySelector('.sidebar .nav-link:has(.fa-car)');
+        const customersTab = document.querySelector('.sidebar .nav-link:has(.fa-users)');
+        const reportsTab = document.querySelector('.sidebar .nav-link:has(.fa-chart-line)');
+        const settingsTab = document.querySelector('.sidebar .nav-link:has(.fa-cog)');
+        const editCarTab = document.getElementById('editCarTab');
         const dashboardContent = document.getElementById('dashboardContent');
         const carsContent = document.getElementById('carsContent');
-
-        dashboardTab.classList.add('active');
-        carsTab.classList.remove('active');
+        const editCarContent = document.getElementById('editCarContent');
+        // Hide all content except dashboard by default
         dashboardContent.style.display = 'block';
         carsContent.style.display = 'none';
-
+        editCarContent.style.display = 'none';
+        // Tab click handlers
         dashboardTab.addEventListener('click', function(e) {
             e.preventDefault();
-            dashboardTab.classList.add('active');
-            carsTab.classList.remove('active');
             dashboardContent.style.display = 'block';
             carsContent.style.display = 'none';
+            editCarContent.style.display = 'none';
+            setActive(this);
         });
-
         carsTab.addEventListener('click', function(e) {
             e.preventDefault();
-            carsTab.classList.add('active');
-            dashboardTab.classList.remove('active');
             dashboardContent.style.display = 'none';
             carsContent.style.display = 'block';
             editCarContent.style.display = 'none';
+            setActive(this);
         });
-
-        const editCarTab = document.getElementById('editCarTab');
-        const editCarContent = document.getElementById('editCarContent');
-        // Hide dashboard and show Edit Car when Edit Car tab is clicked
         editCarTab.addEventListener('click', function(e) {
             e.preventDefault();
             dashboardContent.style.display = 'none';
+            carsContent.style.display = 'none';
             editCarContent.style.display = 'block';
-            // Remove Dashboard title if present
-            const h1 = document.querySelector('.h2');
-            if (h1 && h1.textContent.trim() === 'Dashboard') {
-                h1.style.display = 'none';
-            }
+            setActive(this);
         });
-        // Show dashboard and hide Edit Car when Dashboard tab is clicked
-        dashboardTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            dashboardContent.style.display = 'block';
-            editCarContent.style.display = 'none';
-            // Restore Dashboard title
-            const h1 = document.querySelector('.h2');
-            if (h1 && h1.textContent.trim() === 'Dashboard') {
-                h1.style.display = '';
-            }
-        });
+        function setActive(tab) {
+            document.querySelectorAll('.sidebar .nav-link').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        }
 
-        // Bottom nav tab switching (mobile)
-        function showTab(tab) {
-            document.getElementById('dashboardContent').style.display = (tab === 'dashboard') ? 'block' : 'none';
-            document.getElementById('carsContent').style.display = (tab === 'cars') ? 'block' : 'none';
-            document.getElementById('editCarContent').style.display = (tab === 'editCar') ? 'block' : 'none';
-        }
-        if (window.innerWidth <= 768) {
-            document.querySelector('.bottom-nav').style.display = 'flex';
-            showTab('dashboard');
-            document.getElementById('navDashboard').addEventListener('click', function() {
-                showTab('dashboard');
-                setActive(this);
-            });
-            document.getElementById('navCars').addEventListener('click', function() {
-                showTab('cars');
-                setActive(this);
-            });
-            document.getElementById('navEditCar').addEventListener('click', function() {
-                showTab('editCar');
-                setActive(this);
-            });
-            document.getElementById('navLogout').addEventListener('click', function() {
-                window.location.href = '/logout';
-            });
-            function setActive(btn) {
-                document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+        // Mobile menu toggle
+        function isMobile() { return window.innerWidth <= 768; }
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileNavbar = document.querySelector('.mobile-navbar');
+            const mobileSidebar = document.getElementById('mobileSidebar');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            if (isMobile()) {
+                mobileNavbar.style.display = 'flex';
             }
-            setActive(document.getElementById('navDashboard'));
-        }
-    });
-
-    // Mobile menu toggle
-    function isMobile() { return window.innerWidth <= 768; }
-    document.addEventListener('DOMContentLoaded', function() {
-        const mobileNavbar = document.querySelector('.mobile-navbar');
-        const mobileSidebar = document.getElementById('mobileSidebar');
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        if (isMobile()) {
-            mobileNavbar.style.display = 'flex';
-        }
-        mobileMenuBtn.addEventListener('click', function() {
-            mobileSidebar.classList.toggle('active');
-        });
-        // Hide sidebar when clicking outside
-        document.addEventListener('click', function(e) {
-            if (isMobile() && mobileSidebar.classList.contains('active') && !mobileSidebar.contains(e.target) && e.target !== mobileMenuBtn) {
-                mobileSidebar.classList.remove('active');
-            }
-        });
-        // Mobile tab switching
-        const tabMap = {
-            mobileDashboardTab: 'dashboardContent',
-            mobileCarsTab: 'carsContent',
-            mobileEditCarTab: 'editCarContent',
-            // Add more if needed
-        };
-        Object.keys(tabMap).forEach(tabId => {
-            const tab = document.getElementById(tabId);
-            if (tab) {
-                tab.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    // Hide all main contents
-                    Object.values(tabMap).forEach(contentId => {
-                        const el = document.getElementById(contentId);
-                        if (el) el.style.display = 'none';
-                    });
-                    // Show selected
-                    const showEl = document.getElementById(tabMap[tabId]);
-                    if (showEl) showEl.style.display = 'block';
-                    // Hide sidebar
+            mobileMenuBtn.addEventListener('click', function() {
+                mobileSidebar.classList.toggle('active');
+            });
+            // Hide sidebar when clicking outside
+            document.addEventListener('click', function(e) {
+                if (isMobile() && mobileSidebar.classList.contains('active') && !mobileSidebar.contains(e.target) && e.target !== mobileMenuBtn) {
                     mobileSidebar.classList.remove('active');
-                });
+                }
+            });
+            // Mobile tab switching
+            const tabMap = {
+                mobileDashboardTab: 'dashboardContent',
+                mobileCarsTab: 'carsContent',
+                mobileEditCarTab: 'editCarContent',
+                // Add more if needed
+            };
+            Object.keys(tabMap).forEach(tabId => {
+                const tab = document.getElementById(tabId);
+                if (tab) {
+                    tab.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Hide all main contents
+                        Object.values(tabMap).forEach(contentId => {
+                            const el = document.getElementById(contentId);
+                            if (el) el.style.display = 'none';
+                        });
+                        // Show selected
+                        const showEl = document.getElementById(tabMap[tabId]);
+                        if (showEl) showEl.style.display = 'block';
+                        // Hide sidebar
+                        mobileSidebar.classList.remove('active');
+                    });
+                }
+            });
+        });
+        window.addEventListener('resize', function() {
+            const mobileNavbar = document.querySelector('.mobile-navbar');
+            if (isMobile()) {
+                mobileNavbar.style.display = 'flex';
+            } else {
+                mobileNavbar.style.display = 'none';
+                document.getElementById('mobileSidebar').classList.remove('active');
             }
         });
-    });
-    window.addEventListener('resize', function() {
-        const mobileNavbar = document.querySelector('.mobile-navbar');
-        if (isMobile()) {
-            mobileNavbar.style.display = 'flex';
-        } else {
-            mobileNavbar.style.display = 'none';
-            document.getElementById('mobileSidebar').classList.remove('active');
-        }
     });
     </script>
 </body>
