@@ -338,6 +338,50 @@
                 color: #217dbb;
                 margin-right: 0.5rem;
             }
+            .bottom-nav {
+                display: flex !important;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100vw;
+                background: var(--primary-color);
+                z-index: 3000;
+                height: 60px;
+                box-shadow: 0 -2px 8px #0002;
+                justify-content: space-around;
+                align-items: center;
+            }
+            .bottom-nav .nav-btn {
+                flex: 1;
+                text-align: center;
+                color: #fff;
+                font-size: 1.3rem;
+                background: none;
+                border: none;
+                outline: none;
+                padding: 0.2rem 0;
+                transition: color 0.2s;
+            }
+            .bottom-nav .nav-btn.active {
+                color: var(--secondary-color);
+            }
+            .mobile-navbar, .mobile-sidebar { display: none !important; }
+            body { padding-bottom: 60px !important; }
+        }
+        @media (min-width: 769px) {
+            .bottom-nav { display: none !important; }
+            #bookingsTable thead { display: table-header-group !important; }
+            #bookingsTable tbody tr, #bookingsTable td, #bookingsTable td:before {
+                display: table-row !important;
+                background: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: initial !important;
+                font-size: initial !important;
+                color: initial !important;
+                min-width: initial !important;
+                margin-right: 0 !important;
+            }
         }
     </style>
 </head>
@@ -812,6 +856,14 @@
         </div>
     </div>
 
+    <!-- Bottom Nav -->
+    <div class="bottom-nav" style="display:none;">
+        <button class="nav-btn" id="navDashboard" title="Dashboard"><i class="fas fa-tachometer-alt"></i><div style="font-size:0.7rem;">Dashboard</div></button>
+        <button class="nav-btn" id="navCars" title="Cars"><i class="fas fa-car"></i><div style="font-size:0.7rem;">Cars</div></button>
+        <button class="nav-btn" id="navEditCar" title="Edit Car"><i class="fas fa-edit"></i><div style="font-size:0.7rem;">Edit Car</div></button>
+        <button class="nav-btn" id="navLogout" title="Logout"><i class="fas fa-sign-out-alt"></i><div style="font-size:0.7rem;">Logout</div></button>
+    </div>
+
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Admin Dashboard JavaScript -->
@@ -1082,6 +1134,37 @@
                 h1.style.display = '';
             }
         });
+
+        // Bottom nav tab switching (mobile)
+        function showTab(tab) {
+            document.getElementById('dashboardContent').style.display = (tab === 'dashboard') ? 'block' : 'none';
+            document.getElementById('carsContent').style.display = (tab === 'cars') ? 'block' : 'none';
+            document.getElementById('editCarContent').style.display = (tab === 'editCar') ? 'block' : 'none';
+        }
+        if (window.innerWidth <= 768) {
+            document.querySelector('.bottom-nav').style.display = 'flex';
+            showTab('dashboard');
+            document.getElementById('navDashboard').addEventListener('click', function() {
+                showTab('dashboard');
+                setActive(this);
+            });
+            document.getElementById('navCars').addEventListener('click', function() {
+                showTab('cars');
+                setActive(this);
+            });
+            document.getElementById('navEditCar').addEventListener('click', function() {
+                showTab('editCar');
+                setActive(this);
+            });
+            document.getElementById('navLogout').addEventListener('click', function() {
+                window.location.href = '/logout';
+            });
+            function setActive(btn) {
+                document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            setActive(document.getElementById('navDashboard'));
+        }
     });
 
     // Mobile menu toggle
