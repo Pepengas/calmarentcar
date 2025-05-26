@@ -1252,26 +1252,14 @@
             <div class="addons-grid">
               <div class="addons-card">
                 <div class="form-check">
-                  <input type="checkbox" id="additionalDriver" name="additionalDriver">
-                  <label for="additionalDriver">Additional Driver (+€15/day)</label>
-                </div>
-              </div>
-              <div class="addons-card">
-                <div class="form-check">
-                  <input type="checkbox" id="fullInsurance" name="fullInsurance">
-                  <label for="fullInsurance">Full Insurance (+€25/day)</label>
-                </div>
-              </div>
-              <div class="addons-card">
-                <div class="form-check">
-                  <input type="checkbox" id="gpsNavigation" name="gpsNavigation">
-                  <label for="gpsNavigation">GPS Navigation (+€8/day)</label>
-                </div>
-              </div>
-              <div class="addons-card">
-                <div class="form-check">
                   <input type="checkbox" id="childSeat" name="childSeat">
-                  <label for="childSeat">Child Seat (+€5/day)</label>
+                  <label for="childSeat">Child Seat (+€4/day)</label>
+                </div>
+              </div>
+              <div class="addons-card">
+                <div class="form-check">
+                  <input type="checkbox" id="boosterSeat" name="boosterSeat">
+                  <label for="boosterSeat">Booster Seat (+€5/day)</label>
                 </div>
               </div>
             </div>
@@ -1554,43 +1542,29 @@
         
         // Add costs for additional options
         const optionPrices = {
-          additionalDriver: 15,
-          fullInsurance: 25,
-          gpsNavigation: 8,
-          childSeat: 5
+          childSeat: 4,
+          boosterSeat: 5
         };
         
         // Check which options are selected
-        const additionalDriver = document.getElementById('additionalDriver').checked;
-        const fullInsurance = document.getElementById('fullInsurance').checked;
-        const gpsNavigation = document.getElementById('gpsNavigation').checked;
         const childSeat = document.getElementById('childSeat').checked;
+        const boosterSeat = document.getElementById('boosterSeat').checked;
         
         // Update additional options summary
         const additionalOptionsSummary = document.getElementById('additional-options-summary');
         additionalOptionsSummary.innerHTML = '';
-        
-        if (additionalDriver) {
-          totalPrice += optionPrices.additionalDriver * durationDays;
-          additionalOptionsSummary.innerHTML += `<div class="option-item">Additional Driver: €${(optionPrices.additionalDriver * durationDays).toFixed(2)}</div>`;
-        }
-        
-        if (fullInsurance) {
-          totalPrice += optionPrices.fullInsurance * durationDays;
-          additionalOptionsSummary.innerHTML += `<div class="option-item">Full Insurance: €${(optionPrices.fullInsurance * durationDays).toFixed(2)}</div>`;
-        }
-        
-        if (gpsNavigation) {
-          totalPrice += optionPrices.gpsNavigation * durationDays;
-          additionalOptionsSummary.innerHTML += `<div class="option-item">GPS Navigation: €${(optionPrices.gpsNavigation * durationDays).toFixed(2)}</div>`;
-        }
         
         if (childSeat) {
           totalPrice += optionPrices.childSeat * durationDays;
           additionalOptionsSummary.innerHTML += `<div class="option-item">Child Seat: €${(optionPrices.childSeat * durationDays).toFixed(2)}</div>`;
         }
         
-        if (!additionalDriver && !fullInsurance && !gpsNavigation && !childSeat) {
+        if (boosterSeat) {
+          totalPrice += optionPrices.boosterSeat * durationDays;
+          additionalOptionsSummary.innerHTML += `<div class="option-item">Booster Seat: €${(optionPrices.boosterSeat * durationDays).toFixed(2)}</div>`;
+        }
+        
+        if (!childSeat && !boosterSeat) {
           additionalOptionsSummary.innerHTML = '<div class="option-item">None selected</div>';
         }
         
@@ -1599,8 +1573,7 @@
       }
       
       // Add event listeners to additional options checkboxes
-      const additionalOptions = ['additionalDriver', 'fullInsurance', 'gpsNavigation', 'childSeat'];
-      additionalOptions.forEach(option => {
+      ['childSeat', 'boosterSeat'].forEach(option => {
         const checkbox = document.getElementById(option);
         if (checkbox) {
           checkbox.addEventListener('change', updateTotalPrice);
@@ -1750,15 +1723,11 @@
           fetchTotalPrice().then(async (basePrice) => {
             let totalPrice = basePrice;
             // Check additional options
-            const additionalDriver = document.getElementById('additionalDriver').checked;
-            const fullInsurance = document.getElementById('fullInsurance').checked;
-            const gpsNavigation = document.getElementById('gpsNavigation').checked;
             const childSeat = document.getElementById('childSeat').checked;
+            const boosterSeat = document.getElementById('boosterSeat').checked;
             // Add additional options costs
-            if (additionalDriver) totalPrice += 15 * durationDays;
-            if (fullInsurance) totalPrice += 25 * durationDays;
-            if (gpsNavigation) totalPrice += 8 * durationDays;
-            if (childSeat) totalPrice += 5 * durationDays;
+            if (childSeat) totalPrice += optionPrices.childSeat * durationDays;
+            if (boosterSeat) totalPrice += optionPrices.boosterSeat * durationDays;
             console.log('Fetched totalPrice before booking:', totalPrice);
             if (!totalPrice || totalPrice <= 0) {
               alert('Could not fetch price for this car and dates. Please try again or contact support.');
@@ -1784,10 +1753,8 @@
               car_model: finalCarModel,
               daily_rate: Math.round(basePrice / durationDays),
               total_price: totalPrice,
-              additional_driver: additionalDriver,
-              full_insurance: fullInsurance,
-              gps_navigation: gpsNavigation,
               child_seat: childSeat,
+              booster_seat: boosterSeat,
               special_requests: document.getElementById('specialRequests').value
             };
             console.log('FINAL booking payload to send:', bookingData);
