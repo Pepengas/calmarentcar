@@ -108,30 +108,38 @@ document.addEventListener('DOMContentLoaded', function() {
     clearSearchBtn = document.getElementById('clearSearchBtn');
     
     // Event listeners
-    document.getElementById('filterForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        applyFilters();
-    });
-    
-    document.getElementById('filterForm').addEventListener('reset', function(e) {
-        setTimeout(resetFilters, 0);
-    });
-    
-    document.getElementById('dateFilter').addEventListener('change', function() {
-        const datePickerContainer = document.getElementById('datePickerContainer');
-        if (this.value === 'custom') {
-            datePickerContainer.style.display = 'block';
-        } else {
-            datePickerContainer.style.display = 'none';
-            document.getElementById('submittedDateFilter').value = '';
-        }
-    });
-    
-    document.getElementById('updateStatusBtn').addEventListener('click', updateBookingStatus);
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-        localStorage.removeItem('adminToken');
-        window.location.href = 'admin-login.html';
-    });
+    const filterFormElem = document.getElementById('filterForm');
+    if (filterFormElem) {
+        filterFormElem.addEventListener('submit', function(e) {
+            e.preventDefault();
+            applyFilters();
+        });
+        filterFormElem.addEventListener('reset', function(e) {
+            setTimeout(resetFilters, 0);
+        });
+    }
+    const dateFilterElem = document.getElementById('dateFilter');
+    if (dateFilterElem) {
+        dateFilterElem.addEventListener('change', function() {
+            const datePickerContainer = document.getElementById('datePickerContainer');
+            if (this.value === 'custom') {
+                datePickerContainer.style.display = 'block';
+            } else {
+                datePickerContainer.style.display = 'none';
+                document.getElementById('submittedDateFilter').value = '';
+            }
+        });
+    }
+    if (updateStatusBtn) {
+        updateStatusBtn.addEventListener('click', updateBookingStatus);
+    }
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'admin-login.html';
+        });
+    }
     
     // Add event listener for text search input
     if (textSearchFilter) {
