@@ -1229,138 +1229,145 @@ carDropdown.addEventListener('change', function() {
     renderCarPricingTable(this.value);
 });
 
-function renderCarPricingTable(carId) {
-    const car = allCarsForPricing.find(c => c.id === carId);
-    if (!car) return;
-    const pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
-    const months = getSortedMonthKeys(pricing);
-    const tbody = priceEditorTable.querySelector('tbody');
-    tbody.innerHTML = '';
-    // Table header
-    const thead = priceEditorTable.querySelector('thead');
-    thead.innerHTML = `<tr class="bg-gray-100">
-        <th class="px-4 py-2 text-left">Month</th>
-        <th class="px-4 py-2 text-left">Day 1</th>
-        <th class="px-4 py-2 text-left">Day 2</th>
-        <th class="px-4 py-2 text-left">Day 3</th>
-        <th class="px-4 py-2 text-left">Day 4</th>
-        <th class="px-4 py-2 text-left">Day 5</th>
-        <th class="px-4 py-2 text-left">Day 6</th>
-        <th class="px-4 py-2 text-left">Day 7</th>
-        <th class="px-4 py-2 text-left">Extra Day</th>
-        <th class="px-4 py-2 text-left">Actions</th>
-    </tr>`;
-    months.forEach(month => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td style="font-weight: bold;">${getMonthNameFromKey(month)}</td>`;
-        for (let d = 1; d <= 7; d++) {
-            row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`day_${d}`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="day_${d}"></td>`;
-        }
-        row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`extra_day`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="extra_day"></td>`;
-        // Actions
-        row.innerHTML += `<td><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save</button></td>`;
-        tbody.appendChild(row);
-    });
-    // --- Car Availability Section with flatpickr and date bar ---
-    let availabilitySection = document.getElementById('carAvailabilitySection');
-    if (!availabilitySection) {
-        availabilitySection = document.createElement('div');
-        availabilitySection.id = 'carAvailabilitySection';
-        availabilitySection.className = 'mt-4 mb-2';
-        priceEditorTable.parentElement.appendChild(availabilitySection);
-    }
-    availabilitySection.innerHTML = `
-        <div class="card shadow-sm p-3 mb-3 bg-white rounded" style="max-width: 500px; margin: 0 auto;">
-            <h5 class="mb-3 text-primary fw-bold">Car Availability</h5>
-            <label class="mb-2 fw-semibold">Unavailable Dates</label>
-            <input id="unavailableDatesPicker" class="form-control mb-2" placeholder="Select date range(s)">
-            <div id="unavailableDatesBar" class="d-flex flex-row flex-nowrap overflow-auto mb-3" style="gap: 0.5rem;"></div>
-            <label class="mb-2 fw-semibold">Manual Status</label>
-            <select id="carManualStatusDropdown" class="form-select mb-3">
-                <option value="automatic"${car.manual_status === 'automatic' || !car.manual_status ? ' selected' : ''}>Automatic</option>
-                <option value="available"${car.manual_status === 'available' ? ' selected' : ''}>Available</option>
-                <option value="unavailable"${car.manual_status === 'unavailable' ? ' selected' : ''}>Unavailable</option>
-            </select>
-            <button id="saveCarAvailabilityBtn" class="btn btn-success w-100" style="font-weight: 500;">Save Availability</button>
-        </div>
-    `;
-    // --- flatpickr logic for multiple ranges ---
-    let unavailableRanges = [];
-    const picker = document.getElementById('unavailableDatesPicker');
-    const bar = document.getElementById('unavailableDatesBar');
-    if (picker && bar) {
-        let tempRange = [];
-        flatpickr(picker, {
-            mode: 'range',
-            dateFormat: 'Y-m-d',
+// Function to render car pricing table
+async function renderCarPricingTable(carId) {
+    if (!priceEditorTable) return;
+    
+    try {
+        const car = allCarsForPricing.find(c => c.id === carId);
+        if (!car) throw new Error('Car not found');
+
+        // Get current month's pricing
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        const monthlyPricing = car.monthly_pricing || {};
+        const currentPricing = monthlyPricing[currentMonth] || {};
+
+        // Create table rows for each month
+        const tbody = priceEditorTable.querySelector('tbody');
+        tbody.innerHTML = '';
+
+        // Add manual status control
+        const statusRow = document.createElement('tr');
+        statusRow.innerHTML = `
+            <td colspan="16">
+                <div class="d-flex align-items-center gap-3">
+                    <label class="form-label mb-0">Manual Status:</label>
+                    <select class="form-select" style="width: auto;" id="manualStatusSelect">
+                        <option value="automatic" ${car.manual_status === 'automatic' ? 'selected' : ''}>Automatic</option>
+                        <option value="available" ${car.manual_status === 'available' ? 'selected' : ''}>Available</option>
+                        <option value="unavailable" ${car.manual_status === 'unavailable' ? 'selected' : ''}>Unavailable</option>
+                    </select>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(statusRow);
+
+        // Add unavailable dates control
+        const datesRow = document.createElement('tr');
+        datesRow.innerHTML = `
+            <td colspan="16">
+                <div class="d-flex align-items-center gap-3">
+                    <label class="form-label mb-0">Unavailable Dates:</label>
+                    <input type="text" class="form-control" id="unavailableDatesInput" style="width: 300px;" placeholder="Select dates...">
+                    <button class="btn btn-primary" id="saveAvailabilityBtn">Save Availability</button>
+                </div>
+                <div id="selectedDates" class="mt-2 d-flex flex-wrap gap-2"></div>
+            </td>
+        `;
+        tbody.appendChild(datesRow);
+
+        // Initialize flatpickr for date range selection
+        const fp = flatpickr("#unavailableDatesInput", {
+            mode: "range",
+            dateFormat: "Y-m-d",
             onChange: function(selectedDates) {
                 if (selectedDates.length === 2) {
-                    // Add new range if not duplicate
                     const start = selectedDates[0];
                     const end = selectedDates[1];
-                    const exists = unavailableRanges.some(r => r[0].getTime() === start.getTime() && r[1].getTime() === end.getTime());
-                    if (!exists) {
-                        unavailableRanges.push([start, end]);
-                        renderRanges();
-                    }
-                    picker._flatpickr.clear();
+                    addDateRange(start, end);
+                    fp.clear();
                 }
             }
         });
-        function renderRanges() {
-            bar.innerHTML = '';
-            unavailableRanges.forEach((range, idx) => {
-                const startStr = range[0].toLocaleDateString();
-                const endStr = range[1].toLocaleDateString();
-                const entry = document.createElement('div');
-                entry.className = 'badge bg-primary text-white d-flex align-items-center px-3 py-2';
-                entry.style.gap = '0.5rem';
-                entry.innerHTML = `${startStr} – ${endStr} <button class='btn btn-sm btn-light ms-2' style='padding:0 0.5rem;' title='Remove'><i class='fas fa-times'></i></button>`;
-                entry.querySelector('button').onclick = () => {
-                    unavailableRanges.splice(idx, 1);
-                    renderRanges();
-                };
-                bar.appendChild(entry);
+
+        // Display existing unavailable dates
+        if (car.unavailable_dates && Array.isArray(car.unavailable_dates)) {
+            car.unavailable_dates.forEach(range => {
+                addDateRange(new Date(range.start), new Date(range.end));
             });
         }
-    }
-    // --- Save Availability logic ---
-    const saveBtn = document.getElementById('saveCarAvailabilityBtn');
-    const dropdown = document.getElementById('carManualStatusDropdown');
-    if (saveBtn && dropdown) {
-        saveBtn.onclick = async function() {
-            const status = dropdown.value;
-            // Convert ranges to [{start, end}] ISO strings
-            const unavailable = unavailableRanges.map(r => ({
-                start: r[0].toISOString().slice(0, 10),
-                end: r[1].toISOString().slice(0, 10)
-            }));
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
+
+        // Add event listener for manual status change
+        document.getElementById('manualStatusSelect').addEventListener('change', async function() {
             try {
-                const res = await fetch(`/api/admin/car/${car.id}/manual-status`, {
+                const response = await fetch(`/api/admin/car/${carId}/manual-status`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                     },
-                    body: JSON.stringify({ manual_status: status, unavailable_dates: unavailable })
+                    body: JSON.stringify({
+                        manual_status: this.value,
+                        unavailable_dates: car.unavailable_dates || []
+                    })
                 });
-                const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Failed to update manual status');
-                saveBtn.classList.remove('btn-danger');
-                saveBtn.classList.add('btn-success');
-                saveBtn.textContent = 'Saved!';
-            } catch (err) {
-                saveBtn.classList.remove('btn-success');
-                saveBtn.classList.add('btn-danger');
-                saveBtn.textContent = 'Error';
-                alert('Failed to update manual status: ' + err.message);
-            } finally {
-                setTimeout(() => { saveBtn.textContent = 'Save Availability'; saveBtn.disabled = false; saveBtn.classList.remove('btn-danger', 'btn-success'); }, 1500);
+                
+                if (!response.ok) throw new Error('Failed to update manual status');
+                
+                showNotification('Car availability updated successfully', 'success');
+            } catch (error) {
+                console.error('Error updating manual status:', error);
+                showNotification('Failed to update car availability', 'error');
             }
-        };
+        });
+
+        // Add event listener for save availability button
+        document.getElementById('saveAvailabilityBtn').addEventListener('click', async function() {
+            try {
+                const response = await fetch(`/api/admin/car/${carId}/manual-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    },
+                    body: JSON.stringify({
+                        manual_status: document.getElementById('manualStatusSelect').value,
+                        unavailable_dates: car.unavailable_dates || []
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Failed to update availability');
+                
+                showNotification('Car availability updated successfully', 'success');
+            } catch (error) {
+                console.error('Error updating availability:', error);
+                showNotification('Failed to update car availability', 'error');
+            }
+        });
+
+    } catch (error) {
+        console.error('Error rendering car pricing table:', error);
+        const tbody = priceEditorTable.querySelector('tbody');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="16" class="text-danger">Error: ${error.message}</td></tr>`;
     }
+}
+
+// Function to add a date range to the selected dates display
+function addDateRange(start, end) {
+    const selectedDates = document.getElementById('selectedDates');
+    const rangeDiv = document.createElement('div');
+    rangeDiv.className = 'badge bg-primary d-flex align-items-center gap-2';
+    rangeDiv.innerHTML = `
+        ${start.toLocaleDateString()} - ${end.toLocaleDateString()}
+        <button type="button" class="btn-close btn-close-white" style="font-size: 0.5rem;"></button>
+    `;
+    
+    // Add remove functionality
+    rangeDiv.querySelector('.btn-close').addEventListener('click', function() {
+        rangeDiv.remove();
+    });
+    
+    selectedDates.appendChild(rangeDiv);
 }
 
 window.saveMonthlyPricing = async function(carId, btn) {
