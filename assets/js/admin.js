@@ -59,7 +59,7 @@ if (bookingDetailsModalElem) {
 const carsContent = document.getElementById('carsContent');
 const priceEditorTable = document.getElementById('priceEditorTable');
 
-// Add car selection dropdown
+// Car selection dropdown
 let carDropdown = document.getElementById('carPricingDropdown');
 if (!carDropdown) {
     carDropdown = document.createElement('select');
@@ -1203,37 +1203,62 @@ async function loadCarsForPricing() {
         const res = await fetch('/api/cars');
         const data = await res.json();
         if (!data.success) throw new Error('Failed to fetch cars');
-        const cars = data.cars;
-        const tbody = priceEditorTable.querySelector('tbody');
-        tbody.innerHTML = '';
-        cars.forEach(car => {
-            // Render a row for each month for this car
-            const pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
-            const months = Object.keys(pricing).sort();
-            months.forEach((month, i) => {
-                const row = document.createElement('tr');
-                if (i === 0) {
-                    row.innerHTML = `<td rowspan="${months.length}" style="vertical-align: middle; font-weight: bold;">${car.name}</td>`;
-                }
-                else {
-                    row.innerHTML = '';
-                }
-                row.innerHTML += `<td>${month}</td>`;
-                for (let d = 1; d <= 7; d++) {
-                    row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`day_${d}`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="day_${d}"></td>`;
-                }
-                row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`extra_day`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="extra_day"></td>`;
-                if (i === 0) {
-                    row.innerHTML += `<td rowspan="${months.length}"><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save</button></td>`;
-                }
-                tbody.appendChild(row);
-            });
+        allCarsForPricing = data.cars;
+        // Populate dropdown
+        carDropdown.innerHTML = '';
+        allCarsForPricing.forEach(car => {
+            const opt = document.createElement('option');
+            opt.value = car.id;
+            opt.textContent = car.name;
+            carDropdown.appendChild(opt);
         });
+        // Show first car by default
+        if (allCarsForPricing.length > 0) {
+            renderCarPricingTable(allCarsForPricing[0].id);
+        } else {
+            priceEditorTable.querySelector('tbody').innerHTML = '<tr><td colspan="10" class="text-danger">No cars found.</td></tr>';
+        }
     } catch (err) {
         const tbody = priceEditorTable.querySelector('tbody');
-        if (tbody) tbody.innerHTML = `<tr><td colspan="16" class="text-danger">Error loading cars: ${err.message}</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="10" class="text-danger">Error loading cars: ${err.message}</td></tr>`;
         console.error('[Cars Tab] Error loading cars for pricing:', err);
     }
+}
+
+carDropdown.addEventListener('change', function() {
+    renderCarPricingTable(this.value);
+});
+
+// Function to render car pricing table
+function renderCarPricingTable(carId) {
+    if (!priceEditorTable) return;
+    const car = allCarsForPricing.find(c => c.id === carId);
+    if (!car) return;
+    const pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
+    const months = getSortedMonthKeys(pricing);
+    const tbody = priceEditorTable.querySelector('tbody');
+    tbody.innerHTML = '';
+    months.forEach(monthKey => {
+        const monthName = getMonthNameFromKey(monthKey);
+        const monthPricing = pricing[monthKey] || {};
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td style="font-weight: bold;">${monthName}</td>
+            <td><input type="number" class="form-control form-control-sm" value="${monthPricing.day_1 || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="day_1"></td>
+            <td><input type="number" class="form-control form-control-sm" value="${monthPricing.day_2 || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="day_2"></td>
+            <td><input type="number" class="form-control form-control-sm" value="${monthPricing.day_3 || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="day_3"></td>
+            <td><input type="number" class="form-control form-control-sm" value="${monthPricing.day_4 || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="day_4"></td>
+            <td><input type="number" class="form-control form-control-sm" value="${monthPricing.day_5 || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="day_5"></td>
+            <td><input type="number" class="form-control form-control-sm" value="${monthPricing.day_6 || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="day_6"></td>
+            <td><input type="number" class="form-control form-control-sm" value="${monthPricing.day_7 || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="day_7"></td>
+            <td><input type="number" class="form-control form-control-sm" value="${monthPricing.extra_day || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="extra_day"></td>
+        `;
+        tbody.appendChild(row);
+    });
+    // Add Save button row
+    const saveRow = document.createElement('tr');
+    saveRow.innerHTML = `<td colspan="10" class="text-end"><button class="btn btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save Pricing</button></td>`;
+    tbody.appendChild(saveRow);
 }
 
 window.saveMonthlyPricing = async function(carId, btn) {
@@ -1261,10 +1286,12 @@ window.saveMonthlyPricing = async function(carId, btn) {
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed to update pricing');
         btn.textContent = 'Saved!';
-        setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 1200);
+        setTimeout(() => { btn.textContent = 'Save Pricing'; btn.disabled = false; }, 1200);
+        // Optionally show a toast/notification
+        alert('Pricing updated successfully!');
     } catch (err) {
         btn.textContent = 'Error';
-        setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 2000);
+        setTimeout(() => { btn.textContent = 'Save Pricing'; btn.disabled = false; }, 2000);
         alert('Failed to save pricing: ' + err.message);
     }
 };
