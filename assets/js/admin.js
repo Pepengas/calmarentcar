@@ -1203,211 +1203,37 @@ async function loadCarsForPricing() {
         const res = await fetch('/api/cars');
         const data = await res.json();
         if (!data.success) throw new Error('Failed to fetch cars');
-        allCarsForPricing = data.cars;
-        // Populate dropdown
-        carDropdown.innerHTML = '';
-        allCarsForPricing.forEach(car => {
-            const opt = document.createElement('option');
-            opt.value = car.id;
-            opt.textContent = car.name;
-            carDropdown.appendChild(opt);
+        const cars = data.cars;
+        const tbody = priceEditorTable.querySelector('tbody');
+        tbody.innerHTML = '';
+        cars.forEach(car => {
+            // Render a row for each month for this car
+            const pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
+            const months = Object.keys(pricing).sort();
+            months.forEach((month, i) => {
+                const row = document.createElement('tr');
+                if (i === 0) {
+                    row.innerHTML = `<td rowspan="${months.length}" style="vertical-align: middle; font-weight: bold;">${car.name}</td>`;
+                }
+                else {
+                    row.innerHTML = '';
+                }
+                row.innerHTML += `<td>${month}</td>`;
+                for (let d = 1; d <= 7; d++) {
+                    row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`day_${d}`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="day_${d}"></td>`;
+                }
+                row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`extra_day`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="extra_day"></td>`;
+                if (i === 0) {
+                    row.innerHTML += `<td rowspan="${months.length}"><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save</button></td>`;
+                }
+                tbody.appendChild(row);
+            });
         });
-        // Show first car by default
-        if (allCarsForPricing.length > 0) {
-            renderCarPricingTable(allCarsForPricing[0].id);
-        } else {
-            priceEditorTable.querySelector('tbody').innerHTML = '<tr><td colspan="16" class="text-danger">No cars found.</td></tr>';
-        }
     } catch (err) {
         const tbody = priceEditorTable.querySelector('tbody');
         if (tbody) tbody.innerHTML = `<tr><td colspan="16" class="text-danger">Error loading cars: ${err.message}</td></tr>`;
         console.error('[Cars Tab] Error loading cars for pricing:', err);
     }
-}
-
-carDropdown.addEventListener('change', function() {
-    renderCarPricingTable(this.value);
-});
-
-// Function to render car pricing table
-async function renderCarPricingTable(carId) {
-    if (!priceEditorTable) return;
-    
-    try {
-        const car = allCarsForPricing.find(c => c.id === carId);
-        if (!car) throw new Error('Car not found');
-
-        // Get current month's pricing
-        const currentMonth = new Date().toISOString().slice(0, 7);
-        const monthlyPricing = car.monthly_pricing || {};
-        const currentPricing = monthlyPricing[currentMonth] || {};
-
-        // Create table rows for each month
-        const tbody = priceEditorTable.querySelector('tbody');
-        tbody.innerHTML = '';
-
-        // Add manual status control
-        const statusRow = document.createElement('tr');
-        statusRow.innerHTML = `
-            <td colspan="16">
-                <div class="d-flex align-items-center gap-3">
-                    <label class="form-label mb-0">Manual Status:</label>
-                    <select class="form-select" style="width: auto;" id="manualStatusSelect">
-                        <option value="automatic" ${car.manual_status === 'automatic' ? 'selected' : ''}>Automatic</option>
-                        <option value="available" ${car.manual_status === 'available' ? 'selected' : ''}>Available</option>
-                        <option value="unavailable" ${car.manual_status === 'unavailable' ? 'selected' : ''}>Unavailable</option>
-                    </select>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(statusRow);
-
-        // Add unavailable dates control
-        const datesRow = document.createElement('tr');
-        datesRow.innerHTML = `
-            <td colspan="16">
-                <div class="d-flex align-items-center gap-3">
-                    <label class="form-label mb-0">Unavailable Dates:</label>
-                    <input type="text" class="form-control" id="unavailableDatesInput" style="width: 300px;" placeholder="Select dates...">
-                    <button class="btn btn-primary" id="saveAvailabilityBtn">Save Availability</button>
-                </div>
-                <div id="selectedDates" class="mt-2 d-flex flex-wrap gap-2"></div>
-            </td>
-        `;
-        tbody.appendChild(datesRow);
-
-        // Initialize flatpickr for date range selection
-        const fp = flatpickr("#unavailableDatesInput", {
-            mode: "range",
-            dateFormat: "Y-m-d",
-            onChange: function(selectedDates) {
-                if (selectedDates.length === 2) {
-                    const start = selectedDates[0];
-                    const end = selectedDates[1];
-                    addDateRange(start, end);
-                    fp.clear();
-                }
-            }
-        });
-
-        // Display existing unavailable dates
-        if (car.unavailable_dates && Array.isArray(car.unavailable_dates)) {
-            car.unavailable_dates.forEach(range => {
-                addDateRange(new Date(range.start), new Date(range.end));
-            });
-        }
-
-        // Add event listener for manual status change
-        document.getElementById('manualStatusSelect').addEventListener('change', async function() {
-            try {
-                const response = await fetch(`/api/admin/car/${carId}/manual-status`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                    },
-                    body: JSON.stringify({
-                        manual_status: this.value,
-                        unavailable_dates: car.unavailable_dates || []
-                    })
-                });
-                
-                if (!response.ok) throw new Error('Failed to update manual status');
-                
-                showNotification('Car availability updated successfully', 'success');
-            } catch (error) {
-                console.error('Error updating manual status:', error);
-                showNotification('Failed to update car availability', 'error');
-            }
-        });
-
-        // Add event listener for save availability button
-        document.getElementById('saveAvailabilityBtn').addEventListener('click', async function() {
-            try {
-                const response = await fetch(`/api/admin/car/${carId}/manual-status`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                    },
-                    body: JSON.stringify({
-                        manual_status: document.getElementById('manualStatusSelect').value,
-                        unavailable_dates: car.unavailable_dates || []
-                    })
-                });
-                
-                if (!response.ok) throw new Error('Failed to update availability');
-                
-                showNotification('Car availability updated successfully', 'success');
-            } catch (error) {
-                console.error('Error updating availability:', error);
-                showNotification('Failed to update car availability', 'error');
-            }
-        });
-
-        // Add pricing table
-        const pricingRow = document.createElement('tr');
-        pricingRow.innerHTML = `
-            <td colspan="16">
-                <h4 class="mt-4 mb-3">Monthly Pricing</h4>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Month</th>
-                                <th>Price per Day (€)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${Object.entries(monthlyPricing).map(([month, price]) => `
-                                <tr>
-                                    <td>${getMonthNameFromKey(month)}</td>
-                                    <td>
-                                        <input type="number" 
-                                               class="form-control" 
-                                               value="${price}" 
-                                               data-month="${month}"
-                                               data-carid="${carId}"
-                                               min="0"
-                                               step="0.01">
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="text-end mt-3">
-                    <button class="btn btn-primary" onclick="saveMonthlyPricing('${carId}', this)">
-                        Save Pricing
-                    </button>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(pricingRow);
-
-    } catch (error) {
-        console.error('Error rendering car pricing table:', error);
-        const tbody = priceEditorTable.querySelector('tbody');
-        if (tbody) tbody.innerHTML = `<tr><td colspan="16" class="text-danger">Error: ${error.message}</td></tr>`;
-    }
-}
-
-// Function to add a date range to the selected dates display
-function addDateRange(start, end) {
-    const selectedDates = document.getElementById('selectedDates');
-    const rangeDiv = document.createElement('div');
-    rangeDiv.className = 'badge bg-primary d-flex align-items-center gap-2';
-    rangeDiv.innerHTML = `
-        ${start.toLocaleDateString()} - ${end.toLocaleDateString()}
-        <button type="button" class="btn-close btn-close-white" style="font-size: 0.5rem;"></button>
-    `;
-    
-    // Add remove functionality
-    rangeDiv.querySelector('.btn-close').addEventListener('click', function() {
-        rangeDiv.remove();
-    });
-    
-    selectedDates.appendChild(rangeDiv);
 }
 
 window.saveMonthlyPricing = async function(carId, btn) {
@@ -1424,13 +1250,13 @@ window.saveMonthlyPricing = async function(carId, btn) {
     btn.disabled = true;
     btn.textContent = 'Saving...';
     try {
-        const res = await fetch('/api/update-prices', {
-            method: 'POST',
+        const res = await fetch(`/api/admin/car/${carId}/pricing`, {
+            method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             },
-            body: JSON.stringify({ car_id: carId, prices: monthly_pricing })
+            body: JSON.stringify({ monthly_pricing })
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed to update pricing');
