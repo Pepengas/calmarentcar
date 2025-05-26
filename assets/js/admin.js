@@ -551,18 +551,26 @@ function populateCarFilter() {
  */
 function formatDate(dateString) {
     if (!dateString) return 'N/A';
-    
     try {
+        // Handle yyyy-mm-dd as local date
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+            const [year, month, day] = dateString.split('-');
+            const date = new Date(Number(year), Number(month) - 1, Number(day));
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+        // Fallback for other formats
         const date = new Date(dateString);
-        return date.toLocaleString('en-GB', {
+        if (isNaN(date)) return dateString;
+        return date.toLocaleDateString('en-GB', {
             day: '2-digit',
             month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: 'numeric'
         });
     } catch (e) {
-        console.error('Error formatting date:', e);
         return dateString;
     }
 }
@@ -775,6 +783,9 @@ function showBookingDetails(booking) {
     const lastName = customer.lastName || booking.customer_last_name || '';
     const email = customer.email || booking.customer_email || '';
     const phone = customer.phone || booking.customer_phone || '';
+    const country = customer.country || booking.country || '';
+    const driverLicense = customer.driverLicense || booking.driver_license || '';
+    const licenseExpiry = customer.licenseExpiry || booking.license_expiration || '';
     
     // Extract location info
     const pickupLocation = booking.pickup_location || '';
@@ -802,10 +813,8 @@ function showBookingDetails(booking) {
     const formattedTotalPrice = isNaN(totalPrice) ? 'N/A' : formatCurrency(totalPrice);
     
     // Extra options
-    const additionalDriver = booking.additional_driver || false;
-    const fullInsurance = booking.full_insurance || false;
-    const gpsNavigation = booking.gps_navigation || false;
     const childSeat = booking.child_seat || false;
+    const boosterSeat = booking.booster_seat || false;
     const specialRequests = booking.special_requests || '';
     
     // Create modal content
@@ -833,6 +842,15 @@ function showBookingDetails(booking) {
                     </div>
                     <div class="col-md-6 mb-2">
                         <strong>Phone:</strong> <a href="tel:${phone}">${phone}</a>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Country:</strong> ${country}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Driver's License #:</strong> ${driverLicense}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>License Expiry:</strong> ${licenseExpiry ? formatDate(licenseExpiry) : 'N/A'}
                     </div>
                 </div>
             </div>
@@ -880,19 +898,12 @@ function showBookingDetails(booking) {
                 <h5 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add-ons</h5>
                 <div class="row">
                     <div class="col-md-6 mb-2">
-                        <strong>Additional Driver:</strong> ${additionalDriver ? 'Yes' : 'No'}
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <strong>Full Insurance:</strong> ${fullInsurance ? 'Yes' : 'No'}
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <strong>GPS Navigation:</strong> ${gpsNavigation ? 'Yes' : 'No'}
-                    </div>
-                    <div class="col-md-6 mb-2">
                         <strong>Child Seat:</strong> ${childSeat ? 'Yes' : 'No'}
                     </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Booster Seat:</strong> ${boosterSeat ? 'Yes' : 'No'}
+                    </div>
                 </div>
-                
                 <div class="mt-3">
                     <strong>Special Requests:</strong>
                     <p class="mb-0 mt-2">${specialRequests || 'None'}</p>
