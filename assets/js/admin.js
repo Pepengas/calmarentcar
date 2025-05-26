@@ -1248,6 +1248,7 @@ function renderCarPricingTable(carId) {
         <th class="px-4 py-2 text-left">Day 6</th>
         <th class="px-4 py-2 text-left">Day 7</th>
         <th class="px-4 py-2 text-left">Extra Day</th>
+        <th class="px-4 py-2 text-left">Manual Status</th>
         <th class="px-4 py-2 text-left">Actions</th>
     </tr>`;
     months.forEach(month => {
@@ -1257,8 +1258,48 @@ function renderCarPricingTable(carId) {
             row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`day_${d}`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="day_${d}"></td>`;
         }
         row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`extra_day`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="extra_day"></td>`;
+        // Manual Status dropdown
+        if (month === months[0]) {
+            const manualStatus = car.manual_status || 'automatic';
+            row.innerHTML += `<td rowspan="${months.length}" style="vertical-align: middle;">
+                <select class="form-select form-select-sm manual-status-dropdown" data-carid="${car.id}">
+                    <option value="automatic"${manualStatus === 'automatic' ? ' selected' : ''}>Automatic</option>
+                    <option value="available"${manualStatus === 'available' ? ' selected' : ''}>Available</option>
+                    <option value="unavailable"${manualStatus === 'unavailable' ? ' selected' : ''}>Unavailable</option>
+                </select>
+            </td>`;
+        }
+        // Actions
         row.innerHTML += `<td><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save</button></td>`;
         tbody.appendChild(row);
+    });
+    // Add event listeners for manual status dropdowns
+    tbody.querySelectorAll('.manual-status-dropdown').forEach(dropdown => {
+        dropdown.addEventListener('change', async function() {
+            const carId = this.dataset.carid;
+            const status = this.value;
+            this.disabled = true;
+            try {
+                const res = await fetch(`/api/admin/car/${carId}/manual-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    },
+                    body: JSON.stringify({ manual_status: status })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Failed to update manual status');
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } catch (err) {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+                alert('Failed to update manual status: ' + err.message);
+            } finally {
+                setTimeout(() => { this.classList.remove('is-valid', 'is-invalid'); this.disabled = false; }, 1200);
+            }
+        });
     });
 }
 
