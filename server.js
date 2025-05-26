@@ -759,18 +759,76 @@ app.get('/api/cars', async (req, res) => {
 });
 
 // Car availability check (GET /api/cars/availability)
-app.get('/api/cars/availability', (req, res) => {
+app.get('/api/cars/availability', async (req, res) => {
     try {
         const { carId, pickupDate, dropoffDate } = req.query;
         
-        // For now, assume all cars are available
-        // In a real implementation, you would check against bookings in the database
+        if (!carId || !pickupDate || !dropoffDate) {
+            return res.status(400).json({
+                success: false,
+                error: "Missing required parameters: carId, pickupDate, or dropoffDate"
+            });
+        }
+
+        // Get car data from database
+        const result = await pool.query(
+            'SELECT manual_status, unavailable_dates FROM cars WHERE id = $1',
+            [carId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: "Car not found"
+            });
+        }
+
+        const car = result.rows[0];
         
+        // Check manual status first
+        if (car.manual_status === 'unavailable') {
+            return res.json({
+                success: true,
+                available: false,
+                message: "This car is currently unavailable"
+            });
+        }
+
+        // If manual status is 'available', skip date checks
+        if (car.manual_status === 'available') {
+            return res.json({
+                success: true,
+                available: true,
+                message: "Car is available for the selected dates"
+            });
+        }
+
+        // Check unavailable dates if they exist
+        if (car.unavailable_dates && Array.isArray(car.unavailable_dates)) {
+            const userPickup = new Date(pickupDate);
+            const userDropoff = new Date(dropoffDate);
+
+            for (const range of car.unavailable_dates) {
+                const rangeStart = new Date(range.start);
+                const rangeEnd = new Date(range.end);
+
+                if (userDropoff >= rangeStart && userPickup <= rangeEnd) {
+                    return res.json({
+                        success: true,
+                        available: false,
+                        message: "Car is unavailable for the selected dates"
+                    });
+                }
+            }
+        }
+
+        // If we get here, the car is available
         return res.json({
             success: true,
             available: true,
             message: "Car is available for the selected dates"
         });
+
     } catch (error) {
         console.error('❌ Error checking car availability:', error);
         return res.status(500).json({
