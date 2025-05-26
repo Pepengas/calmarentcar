@@ -59,6 +59,37 @@ if (bookingDetailsModalElem) {
 const carsContent = document.getElementById('carsContent');
 const priceEditorTable = document.getElementById('priceEditorTable');
 
+// Add car selection dropdown
+let carDropdown = document.getElementById('carPricingDropdown');
+if (!carDropdown) {
+    carDropdown = document.createElement('select');
+    carDropdown.id = 'carPricingDropdown';
+    carDropdown.className = 'form-select mb-4';
+    carDropdown.style.maxWidth = '350px';
+    priceEditorTable.parentElement.insertBefore(carDropdown, priceEditorTable);
+}
+
+let allCarsForPricing = [];
+
+function getMonthNameFromKey(key) {
+    // key is like '2025-01', '2025-02', ...
+    const monthNum = parseInt(key.split('-')[1], 10);
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[monthNum - 1] || key;
+}
+
+function getSortedMonthKeys(pricing) {
+    // Sort by month number
+    return Object.keys(pricing).sort((a, b) => {
+        const ma = parseInt(a.split('-')[1], 10);
+        const mb = parseInt(b.split('-')[1], 10);
+        return ma - mb;
+    });
+}
+
 // Initialize the dashboard when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Check if the user is logged in
@@ -1104,37 +1135,63 @@ async function loadCarsForPricing() {
         const res = await fetch('/api/cars');
         const data = await res.json();
         if (!data.success) throw new Error('Failed to fetch cars');
-        const cars = data.cars;
-        const tbody = priceEditorTable.querySelector('tbody');
-        tbody.innerHTML = '';
-        cars.forEach(car => {
-            // Render a row for each month for this car
-            const pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
-            const months = Object.keys(pricing).sort();
-            months.forEach((month, i) => {
-                const row = document.createElement('tr');
-                if (i === 0) {
-                    row.innerHTML = `<td rowspan="${months.length}" style="vertical-align: middle; font-weight: bold;">${car.name}</td>`;
-                }
-                else {
-                    row.innerHTML = '';
-                }
-                row.innerHTML += `<td>${month}</td>`;
-                for (let d = 1; d <= 7; d++) {
-                    row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`day_${d}`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="day_${d}"></td>`;
-                }
-                row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`extra_day`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="extra_day"></td>`;
-                if (i === 0) {
-                    row.innerHTML += `<td rowspan="${months.length}"><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save</button></td>`;
-                }
-                tbody.appendChild(row);
-            });
+        allCarsForPricing = data.cars;
+        // Populate dropdown
+        carDropdown.innerHTML = '';
+        allCarsForPricing.forEach(car => {
+            const opt = document.createElement('option');
+            opt.value = car.id;
+            opt.textContent = car.name;
+            carDropdown.appendChild(opt);
         });
+        // Show first car by default
+        if (allCarsForPricing.length > 0) {
+            renderCarPricingTable(allCarsForPricing[0].id);
+        } else {
+            priceEditorTable.querySelector('tbody').innerHTML = '<tr><td colspan="16" class="text-danger">No cars found.</td></tr>';
+        }
     } catch (err) {
         const tbody = priceEditorTable.querySelector('tbody');
         if (tbody) tbody.innerHTML = `<tr><td colspan="16" class="text-danger">Error loading cars: ${err.message}</td></tr>`;
         console.error('[Cars Tab] Error loading cars for pricing:', err);
     }
+}
+
+carDropdown.addEventListener('change', function() {
+    renderCarPricingTable(this.value);
+});
+
+function renderCarPricingTable(carId) {
+    const car = allCarsForPricing.find(c => c.id === carId);
+    if (!car) return;
+    const pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
+    const months = getSortedMonthKeys(pricing);
+    const tbody = priceEditorTable.querySelector('tbody');
+    tbody.innerHTML = '';
+    // Table header
+    const thead = priceEditorTable.querySelector('thead');
+    thead.innerHTML = `<tr class="bg-gray-100">
+        <th class="px-4 py-2 text-left">Month</th>
+        <th class="px-4 py-2 text-left">Day 1</th>
+        <th class="px-4 py-2 text-left">Day 2</th>
+        <th class="px-4 py-2 text-left">Day 3</th>
+        <th class="px-4 py-2 text-left">Day 4</th>
+        <th class="px-4 py-2 text-left">Day 5</th>
+        <th class="px-4 py-2 text-left">Day 6</th>
+        <th class="px-4 py-2 text-left">Day 7</th>
+        <th class="px-4 py-2 text-left">Extra Day</th>
+        <th class="px-4 py-2 text-left">Actions</th>
+    </tr>`;
+    months.forEach(month => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td style="font-weight: bold;">${getMonthNameFromKey(month)}</td>`;
+        for (let d = 1; d <= 7; d++) {
+            row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`day_${d}`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="day_${d}"></td>`;
+        }
+        row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`extra_day`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="extra_day"></td>`;
+        row.innerHTML += `<td><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save</button></td>`;
+        tbody.appendChild(row);
+    });
 }
 
 window.saveMonthlyPricing = async function(carId, btn) {
