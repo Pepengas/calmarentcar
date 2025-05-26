@@ -1248,7 +1248,6 @@ function renderCarPricingTable(carId) {
         <th class="px-4 py-2 text-left">Day 6</th>
         <th class="px-4 py-2 text-left">Day 7</th>
         <th class="px-4 py-2 text-left">Extra Day</th>
-        <th class="px-4 py-2 text-left">Manual Status</th>
         <th class="px-4 py-2 text-left">Actions</th>
     </tr>`;
     months.forEach(month => {
@@ -1258,29 +1257,41 @@ function renderCarPricingTable(carId) {
             row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`day_${d}`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="day_${d}"></td>`;
         }
         row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`extra_day`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="extra_day"></td>`;
-        // Manual Status dropdown
-        if (month === months[0]) {
-            const manualStatus = car.manual_status || 'automatic';
-            row.innerHTML += `<td rowspan="${months.length}" style="vertical-align: middle;">
-                <select class="form-select form-select-sm manual-status-dropdown" data-carid="${car.id}">
-                    <option value="automatic"${manualStatus === 'automatic' ? ' selected' : ''}>Automatic</option>
-                    <option value="available"${manualStatus === 'available' ? ' selected' : ''}>Available</option>
-                    <option value="unavailable"${manualStatus === 'unavailable' ? ' selected' : ''}>Unavailable</option>
-                </select>
-            </td>`;
-        }
         // Actions
         row.innerHTML += `<td><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save</button></td>`;
         tbody.appendChild(row);
     });
-    // Add event listeners for manual status dropdowns
-    tbody.querySelectorAll('.manual-status-dropdown').forEach(dropdown => {
-        dropdown.addEventListener('change', async function() {
-            const carId = this.dataset.carid;
-            const status = this.value;
-            this.disabled = true;
+    // --- Car Availability Section ---
+    let availabilitySection = document.getElementById('carAvailabilitySection');
+    if (!availabilitySection) {
+        availabilitySection = document.createElement('div');
+        availabilitySection.id = 'carAvailabilitySection';
+        availabilitySection.className = 'mt-4 mb-2';
+        priceEditorTable.parentElement.appendChild(availabilitySection);
+    }
+    availabilitySection.innerHTML = `
+        <div class="card shadow-sm p-3 mb-3 bg-white rounded" style="max-width: 400px; margin: 0 auto;">
+            <h5 class="mb-3 text-primary fw-bold">Car Availability</h5>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <select id="carManualStatusDropdown" class="form-select">
+                    <option value="automatic"${car.manual_status === 'automatic' || !car.manual_status ? ' selected' : ''}>Automatic</option>
+                    <option value="available"${car.manual_status === 'available' ? ' selected' : ''}>Available</option>
+                    <option value="unavailable"${car.manual_status === 'unavailable' ? ' selected' : ''}>Unavailable</option>
+                </select>
+            </div>
+            <button id="saveCarAvailabilityBtn" class="btn btn-success w-100" style="font-weight: 500;">Save Availability</button>
+        </div>
+    `;
+    // Add event listener for Save Availability button
+    const saveBtn = document.getElementById('saveCarAvailabilityBtn');
+    const dropdown = document.getElementById('carManualStatusDropdown');
+    if (saveBtn && dropdown) {
+        saveBtn.onclick = async function() {
+            const status = dropdown.value;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
             try {
-                const res = await fetch(`/api/admin/car/${carId}/manual-status`, {
+                const res = await fetch(`/api/admin/car/${car.id}/manual-status`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1290,17 +1301,19 @@ function renderCarPricingTable(carId) {
                 });
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error || 'Failed to update manual status');
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
+                saveBtn.classList.remove('btn-danger');
+                saveBtn.classList.add('btn-success');
+                saveBtn.textContent = 'Saved!';
             } catch (err) {
-                this.classList.remove('is-valid');
-                this.classList.add('is-invalid');
+                saveBtn.classList.remove('btn-success');
+                saveBtn.classList.add('btn-danger');
+                saveBtn.textContent = 'Error';
                 alert('Failed to update manual status: ' + err.message);
             } finally {
-                setTimeout(() => { this.classList.remove('is-valid', 'is-invalid'); this.disabled = false; }, 1200);
+                setTimeout(() => { saveBtn.textContent = 'Save Availability'; saveBtn.disabled = false; saveBtn.classList.remove('btn-danger', 'btn-success'); }, 1500);
             }
-        });
-    });
+        };
+    }
 }
 
 window.saveMonthlyPricing = async function(carId, btn) {
