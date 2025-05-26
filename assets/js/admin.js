@@ -188,7 +188,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             console.log('[DEBUG] /api/cars data:', data);
             if (!data.success) throw new Error('Failed to fetch cars');
+            if (!editCarDropdown) {
+                console.error('[DEBUG] editCarDropdown element not found!');
+                return;
+            }
             editCarDropdown.innerHTML = '';
+            if (data.cars.length === 0) {
+                editCarDropdown.innerHTML = '<option value="">No cars found</option>';
+                editCarMsg.textContent = 'No cars found in the database.';
+                editCarMsg.className = 'alert alert-warning';
+                return;
+            }
             data.cars.forEach(car => {
                 const opt = document.createElement('option');
                 opt.value = car.id;
@@ -205,16 +215,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Call loadEditCarDropdown on page load if Edit Car tab is active
-    if (editCarContent && editCarContent.style.display !== 'none') {
-        loadEditCarDropdown();
-    }
-
     // When car is selected, load its details
     if (editCarDropdown) {
         editCarDropdown.addEventListener('change', function() {
             loadCarDetails(this.value);
         });
+    } else {
+        console.error('[DEBUG] editCarDropdown not found when trying to add event listener');
     }
 
     // Load car details into form
