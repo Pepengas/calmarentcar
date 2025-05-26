@@ -985,6 +985,28 @@ app.patch('/api/admin/car/:id', requireAdminAuth, async (req, res) => {
     }
 });
 
+// Admin: Set manual status for a car
+app.post('/api/admin/car/:id/manual-status', requireAdminAuth, async (req, res) => {
+    const carId = req.params.id;
+    const { manual_status } = req.body;
+    const validStatuses = ['automatic', 'available', 'unavailable'];
+
+    if (!validStatuses.includes(manual_status)) {
+        return res.status(400).json({ success: false, error: 'Invalid manual_status value' });
+    }
+
+    try {
+        await pool.query(
+            'UPDATE cars SET manual_status = $1 WHERE car_id = $2',
+            [manual_status, carId]
+        );
+        return res.json({ success: true });
+    } catch (error) {
+        console.error(`[ADMIN] Error updating manual_status for car ${carId}:`, error);
+        return res.status(500).json({ success: false, error: 'Failed to update manual status' });
+    }
+});
+
 // Start server
 async function startServer() {
     console.log('🚀 Starting server...');
