@@ -1389,6 +1389,11 @@
   
   <!-- Debug Script -->
   <script>
+    // Addon prices for use throughout the script
+    const optionPrices = {
+      childSeat: 4,
+      boosterSeat: 5
+    };
     document.addEventListener('DOMContentLoaded', function() {
       // Set the correct progress step indicators
       const steps = document.querySelectorAll('.step');
@@ -1541,12 +1546,6 @@
         let totalPrice = dailyRate * durationDays;
         
         // Add costs for additional options
-        const optionPrices = {
-          childSeat: 4,
-          boosterSeat: 5
-        };
-        
-        // Check which options are selected
         const childSeat = document.getElementById('childSeat').checked;
         const boosterSeat = document.getElementById('boosterSeat').checked;
         
