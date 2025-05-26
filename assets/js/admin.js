@@ -726,6 +726,10 @@ function attachActionListeners() {
 }
 
 function handleViewDetailsClick(event) {
+    if (!event || !event.currentTarget) {
+        console.error('[DEBUG] handleViewDetailsClick: event or event.currentTarget is null', event);
+        return;
+    }
     const bookingId = event.currentTarget.dataset.bookingId;
     console.log(`[DEBUG] handleViewDetailsClick triggered for booking ID: ${bookingId}`);
     const booking = allBookings.find(b => b.id.toString() === bookingId.toString());
@@ -738,6 +742,10 @@ function handleViewDetailsClick(event) {
 }
 
 function handleEditStatusClick(event) {
+    if (!event || !event.currentTarget) {
+        console.error('[DEBUG] handleEditStatusClick: event or event.currentTarget is null', event);
+        return;
+    }
     const bookingId = event.currentTarget.dataset.bookingId;
     const currentStatus = event.currentTarget.dataset.currentStatus;
     console.log(`[DEBUG] handleEditStatusClick triggered for booking ID: ${bookingId}, current status: ${currentStatus}`);
@@ -1127,6 +1135,10 @@ function resetFilters() {
  * @param {Event} event - The click event
  */
 function handleDeleteBookingClick(event) {
+    if (!event || !event.currentTarget) {
+        console.error('[DEBUG] handleDeleteBookingClick: event or event.currentTarget is null', event);
+        return;
+    }
     const bookingId = event.currentTarget.dataset.bookingId;
     const bookingRef = event.currentTarget.dataset.bookingRef;
     
