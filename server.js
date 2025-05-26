@@ -724,17 +724,26 @@ app.get('/api/cars', async (req, res) => {
         }
         const result = await pool.query('SELECT * FROM cars');
         // Map DB fields to frontend fields
-        const cars = result.rows.map(car => ({
-            id: car.car_id, // map car_id to id
-            name: car.name,
-            description: car.description,
-            image: car.image,
-            category: car.category,
-            features: car.features,
-            monthly_pricing: car.monthly_pricing,
-            available: car.available,
-            specs: car.specs
-        }));
+        const cars = result.rows.map(car => {
+            // Parse unavailable_dates if present
+            let unavailable_dates = car.unavailable_dates;
+            if (unavailable_dates && typeof unavailable_dates === 'string') {
+                try { unavailable_dates = JSON.parse(unavailable_dates); } catch {}
+            }
+            return {
+                id: car.car_id, // map car_id to id
+                name: car.name,
+                description: car.description,
+                image: car.image,
+                category: car.category,
+                features: car.features,
+                monthly_pricing: car.monthly_pricing,
+                available: car.available,
+                specs: car.specs,
+                manual_status: car.manual_status,
+                unavailable_dates: unavailable_dates || []
+            };
+        });
         return res.json({
             success: true,
             cars
@@ -948,7 +957,12 @@ app.get('/api/admin/car/:id', requireAdminAuth, async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ success: false, error: 'Car not found' });
         }
-        return res.json({ success: true, car: result.rows[0] });
+        const car = result.rows[0];
+        // Parse unavailable_dates if present
+        if (car.unavailable_dates && typeof car.unavailable_dates === 'string') {
+            try { car.unavailable_dates = JSON.parse(car.unavailable_dates); } catch {}
+        }
+        return res.json({ success: true, car });
     } catch (error) {
         console.error(`[ADMIN] Error fetching car ${carId}:`, error);
         return res.status(500).json({ success: false, error: 'Failed to fetch car' });
@@ -988,7 +1002,7 @@ app.patch('/api/admin/car/:id', requireAdminAuth, async (req, res) => {
 // Admin: Set manual status for a car
 app.post('/api/admin/car/:id/manual-status', requireAdminAuth, async (req, res) => {
     const carId = req.params.id;
-    const { manual_status } = req.body;
+    const { manual_status, unavailable_dates } = req.body;
     const validStatuses = ['automatic', 'available', 'unavailable'];
 
     if (!validStatuses.includes(manual_status)) {
@@ -997,13 +1011,13 @@ app.post('/api/admin/car/:id/manual-status', requireAdminAuth, async (req, res) 
 
     try {
         await pool.query(
-            'UPDATE cars SET manual_status = $1 WHERE car_id = $2',
-            [manual_status, carId]
+            'UPDATE cars SET manual_status = $1, unavailable_dates = $2 WHERE car_id = $3',
+            [manual_status, JSON.stringify(unavailable_dates || []), carId]
         );
         return res.json({ success: true });
     } catch (error) {
-        console.error(`[ADMIN] Error updating manual_status for car ${carId}:`, error);
-        return res.status(500).json({ success: false, error: 'Failed to update manual status' });
+        console.error(`[ADMIN] Error updating manual_status/unavailable_dates for car ${carId}:`, error);
+        return res.status(500).json({ success: false, error: 'Failed to update manual status/unavailable dates' });
     }
 });
 
