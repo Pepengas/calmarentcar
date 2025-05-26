@@ -47,27 +47,47 @@ export const Fleet = {
     
     displayCars(cars) {
         if (!this.carGrid) return;
-        this.carGrid.innerHTML = ''; // Clear existing cars
-        
+        this.carGrid.innerHTML = '';
         if (cars.length === 0) {
             this.carGrid.innerHTML = '<p>No cars available at the moment.</p>';
             return;
         }
-        
+        // Get selected dates from booking form if present
+        const pickupDateInput = document.getElementById('pickup-date');
+        const dropoffDateInput = document.getElementById('dropoff-date');
+        let pickupDate = pickupDateInput ? pickupDateInput.value : null;
+        let dropoffDate = dropoffDateInput ? dropoffDateInput.value : null;
+        let userRange = null;
+        if (pickupDate && dropoffDate) {
+            userRange = [new Date(pickupDate), new Date(dropoffDate)];
+        }
         cars.forEach(car => {
             const card = document.createElement('div');
             card.className = 'car-card';
-            
-            // Make sure car image URL is absolute
-            const imageUrl = car.image.startsWith('http') ? 
-                car.image : 
-                `${API_BASE_URL}/${car.image}`;
-            
+            const imageUrl = car.image.startsWith('http') ? car.image : `${API_BASE_URL}/${car.image}`;
             let featuresHtml = '';
             if (car.features && car.features.length > 0) {
                 featuresHtml = `<ul class="car-features"><li>${car.features.join('</li><li>')}</li></ul>`;
             }
-            
+            // --- Availability logic ---
+            let isAvailable = true;
+            let unavailableReason = '';
+            if (car.manual_status === 'unavailable') {
+                isAvailable = false;
+                unavailableReason = 'Unavailable';
+            } else if (car.manual_status === 'available') {
+                isAvailable = true;
+            } else if (userRange && Array.isArray(car.unavailable_dates)) {
+                for (const range of car.unavailable_dates) {
+                    const rangeStart = new Date(range.start);
+                    const rangeEnd = new Date(range.end);
+                    if (userRange[1] >= rangeStart && userRange[0] <= rangeEnd) {
+                        isAvailable = false;
+                        unavailableReason = 'Unavailable';
+                        break;
+                    }
+                }
+            }
             card.innerHTML = `
                 <div class="car-image">
                     <img src="${imageUrl}" alt="${car.name}" loading="lazy" width="300" height="200">
@@ -80,34 +100,57 @@ export const Fleet = {
                         <span class="price">From €${car.pricePerDay}/day</span>
                         <span class="price-note">· Free cancellation</span>
                     </div>
-                    <button class="btn btn-primary book-from-grid" data-car-id="${car.id}">Book Now</button>
+                    <button class="btn btn-primary book-from-grid" data-car-id="${car.id}" ${!isAvailable ? 'disabled' : ''}>${isAvailable ? 'Book Now' : unavailableReason}</button>
                 </div>
             `;
             this.carGrid.appendChild(card);
         });
-        
         this.addGridBookNowListeners();
     },
     
     populateCarDropdown(cars) {
         if (!this.carSelectionDropdown) return;
-        
         const firstOption = this.carSelectionDropdown.querySelector('option[disabled]');
         this.carSelectionDropdown.innerHTML = '';
-        
         if (firstOption) {
             this.carSelectionDropdown.appendChild(firstOption);
         }
-        
         if (cars.length === 0 && firstOption) {
             firstOption.textContent = 'No cars available';
             return;
         }
-        
+        // Get selected dates from booking form if present
+        const pickupDateInput = document.getElementById('pickup-date');
+        const dropoffDateInput = document.getElementById('dropoff-date');
+        let pickupDate = pickupDateInput ? pickupDateInput.value : null;
+        let dropoffDate = dropoffDateInput ? dropoffDateInput.value : null;
+        let userRange = null;
+        if (pickupDate && dropoffDate) {
+            userRange = [new Date(pickupDate), new Date(dropoffDate)];
+        }
         cars.forEach(car => {
+            let isAvailable = true;
+            if (car.manual_status === 'unavailable') {
+                isAvailable = false;
+            } else if (car.manual_status === 'available') {
+                isAvailable = true;
+            } else if (userRange && Array.isArray(car.unavailable_dates)) {
+                for (const range of car.unavailable_dates) {
+                    const rangeStart = new Date(range.start);
+                    const rangeEnd = new Date(range.end);
+                    if (userRange[1] >= rangeStart && userRange[0] <= rangeEnd) {
+                        isAvailable = false;
+                        break;
+                    }
+                }
+            }
             const option = document.createElement('option');
             option.value = car.id;
             option.textContent = `${car.name} - From €${car.pricePerDay}/day`;
+            if (!isAvailable) {
+                option.disabled = true;
+                option.textContent += ' (Unavailable)';
+            }
             this.carSelectionDropdown.appendChild(option);
         });
     },
