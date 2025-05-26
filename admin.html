@@ -603,8 +603,8 @@
     <div class="mobile-sidebar" id="mobileSidebar">
         <ul class="nav flex-column">
             <li class="nav-item"><a class="nav-link" id="mobileDashboardTab" href="#"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileCarsTab" href="#"><i class="fas fa-car me-2"></i>Cars</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileCustomersTab" href="#"><i class="fas fa-users me-2"></i>Customers</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileCarsTab" href="#"><i class="fas fa-car me-2"></i>Cars Pricing</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileCustomersTab" href="#"><i class="fas fa-users me-2"></i>Cars Availability</a></li>
             <li class="nav-item"><a class="nav-link" id="mobileReportsTab" href="#"><i class="fas fa-chart-line me-2"></i>Reports</a></li>
             <li class="nav-item"><a class="nav-link" id="mobileSettingsTab" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
             <li class="nav-item"><a class="nav-link" id="mobileEditCarTab" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a></li>
@@ -630,13 +630,13 @@
                     <li class="nav-item">
                         <a class="nav-link" id="carsTab" href="#">
                             <i class="fas fa-car me-2"></i>
-                            Cars
+                            Cars Pricing
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" id="customersTab" href="#">
                             <i class="fas fa-users me-2"></i>
-                            Customers
+                            Cars Availability
                         </a>
                     </li>
                     <li class="nav-item">
@@ -890,6 +890,35 @@
                                 </thead>
                                 <tbody>
                                     <!-- Car rows will be inserted here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cars Availability Content (to be rebuilt) -->
+                <div id="customersContent" class="content-section d-none">
+                    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+                        <h2 class="h4 mb-3"><i class="fas fa-car me-2"></i>Car Availability Management</h2>
+                        <div class="mb-3">
+                            <span class="badge bg-success me-2">Available</span>
+                            <span class="badge bg-danger me-2">Booked</span>
+                            <span class="badge bg-secondary me-2">Manually Unavailable</span>
+                            <span class="badge bg-primary">Automatic</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle" id="carAvailabilityTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Car</th>
+                                        <th>Status</th>
+                                        <th>Manual Status</th>
+                                        <th>Calendar</th>
+                                        <th>Manual Blocks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows will be rendered by JS -->
                                 </tbody>
                             </table>
                         </div>

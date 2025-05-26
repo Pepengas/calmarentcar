@@ -1329,4 +1329,224 @@ window.saveMonthlyPricingMonth = async function(carId, monthKey, btn) {
     }
 };
 
+// === Car Availability Admin Dashboard Logic ===
+
+// Utility: Map status to badge class
+function getAvailabilityBadge(status) {
+    switch (status) {
+        case 'available': return '<span class="badge bg-success">Available</span>';
+        case 'booked': return '<span class="badge bg-danger">Booked</span>';
+        case 'manual': return '<span class="badge bg-secondary">Manually Unavailable</span>';
+        case 'automatic': return '<span class="badge bg-primary">Automatic</span>';
+        default: return '<span class="badge bg-light text-dark">Unknown</span>';
+    }
+}
+
+// Fetch all cars and their bookings/unavailability
+async function fetchCarAvailabilityData() {
+    // Get all cars
+    const carsRes = await fetch('/api/cars');
+    const carsData = await carsRes.json();
+    if (!carsData.success) return [];
+    // Get all bookings
+    const bookingsRes = await fetch('/api/admin/bookings', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+    });
+    const bookingsData = await bookingsRes.json();
+    if (!bookingsData.success) return [];
+    return { cars: carsData.cars, bookings: bookingsData.bookings };
+}
+
+// Render the car availability table
+async function renderCarAvailabilityTable() {
+    const { cars, bookings } = await fetchCarAvailabilityData();
+    const tbody = document.querySelector('#carAvailabilityTable tbody');
+    tbody.innerHTML = '';
+    cars.forEach(car => {
+        // Get bookings for this car
+        const carBookings = bookings.filter(b => b.car_id == car.id);
+        // Determine status
+        let status = 'available';
+        if (car.manual_status === 'unavailable') status = 'manual';
+        else if (car.manual_status === 'available') status = 'available';
+        else if (carBookings.some(b => b.status === 'confirmed' || b.status === 'pending')) status = 'booked';
+        else status = 'automatic';
+        // Row
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${car.name}</strong></td>
+            <td>${getAvailabilityBadge(status)}</td>
+            <td>
+                <select class="form-select form-select-sm manual-status-select" data-car-id="${car.id}">
+                    <option value="automatic" ${car.manual_status === 'automatic' ? 'selected' : ''}>Automatic</option>
+                    <option value="available" ${car.manual_status === 'available' ? 'selected' : ''}>Available</option>
+                    <option value="unavailable" ${car.manual_status === 'unavailable' ? 'selected' : ''}>Unavailable</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm calendar-input" id="calendar-${car.id}" readonly style="max-width:140px;">
+                <div class="calendar-legend mt-1">
+                    <span class="badge bg-danger">Booked</span>
+                    <span class="badge bg-secondary">Manual</span>
+                </div>
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm block-range-input mb-2" placeholder="Add block" data-car-id="${car.id}" readonly>
+                <ul class="manual-block-list list-unstyled mb-0" id="block-list-${car.id}"></ul>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        // Render manual blocks list
+        renderManualBlockList(car);
+    });
+    // Attach event listeners
+    attachCarAvailabilityListeners();
+}
+
+// Render manual block list for a car
+function renderManualBlockList(car) {
+    const list = document.getElementById(`block-list-${car.id}`);
+    if (!list) return;
+    list.innerHTML = '';
+    const blocks = Array.isArray(car.unavailable_dates) ? car.unavailable_dates : [];
+    blocks.forEach((range, idx) => {
+        const li = document.createElement('li');
+        li.className = 'mb-1';
+        li.innerHTML = `<span class="badge bg-secondary">${range.start} to ${range.end}</span> <button class="btn btn-sm btn-link text-danger p-0 ms-2 remove-block-btn" data-car-id="${car.id}" data-block-idx="${idx}"><i class="fas fa-times"></i></button>`;
+        list.appendChild(li);
+    });
+}
+
+// Attach listeners for manual status and block controls
+function attachCarAvailabilityListeners() {
+    // Manual status change
+    document.querySelectorAll('.manual-status-select').forEach(sel => {
+        sel.addEventListener('change', async function() {
+            const carId = this.dataset.carId;
+            const manual_status = this.value;
+            await fetch(`/api/admin/car/${carId}/manual-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify({ manual_status })
+            });
+            renderCarAvailabilityTable();
+        });
+    });
+    // Block range add (flatpickr)
+    document.querySelectorAll('.block-range-input').forEach(input => {
+        flatpickr(input, {
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            onClose: async function(selectedDates, dateStr) {
+                if (selectedDates.length === 2) {
+                    const carId = input.dataset.carId;
+                    const [start, end] = selectedDates.map(d => d.toISOString().slice(0,10));
+                    // Fetch car to get current blocks
+                    const res = await fetch(`/api/admin/car/${carId}`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                    });
+                    const data = await res.json();
+                    let blocks = Array.isArray(data.car.unavailable_dates) ? data.car.unavailable_dates : [];
+                    blocks.push({ start, end });
+                    await fetch(`/api/admin/car/${carId}/manual-status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                        },
+                        body: JSON.stringify({ manual_status: data.car.manual_status, unavailable_dates: blocks })
+                    });
+                    renderCarAvailabilityTable();
+                }
+            }
+        });
+    });
+    // Remove block
+    document.querySelectorAll('.remove-block-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const carId = this.dataset.carId;
+            const idx = parseInt(this.dataset.blockIdx);
+            // Fetch car to get current blocks
+            const res = await fetch(`/api/admin/car/${carId}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+            });
+            const data = await res.json();
+            let blocks = Array.isArray(data.car.unavailable_dates) ? data.car.unavailable_dates : [];
+            blocks.splice(idx, 1);
+            await fetch(`/api/admin/car/${carId}/manual-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify({ manual_status: data.car.manual_status, unavailable_dates: blocks })
+            });
+            renderCarAvailabilityTable();
+        });
+    });
+    // Per-car calendar (flatpickr, readonly, highlight booked/manual)
+    document.querySelectorAll('.calendar-input').forEach(input => {
+        const carId = input.id.replace('calendar-', '');
+        // Fetch car and bookings
+        fetch(`/api/admin/car/${carId}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        }).then(res => res.json()).then(data => {
+            fetch('/api/admin/bookings', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+            }).then(res2 => res2.json()).then(bookingsData => {
+                const car = data.car;
+                const bookings = bookingsData.bookings.filter(b => b.car_id == carId);
+                // Collect all booked/manual dates
+                let bookedDates = [];
+                bookings.forEach(b => {
+                    if (b.status === 'confirmed' || b.status === 'pending') {
+                        const start = new Date(b.pickup_date);
+                        const end = new Date(b.return_date);
+                        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                            bookedDates.push(d.toISOString().slice(0,10));
+                        }
+                    }
+                });
+                let manualDates = [];
+                if (Array.isArray(car.unavailable_dates)) {
+                    car.unavailable_dates.forEach(range => {
+                        const start = new Date(range.start);
+                        const end = new Date(range.end);
+                        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                            manualDates.push(d.toISOString().slice(0,10));
+                        }
+                    });
+                }
+                flatpickr(input, {
+                    mode: 'multiple',
+                    dateFormat: 'Y-m-d',
+                    defaultDate: [...bookedDates, ...manualDates],
+                    disable: [],
+                    inline: true,
+                    onDayCreate: function(dObj, dStr, fp, dayElem) {
+                        const date = dayElem.dateObj.toISOString().slice(0,10);
+                        if (bookedDates.includes(date)) {
+                            dayElem.classList.add('bg-danger', 'text-white');
+                        } else if (manualDates.includes(date)) {
+                            dayElem.classList.add('bg-secondary', 'text-white');
+                        }
+                    },
+                    clickOpens: false,
+                    allowInput: false
+                });
+            });
+        });
+    });
+}
+
+// Auto-render on tab switch
+if (document.getElementById('customersContent')) {
+    document.getElementById('customersTab').addEventListener('click', function() {
+        renderCarAvailabilityTable();
+    });
+}
+
        
