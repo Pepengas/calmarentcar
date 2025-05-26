@@ -1108,44 +1108,45 @@ async function loadCarsForPricing() {
         const tbody = priceEditorTable.querySelector('tbody');
         tbody.innerHTML = '';
         cars.forEach(car => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${car.name}</td>
-                ${renderMonthlyPricingInputs(car)}
-                <td><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save</button></td>
-            `;
-            tbody.appendChild(tr);
+            // Render a row for each month for this car
+            const pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
+            const months = Object.keys(pricing).sort();
+            months.forEach((month, i) => {
+                const row = document.createElement('tr');
+                if (i === 0) {
+                    row.innerHTML = `<td rowspan="${months.length}" style="vertical-align: middle; font-weight: bold;">${car.name}</td>`;
+                }
+                else {
+                    row.innerHTML = '';
+                }
+                row.innerHTML += `<td>${month}</td>`;
+                for (let d = 1; d <= 7; d++) {
+                    row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`day_${d}`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="day_${d}"></td>`;
+                }
+                row.innerHTML += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month][`extra_day`] || ''}" data-carid="${car.id}" data-month="${month}" data-day="extra_day"></td>`;
+                if (i === 0) {
+                    row.innerHTML += `<td rowspan="${months.length}"><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save</button></td>`;
+                }
+                tbody.appendChild(row);
+            });
         });
     } catch (err) {
         const tbody = priceEditorTable.querySelector('tbody');
-        if (tbody) tbody.innerHTML = `<tr><td colspan="14" class="text-danger">Error loading cars: ${err.message}</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="16" class="text-danger">Error loading cars: ${err.message}</td></tr>`;
         console.error('[Cars Tab] Error loading cars for pricing:', err);
     }
 }
 
-function renderMonthlyPricingInputs(car) {
-    // car.monthly_pricing is expected to be an object with month names as keys
-    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    let html = '';
-    let pricing = {};
-    try {
-        pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
-    } catch (e) {
-        pricing = {};
-    }
-    months.forEach(month => {
-        html += `<td><input type="number" class="form-control form-control-sm" value="${pricing[month] || ''}" data-month="${month}" data-carid="${car.id}"></td>`;
-    });
-    return html;
-}
-
 window.saveMonthlyPricing = async function(carId, btn) {
-    // Find all inputs for this car
-    const row = btn.closest('tr');
-    const inputs = row.querySelectorAll('input[data-month]');
+    // Collect all inputs for this car
+    const tbody = priceEditorTable.querySelector('tbody');
+    const inputs = tbody.querySelectorAll(`input[data-carid='${carId}']`);
     const monthly_pricing = {};
     inputs.forEach(input => {
-        monthly_pricing[input.dataset.month] = parseFloat(input.value) || 0;
+        const month = input.dataset.month;
+        const day = input.dataset.day;
+        if (!monthly_pricing[month]) monthly_pricing[month] = {};
+        monthly_pricing[month][day] = parseFloat(input.value) || 0;
     });
     btn.disabled = true;
     btn.textContent = 'Saving...';
