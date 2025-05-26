@@ -1238,10 +1238,33 @@ function renderCarPricingTable(carId) {
     const months = getSortedMonthKeys(pricing);
     const tbody = priceEditorTable.querySelector('tbody');
     tbody.innerHTML = '';
-    months.forEach(monthKey => {
+
+    // Build thead with two rows: category header and month header
+    const thead = priceEditorTable.querySelector('thead');
+    thead.innerHTML = '';
+    const categoryRow = document.createElement('tr');
+    categoryRow.style.background = '#f3f6fa';
+    categoryRow.style.fontWeight = 'bold';
+    categoryRow.innerHTML = `
+        <th rowspan="2" style="vertical-align: middle;">Month</th>
+        <th colspan="7" class="text-center">Days 1-7</th>
+        <th rowspan="2" class="text-center">Extra Day</th>
+        <th rowspan="2" class="text-center">Actions</th>
+    `;
+    thead.appendChild(categoryRow);
+    const daysRow = document.createElement('tr');
+    for (let d = 1; d <= 7; d++) {
+        daysRow.innerHTML += `<th class="text-center">Day ${d}</th>`;
+    }
+    thead.appendChild(daysRow);
+
+    // Build table body
+    months.forEach((monthKey, idx) => {
         const monthName = getMonthNameFromKey(monthKey);
         const monthPricing = pricing[monthKey] || {};
         const row = document.createElement('tr');
+        row.style.background = idx % 2 === 0 ? '#fff' : '#f8fafc';
+        row.style.borderBottom = '1px solid #e3e8ee';
         row.innerHTML = `
             <td style="font-weight: bold;">${monthName}</td>
             <td><input type="number" class="form-control form-control-sm" value="${monthPricing.day_1 || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="day_1"></td>
@@ -1252,46 +1275,45 @@ function renderCarPricingTable(carId) {
             <td><input type="number" class="form-control form-control-sm" value="${monthPricing.day_6 || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="day_6"></td>
             <td><input type="number" class="form-control form-control-sm" value="${monthPricing.day_7 || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="day_7"></td>
             <td><input type="number" class="form-control form-control-sm" value="${monthPricing.extra_day || ''}" data-carid="${car.id}" data-month="${monthKey}" data-day="extra_day"></td>
+            <td class="text-end"><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricingMonth('${car.id}', '${monthKey}', this)">Save</button></td>
         `;
         tbody.appendChild(row);
     });
-    // Add Save button row
-    const saveRow = document.createElement('tr');
-    saveRow.innerHTML = `<td colspan="10" class="text-end"><button class="btn btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save Pricing</button></td>`;
-    tbody.appendChild(saveRow);
 }
 
-window.saveMonthlyPricing = async function(carId, btn) {
-    // Collect all inputs for this car
+// Save button for a single month
+window.saveMonthlyPricingMonth = async function(carId, monthKey, btn) {
+    // Collect all inputs for this car and month
     const tbody = priceEditorTable.querySelector('tbody');
-    const inputs = tbody.querySelectorAll(`input[data-carid='${carId}']`);
-    const monthly_pricing = {};
+    const inputs = tbody.querySelectorAll(`input[data-carid='${carId}'][data-month='${monthKey}']`);
+    const month_pricing = {};
     inputs.forEach(input => {
-        const month = input.dataset.month;
         const day = input.dataset.day;
-        if (!monthly_pricing[month]) monthly_pricing[month] = {};
-        monthly_pricing[month][day] = parseFloat(input.value) || 0;
+        month_pricing[day] = parseFloat(input.value) || 0;
     });
     btn.disabled = true;
     btn.textContent = 'Saving...';
     try {
+        // Get the full pricing object for the car
+        const car = allCarsForPricing.find(c => c.id === carId);
+        let pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
+        pricing[monthKey] = month_pricing;
         const res = await fetch(`/api/admin/car/${carId}/pricing`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             },
-            body: JSON.stringify({ monthly_pricing })
+            body: JSON.stringify({ monthly_pricing: pricing })
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed to update pricing');
         btn.textContent = 'Saved!';
-        setTimeout(() => { btn.textContent = 'Save Pricing'; btn.disabled = false; }, 1200);
-        // Optionally show a toast/notification
+        setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 1200);
         alert('Pricing updated successfully!');
     } catch (err) {
         btn.textContent = 'Error';
-        setTimeout(() => { btn.textContent = 'Save Pricing'; btn.disabled = false; }, 2000);
+        setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 2000);
         alert('Failed to save pricing: ' + err.message);
     }
 };
