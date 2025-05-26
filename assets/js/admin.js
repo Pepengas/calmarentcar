@@ -1261,7 +1261,7 @@ function renderCarPricingTable(carId) {
         row.innerHTML += `<td><button class="btn btn-sm btn-primary" onclick="saveMonthlyPricing('${car.id}', this)">Save</button></td>`;
         tbody.appendChild(row);
     });
-    // --- Car Availability Section ---
+    // --- Car Availability Section with flatpickr and date bar ---
     let availabilitySection = document.getElementById('carAvailabilitySection');
     if (!availabilitySection) {
         availabilitySection = document.createElement('div');
@@ -1270,24 +1270,71 @@ function renderCarPricingTable(carId) {
         priceEditorTable.parentElement.appendChild(availabilitySection);
     }
     availabilitySection.innerHTML = `
-        <div class="card shadow-sm p-3 mb-3 bg-white rounded" style="max-width: 400px; margin: 0 auto;">
+        <div class="card shadow-sm p-3 mb-3 bg-white rounded" style="max-width: 500px; margin: 0 auto;">
             <h5 class="mb-3 text-primary fw-bold">Car Availability</h5>
-            <div class="d-flex align-items-center gap-2 mb-3">
-                <select id="carManualStatusDropdown" class="form-select">
-                    <option value="automatic"${car.manual_status === 'automatic' || !car.manual_status ? ' selected' : ''}>Automatic</option>
-                    <option value="available"${car.manual_status === 'available' ? ' selected' : ''}>Available</option>
-                    <option value="unavailable"${car.manual_status === 'unavailable' ? ' selected' : ''}>Unavailable</option>
-                </select>
-            </div>
+            <label class="mb-2 fw-semibold">Unavailable Dates</label>
+            <input id="unavailableDatesPicker" class="form-control mb-2" placeholder="Select date range(s)">
+            <div id="unavailableDatesBar" class="d-flex flex-row flex-nowrap overflow-auto mb-3" style="gap: 0.5rem;"></div>
+            <label class="mb-2 fw-semibold">Manual Status</label>
+            <select id="carManualStatusDropdown" class="form-select mb-3">
+                <option value="automatic"${car.manual_status === 'automatic' || !car.manual_status ? ' selected' : ''}>Automatic</option>
+                <option value="available"${car.manual_status === 'available' ? ' selected' : ''}>Available</option>
+                <option value="unavailable"${car.manual_status === 'unavailable' ? ' selected' : ''}>Unavailable</option>
+            </select>
             <button id="saveCarAvailabilityBtn" class="btn btn-success w-100" style="font-weight: 500;">Save Availability</button>
         </div>
     `;
-    // Add event listener for Save Availability button
+    // --- flatpickr logic for multiple ranges ---
+    let unavailableRanges = [];
+    const picker = document.getElementById('unavailableDatesPicker');
+    const bar = document.getElementById('unavailableDatesBar');
+    if (picker && bar) {
+        let tempRange = [];
+        flatpickr(picker, {
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            onChange: function(selectedDates) {
+                if (selectedDates.length === 2) {
+                    // Add new range if not duplicate
+                    const start = selectedDates[0];
+                    const end = selectedDates[1];
+                    const exists = unavailableRanges.some(r => r[0].getTime() === start.getTime() && r[1].getTime() === end.getTime());
+                    if (!exists) {
+                        unavailableRanges.push([start, end]);
+                        renderRanges();
+                    }
+                    picker._flatpickr.clear();
+                }
+            }
+        });
+        function renderRanges() {
+            bar.innerHTML = '';
+            unavailableRanges.forEach((range, idx) => {
+                const startStr = range[0].toLocaleDateString();
+                const endStr = range[1].toLocaleDateString();
+                const entry = document.createElement('div');
+                entry.className = 'badge bg-primary text-white d-flex align-items-center px-3 py-2';
+                entry.style.gap = '0.5rem';
+                entry.innerHTML = `${startStr} – ${endStr} <button class='btn btn-sm btn-light ms-2' style='padding:0 0.5rem;' title='Remove'><i class='fas fa-times'></i></button>`;
+                entry.querySelector('button').onclick = () => {
+                    unavailableRanges.splice(idx, 1);
+                    renderRanges();
+                };
+                bar.appendChild(entry);
+            });
+        }
+    }
+    // --- Save Availability logic ---
     const saveBtn = document.getElementById('saveCarAvailabilityBtn');
     const dropdown = document.getElementById('carManualStatusDropdown');
     if (saveBtn && dropdown) {
         saveBtn.onclick = async function() {
             const status = dropdown.value;
+            // Convert ranges to [{start, end}] ISO strings
+            const unavailable = unavailableRanges.map(r => ({
+                start: r[0].toISOString().slice(0, 10),
+                end: r[1].toISOString().slice(0, 10)
+            }));
             saveBtn.disabled = true;
             saveBtn.textContent = 'Saving...';
             try {
@@ -1297,7 +1344,7 @@ function renderCarPricingTable(carId) {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                     },
-                    body: JSON.stringify({ manual_status: status })
+                    body: JSON.stringify({ manual_status: status, unavailable_dates: unavailable })
                 });
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error || 'Failed to update manual status');
