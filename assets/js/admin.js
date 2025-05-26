@@ -1208,13 +1208,13 @@ window.saveMonthlyPricing = async function(carId, btn) {
     btn.disabled = true;
     btn.textContent = 'Saving...';
     try {
-        const res = await fetch(`/api/admin/car/${carId}/pricing`, {
-            method: 'PATCH',
+        const res = await fetch('/api/update-prices', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             },
-            body: JSON.stringify({ monthly_pricing })
+            body: JSON.stringify({ car_id: carId, prices: monthly_pricing })
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed to update pricing');
