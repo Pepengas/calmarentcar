@@ -472,6 +472,7 @@ async function loadBookings() {
         if (data.success) {
             console.log('[Admin] loadBookings: API call successful. Bookings received:', data.bookings);
             allBookings = data.bookings || [];
+            console.log('[DEBUG] allBookings updated:', allBookings);
             if (!data.bookings) {
                 console.warn('[Admin] loadBookings: data.bookings is undefined or null, defaulting to empty array.');
             } else if (data.bookings.length === 0) {
@@ -726,7 +727,7 @@ function attachActionListeners() {
 
 function handleViewDetailsClick(event) {
     const bookingId = event.currentTarget.dataset.bookingId;
-    console.log(`[Admin] handleViewDetailsClick: View details for booking ID: ${bookingId}`);
+    console.log(`[DEBUG] handleViewDetailsClick triggered for booking ID: ${bookingId}`);
     const booking = allBookings.find(b => b.id.toString() === bookingId.toString());
     if (booking) {
         showBookingDetails(booking);
@@ -739,27 +740,17 @@ function handleViewDetailsClick(event) {
 function handleEditStatusClick(event) {
     const bookingId = event.currentTarget.dataset.bookingId;
     const currentStatus = event.currentTarget.dataset.currentStatus;
-    console.log(`[Admin] handleEditStatusClick: Edit status for booking ID: ${bookingId}, current status: ${currentStatus}`);
-    // Store booking ID for the modal
+    console.log(`[DEBUG] handleEditStatusClick triggered for booking ID: ${bookingId}, current status: ${currentStatus}`);
     updateStatusBtn.dataset.bookingId = bookingId; 
-    // Pre-select current status in a dropdown (assuming you add a status dropdown to your modal)
-    // For now, we'll just open the modal. You'll need to implement the status update UI in the modal.
-    // Example: document.getElementById('modalStatusSelect').value = currentStatus;
-    
-    // This part needs to be tied to your booking details modal, specifically if you want to edit status there.
-    // For simplicity, let's assume `bookingDetailsModal` is also used for status updates for now,
-    // or you might have a separate modal.
-    // If using the same modal, you might want to show/hide parts of it.
     const booking = allBookings.find(b => b.id.toString() === bookingId.toString());
-     if (booking) {
-        // Populate some identifier in the modal or a title
-        const modalTitle = document.getElementById('bookingDetailsModalLabel'); // Assuming your modal has a title with this ID
+    if (booking) {
+        const modalTitle = document.getElementById('bookingDetailsModalLabel');
         if(modalTitle) modalTitle.textContent = `Update Status for Booking: ${booking.booking_reference || booking.id}`;
-        
-        // You'd typically have a form in your modal for status update.
-        // For this example, we're just setting the bookingId on the update button
-        // and showing the modal.
-        bookingDetailsModal.show();
+        if (bookingDetailsModal) {
+            bookingDetailsModal.show();
+        } else {
+            console.warn('[DEBUG] bookingDetailsModal is missing from the DOM.');
+        }
     } else {
         showErrorMessage('Could not find booking to update status.');
     }
@@ -1139,7 +1130,7 @@ function handleDeleteBookingClick(event) {
     const bookingId = event.currentTarget.dataset.bookingId;
     const bookingRef = event.currentTarget.dataset.bookingRef;
     
-    console.log(`[Admin] handleDeleteBookingClick: Delete booking ID: ${bookingId}, Reference: ${bookingRef}`);
+    console.log(`[DEBUG] handleDeleteBookingClick triggered for booking ID: ${bookingId}, Reference: ${bookingRef}`);
     
     // Confirm deletion with the admin
     if (!confirm(`Are you sure you want to delete booking ${bookingRef}? This action cannot be undone.`)) {
