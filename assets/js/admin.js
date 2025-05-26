@@ -232,7 +232,8 @@ document.addEventListener('DOMContentLoaded', function() {
             editCarForm.elements['category'].value = car.category || '';
             editCarForm.elements['description'].value = car.description || '';
             editCarForm.elements['image'].value = car.image || '';
-            editCarForm.elements['features'].value = Array.isArray(car.features) ? car.features.join(', ') : '';
+            // Features: array to comma-separated string
+            editCarForm.elements['features'].value = Array.isArray(car.features) ? car.features.join(', ') : (car.features || '');
             // Specs
             const specs = car.specs || {};
             editCarForm.elements['engine'].value = specs.engine || '';
@@ -261,19 +262,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const category = editCarForm.elements['category'].value.trim();
             const description = editCarForm.elements['description'].value.trim();
             const image = editCarForm.elements['image'].value.trim();
+            // Features: comma-separated string to array
             const features = editCarForm.elements['features'].value.split(',').map(f => f.trim()).filter(f => f);
+            // Specs: parse and convert types
             const specs = {
                 engine: editCarForm.elements['engine'].value.trim(),
                 doors: editCarForm.elements['doors'].value.trim(),
                 passengers: editCarForm.elements['passengers'].value.trim(),
                 gearbox: editCarForm.elements['gearbox'].value,
                 fuel: editCarForm.elements['fuel'].value,
-                airCondition: editCarForm.elements['airCondition'].checked,
-                abs: editCarForm.elements['abs'].checked,
-                airbag: editCarForm.elements['airbag'].checked,
+                airCondition: !!editCarForm.elements['airCondition'].checked,
+                abs: !!editCarForm.elements['abs'].checked,
+                airbag: !!editCarForm.elements['airbag'].checked,
                 entertainment: editCarForm.elements['entertainment'].value.trim()
             };
-            // PATCH to backend (removed 'available')
+            // Convert numbers
+            if (specs.doors) specs.doors = isNaN(Number(specs.doors)) ? specs.doors : Number(specs.doors);
+            if (specs.passengers) specs.passengers = isNaN(Number(specs.passengers)) ? specs.passengers : Number(specs.passengers);
+            // PATCH to backend
             try {
                 const res = await fetch(`/api/admin/car/${carId}`, {
                     method: 'PATCH',
