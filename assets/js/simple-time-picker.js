@@ -128,45 +128,31 @@ window.SimpleTimePicker.prototype.createPickerElement = function() {
   hourSelector.style.flexWrap = 'wrap';
 
   // Check if we need AM/PM display (more than 12 hours range)
-  var useAmPm = (this.maxHour - this.minHour) > 12 || this.maxHour >= 12;
+  var useAmPm = false; // Force 24-hour display
 
   for (var h = this.minHour; h <= this.maxHour; h++) {
     var hourBtn = document.createElement('button');
     hourBtn.type = 'button';
     hourBtn.className = 'hour-btn';
-    
-    // Format hour display for AM/PM if needed
-    if (useAmPm) {
-      var displayHour = h % 12;
-      if (displayHour === 0) displayHour = 12; // 0 should display as 12
-      var ampm = h < 12 ? 'AM' : 'PM';
-      hourBtn.textContent = displayHour + ampm;
-      // Store the 24h value in a data attribute
-      hourBtn.dataset.hour = h;
-    } else {
-      // Regular 24h display
-      hourBtn.textContent = h < 10 ? '0' + h : h;
-      hourBtn.dataset.hour = h;
-    }
-    
-    hourBtn.style.width = useAmPm ? '60px' : '45px';
+    // Always use 24-hour display
+    hourBtn.textContent = h < 10 ? '0' + h : h;
+    hourBtn.dataset.hour = h;
+    hourBtn.style.width = '45px';
     hourBtn.style.height = '40px';
     hourBtn.style.margin = '2px';
     hourBtn.style.border = '1px solid #e0e0e0';
     hourBtn.style.borderRadius = '8px';
     hourBtn.style.background = 'white';
     hourBtn.style.cursor = 'pointer';
-    hourBtn.style.fontSize = useAmPm ? '13px' : '15px';
+    hourBtn.style.fontSize = '15px';
     hourBtn.style.fontWeight = 'bold';
     hourBtn.style.transition = 'all 0.15s ease';
-    
     if (h === this.selectedHour) {
       hourBtn.style.backgroundColor = '#0072bc';
       hourBtn.style.color = 'white';
       hourBtn.style.borderColor = '#0072bc';
       hourBtn.style.boxShadow = '0 2px 6px rgba(0,114,188,0.3)';
     }
-    
     // Add hover effect
     hourBtn.addEventListener('mouseenter', function(btn) {
       if (parseInt(btn.dataset.hour) !== this.selectedHour) {
@@ -174,17 +160,13 @@ window.SimpleTimePicker.prototype.createPickerElement = function() {
         btn.style.borderColor = '#80bdff';
       }
     }.bind(this, hourBtn));
-    
     hourBtn.addEventListener('mouseleave', function(btn) {
       if (parseInt(btn.dataset.hour) !== this.selectedHour) {
         btn.style.backgroundColor = 'white';
         btn.style.borderColor = '#e0e0e0';
       }
     }.bind(this, hourBtn));
-    
-    // Add event listener
     hourBtn.addEventListener('click', this.onHourClick.bind(this));
-    
     hourSelector.appendChild(hourBtn);
   }
   
@@ -320,17 +302,8 @@ window.SimpleTimePicker.prototype.createPickerElement = function() {
   this.updateTimeDisplay = function() {
     var h = this.selectedHour;
     var m = this.selectedMinute;
-    
-    if (useAmPm) {
-      // 12-hour format with AM/PM
-      var displayHour = h % 12;
-      if (displayHour === 0) displayHour = 12;
-      var ampm = h < 12 ? 'AM' : 'PM';
-      timeDisplay.textContent = displayHour + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
-    } else {
-      // 24-hour format
-      timeDisplay.textContent = (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m);
-    }
+    // Always use 24-hour format
+    timeDisplay.textContent = (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m);
   };
   this.updateTimeDisplay();
 
@@ -511,7 +484,7 @@ window.SimpleTimePicker.prototype.applySelection = function() {
   var timeString = h + ':' + m;
   
   // Check if we need AM/PM display (more than 12 hours range)
-  var useAmPm = (this.maxHour - this.minHour) > 12 || this.maxHour >= 12;
+  var useAmPm = false; // Force 24-hour display
   
   // Optionally format for display in the input field (if using AM/PM display)
   if (useAmPm) {
