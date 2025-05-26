@@ -347,6 +347,50 @@ document.addEventListener('DOMContentLoaded', function() {
             loadCarsForPricing();
         });
     }
+
+    // --- Sidebar Tab Navigation ---
+    const tabSectionMap = [
+        { tab: 'dashboardTab', content: 'dashboardContent' },
+        { tab: 'carsTab', content: 'carsContent' },
+        { tab: 'customersTab', content: 'customersContent' },
+        { tab: 'reportsTab', content: 'reportsContent' },
+        { tab: 'settingsTab', content: 'settingsContent' },
+        { tab: 'editCarTab', content: 'editCarContent' }
+    ];
+    function showSection(section) {
+        tabSectionMap.forEach(({ content }) => {
+            const el = document.getElementById(content);
+            if (el) el.style.display = 'none';
+        });
+        const target = document.getElementById(section);
+        if (target) target.style.display = 'block';
+        // Remove active from all tabs, add to current
+        tabSectionMap.forEach(({ tab }) => {
+            const tabEl = document.getElementById(tab);
+            if (tabEl) tabEl.classList.remove('active');
+        });
+        const activeTab = tabSectionMap.find(({ content }) => content === section);
+        if (activeTab) {
+            const tabEl = document.getElementById(activeTab.tab);
+            if (tabEl) tabEl.classList.add('active');
+        }
+    }
+    // Attach click listeners
+    tabSectionMap.forEach(({ tab, content }) => {
+        const tabEl = document.getElementById(tab);
+        if (tabEl) {
+            tabEl.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection(content);
+                // Load data if needed
+                if (content === 'carsContent') loadCarsForPricing();
+                if (content === 'editCarContent') loadEditCarDropdown();
+                if (content === 'dashboardContent') loadBookings();
+            });
+        }
+    });
+    // Show dashboard by default on load
+    showSection('dashboardContent');
 });
 
 /**
