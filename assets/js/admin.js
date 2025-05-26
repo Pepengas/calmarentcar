@@ -1359,9 +1359,28 @@ async function fetchCarAvailabilityData() {
 
 // Render the car availability table
 async function renderCarAvailabilityTable() {
-    const { cars, bookings } = await fetchCarAvailabilityData();
+    let data;
+    try {
+        data = await fetchCarAvailabilityData();
+    } catch (e) {
+        console.error('[Car Availability] Fetch error:', e);
+        const tbody = document.querySelector('#carAvailabilityTable tbody');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-danger">Failed to fetch car or booking data. Check your connection or API.</td></tr>';
+        return;
+    }
+    if (!data || !data.cars || !data.bookings) {
+        console.error('[Car Availability] No data returned:', data);
+        const tbody = document.querySelector('#carAvailabilityTable tbody');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-warning">No car or booking data found. Please check your backend/API.</td></tr>';
+        return;
+    }
+    const { cars, bookings } = data;
     const tbody = document.querySelector('#carAvailabilityTable tbody');
     tbody.innerHTML = '';
+    if (!cars.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-warning">No cars found in the system.</td></tr>';
+        return;
+    }
     cars.forEach(car => {
         // Get bookings for this car
         const carBookings = bookings.filter(b => b.car_id == car.id);
