@@ -1345,6 +1345,46 @@ async function renderCarPricingTable(carId) {
             }
         });
 
+        // Add pricing table
+        const pricingRow = document.createElement('tr');
+        pricingRow.innerHTML = `
+            <td colspan="16">
+                <h4 class="mt-4 mb-3">Monthly Pricing</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Price per Day (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(monthlyPricing).map(([month, price]) => `
+                                <tr>
+                                    <td>${getMonthNameFromKey(month)}</td>
+                                    <td>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               value="${price}" 
+                                               data-month="${month}"
+                                               data-carid="${carId}"
+                                               min="0"
+                                               step="0.01">
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-end mt-3">
+                    <button class="btn btn-primary" onclick="saveMonthlyPricing('${carId}', this)">
+                        Save Pricing
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(pricingRow);
+
     } catch (error) {
         console.error('Error rendering car pricing table:', error);
         const tbody = priceEditorTable.querySelector('tbody');
