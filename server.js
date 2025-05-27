@@ -74,9 +74,46 @@ async function createTables() {
 // Register the createTables function with the database module
 registerCreateTables(createTables);
 
+// Migration: Add car_id to bookings and backfill
+async function migrateAddCarIdToBookings() {
+    try {
+        if (!global.dbConnected) {
+            console.warn('⚠️ Cannot run migration: database not connected');
+            return;
+        }
+        // Add car_id column if it doesn't exist
+        await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS car_id TEXT`);
+        console.log('✅ Migration: car_id column ensured in bookings table.');
+        // Backfill car_id for existing bookings
+        const bookings = (await pool.query('SELECT id, car_make, car_model FROM bookings WHERE car_id IS NULL'))?.rows || [];
+        if (bookings.length === 0) {
+            console.log('✅ Migration: All bookings already have car_id.');
+            return;
+        }
+        for (const booking of bookings) {
+            // Try to find car_id by matching car_make and car_model to cars table
+            const carRes = await pool.query(
+                `SELECT car_id FROM cars WHERE LOWER(make) = LOWER($1) AND LOWER(model) = LOWER($2) LIMIT 1`,
+                [booking.car_make, booking.car_model]
+            );
+            if (carRes.rows.length > 0) {
+                const car_id = carRes.rows[0].car_id;
+                await pool.query('UPDATE bookings SET car_id = $1 WHERE id = $2', [car_id, booking.id]);
+                console.log(`✅ Backfilled car_id for booking id=${booking.id}: ${car_id}`);
+            } else {
+                console.warn(`⚠️ Could not find car_id for booking id=${booking.id} (${booking.car_make} ${booking.car_model})`);
+            }
+        }
+        console.log('✅ Migration: car_id backfill complete.');
+    } catch (err) {
+        console.error('❌ Migration error (add car_id to bookings):', err);
+    }
+}
+
 // Create tables when database is connected
 if (global.dbConnected) {
     createTables();
+    migrateAddCarIdToBookings();
 }
 
 // Admin authentication middleware
