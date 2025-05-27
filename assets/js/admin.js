@@ -380,6 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tabEl = document.getElementById(tab);
         if (tabEl) {
             tabEl.addEventListener('click', function(e) {
+                console.log(`[DEBUG] Tab clicked: ${tab}, content: ${content}`);
                 e.preventDefault();
                 showSection(content);
                 // Load data if needed
@@ -1341,6 +1342,7 @@ window.saveMonthlyPricingMonth = async function(carId, monthKey, btn) {
 
 // --- Car Availability Management ---
 async function loadCarAvailability() {
+    console.log('[DEBUG] loadCarAvailability called');
     const tableBody = document.querySelector('#carAvailabilityTable tbody');
     if (!tableBody) return;
     tableBody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
