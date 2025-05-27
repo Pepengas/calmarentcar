@@ -235,15 +235,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show loading state
     carContainer.innerHTML = '<div class="loading">Loading available vehicles...</div>';
     try {
-      // Fetch cars from backend
-      const response = await fetch('/api/cars');
+      // Fetch car availability from new endpoint
+      const response = await fetch('/api/cars/availability/all');
       const data = await response.json();
-      if (!data.success) throw new Error('Failed to fetch cars');
+      if (!data.success) throw new Error('Failed to fetch car availability');
       const cars = data.cars;
-      carContainer.innerHTML = getAvailableCarsHTML(duration, cars);
+      carContainer.innerHTML = getAvailableCarsHTMLWithAvailability(duration, cars, pickupDate, dropoffDate);
       // Add event listeners to the car selection buttons
       const selectButtons = document.querySelectorAll('.select-car-btn');
       selectButtons.forEach(button => {
+        if (button.disabled) return;
         button.addEventListener('click', function() {
           const carId = this.getAttribute('data-car-id');
           const carName = this.getAttribute('data-car-name');
@@ -296,9 +297,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       });
       // Fetch and update prices for each car card after rendering
-      const urlParams2 = new URLSearchParams(window.location.search);
-      const pickupDate = urlParams2.get('pickup-date') || localStorage.getItem('pickup_date');
-      const dropoffDate = urlParams2.get('dropoff-date') || localStorage.getItem('dropoff_date');
       if (pickupDate && dropoffDate) {
         document.querySelectorAll('.car-card').forEach(async (card) => {
           const carId = card.dataset.carId;
@@ -400,52 +398,70 @@ document.addEventListener('DOMContentLoaded', function() {
     return specs;
   }
   
-  // Function to generate HTML for available cars
-  function getAvailableCarsHTML(duration, cars) {
+  // Helper: Check if a car is available for the selected range
+  function isCarAvailableForRange(car, pickupDate, dropoffDate) {
+    // Convert to Date objects
+    if (!pickupDate || !dropoffDate) return true;
+    const userStart = new Date(pickupDate);
+    const userEnd = new Date(dropoffDate);
+    // Manual status logic
+    if (car.manual_status === 'unavailable') return false;
+    if (car.manual_status === 'available') {
+      // Only unavailable if manually blocked for this range
+      if (Array.isArray(car.manual_blocks)) {
+        for (const block of car.manual_blocks) {
+          const blockStart = new Date(block.start);
+          const blockEnd = new Date(block.end);
+          if (userEnd >= blockStart && userStart <= blockEnd) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+    // Automatic: unavailable if any booking or manual block overlaps
+    if (Array.isArray(car.manual_blocks)) {
+      for (const block of car.manual_blocks) {
+        const blockStart = new Date(block.start);
+        const blockEnd = new Date(block.end);
+        if (userEnd >= blockStart && userStart <= blockEnd) {
+          return false;
+        }
+      }
+    }
+    if (Array.isArray(car.booked_ranges)) {
+      for (const booking of car.booked_ranges) {
+        const bookingStart = new Date(booking.start);
+        const bookingEnd = new Date(booking.end);
+        if (userEnd >= bookingStart && userStart <= bookingEnd) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+  
+  // Generate car cards with true availability
+  function getAvailableCarsHTMLWithAvailability(duration, cars, pickupDate, dropoffDate) {
     let html = '<div class="cars-grid">';
     cars.forEach(car => {
       // Prefer specs field if present
       const specs = car.specs && Object.keys(car.specs).length > 0 ? car.specs : extractSpecsFromFeatures(car.features);
       let specsHTML = `
         <div class="car-specs">
-          <div class="spec-item">
-            <i class="fas fa-gas-pump"></i>
-            <span>Engine: ${specs.engine || '-'}</span>
-          </div>
-          <div class="spec-item">
-            <i class="fas fa-users"></i>
-            <span>Passengers: ${specs.passengers || '-'}</span>
-          </div>
-          <div class="spec-item">
-            <i class="fas fa-door-open"></i>
-            <span>Doors: ${specs.doors || '-'}</span>
-          </div>
-          <div class="spec-item">
-            <i class="fas fa-cogs"></i>
-            <span>Gearbox: ${specs.gearbox || '-'}</span>
-          </div>
-          <div class="spec-item">
-            <i class="fas fa-snowflake"></i>
-            <span>Air Condition: ${specs.airCondition ? 'Yes' : '-'}</span>
-          </div>
-          <div class="spec-item">
-            <i class="fas fa-car-crash"></i>
-            <span>ABS: ${specs.abs ? 'Yes' : '-'}</span>
-          </div>
-          <div class="spec-item">
-            <i class="fas fa-shield-alt"></i>
-            <span>Airbag: ${specs.airbag ? 'Yes' : '-'}</span>
-          </div>
-          <div class="spec-item">
-            <i class="fas fa-gas-pump"></i>
-            <span>Fuel: ${specs.fuel || '-'}</span>
-          </div>
-          <div class="spec-item">
-            <i class="fas fa-music"></i>
-            <span>${specs.entertainment || '-'}</span>
-          </div>
+          <div class="spec-item"><i class="fas fa-gas-pump"></i><span>Engine: ${specs.engine || '-'}</span></div>
+          <div class="spec-item"><i class="fas fa-users"></i><span>Passengers: ${specs.passengers || '-'}</span></div>
+          <div class="spec-item"><i class="fas fa-door-open"></i><span>Doors: ${specs.doors || '-'}</span></div>
+          <div class="spec-item"><i class="fas fa-cogs"></i><span>Gearbox: ${specs.gearbox || '-'}</span></div>
+          <div class="spec-item"><i class="fas fa-snowflake"></i><span>Air Condition: ${specs.airCondition ? 'Yes' : '-'}</span></div>
+          <div class="spec-item"><i class="fas fa-car-crash"></i><span>ABS: ${specs.abs ? 'Yes' : '-'}</span></div>
+          <div class="spec-item"><i class="fas fa-shield-alt"></i><span>Airbag: ${specs.airbag ? 'Yes' : '-'}</span></div>
+          <div class="spec-item"><i class="fas fa-gas-pump"></i><span>Fuel: ${specs.fuel || '-'}</span></div>
+          <div class="spec-item"><i class="fas fa-music"></i><span>${specs.entertainment || '-'}</span></div>
         </div>
       `;
+      // Check availability
+      const isAvailable = isCarAvailableForRange(car, pickupDate, dropoffDate);
       html += `
         <div class="car-card" data-car-id="${car.id}">
           <div class="car-image">
@@ -464,11 +480,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="car-price">Loading...</div>
                 <div class="total-price" style="display:none;"></div>
               </div>
-              <button class="select-car-btn" 
+              <button class="select-car-btn${!isAvailable ? ' unavailable-btn' : ''}" 
                       data-car-id="${car.id}" 
                       data-car-name="${car.name}" 
-                      data-car-price="0">
-                Select This Car
+                      data-car-price="0"
+                      ${!isAvailable ? 'disabled' : ''}>
+                ${isAvailable ? 'Select This Car' : 'Unavailable'}
               </button>
             </div>
           </div>
@@ -478,6 +495,22 @@ document.addEventListener('DOMContentLoaded', function() {
     html += '</div>';
     return html;
   }
+  
+  // Add CSS for unavailable button
+  (function addUnavailableBtnStyle() {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .select-car-btn.unavailable-btn {
+        background: #bbb !important;
+        color: #fff !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+        border: none !important;
+        opacity: 0.7;
+      }
+    `;
+    document.head.appendChild(style);
+  })();
   
   // Helper function to show notifications
   function showNotification(message, type = 'success') {

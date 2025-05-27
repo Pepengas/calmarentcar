@@ -1160,6 +1160,63 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
     }
 });
 
+// Public: Get car availability for all cars (for car selection page)
+app.get('/api/cars/availability/all', async (req, res) => {
+    try {
+        if (!global.dbConnected) {
+            return res.status(503).json({
+                success: false,
+                error: 'Database not connected',
+                cars: []
+            });
+        }
+        // Get all cars
+        const carsResult = await pool.query('SELECT * FROM cars');
+        const cars = carsResult.rows;
+        // Get all bookings with relevant statuses
+        const bookingsResult = await pool.query(
+            `SELECT car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
+        );
+        const bookings = bookingsResult.rows;
+        // Build availability info for each car
+        const carsWithAvailability = cars.map(car => {
+            // Parse manual unavailable_dates
+            let manualBlocks = [];
+            if (car.unavailable_dates && typeof car.unavailable_dates === 'string') {
+                try { manualBlocks = JSON.parse(car.unavailable_dates); } catch {}
+            } else if (Array.isArray(car.unavailable_dates)) {
+                manualBlocks = car.unavailable_dates;
+            }
+            // Get bookings for this car by matching car.name to booking.car_make (case-insensitive)
+            const carBookings = bookings.filter(b =>
+                b.car_make && car.name && b.car_make.toLowerCase() === car.name.toLowerCase()
+            );
+            const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
+            return {
+                id: car.car_id,
+                name: car.name,
+                manual_status: car.manual_status,
+                manual_blocks: manualBlocks,
+                booked_ranges: bookedRanges,
+                category: car.category,
+                specs: car.specs,
+                available: car.available
+            };
+        });
+        return res.json({
+            success: true,
+            cars: carsWithAvailability
+        });
+    } catch (error) {
+        console.error('[PUBLIC] Error fetching car availability:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message,
+            cars: []
+        });
+    }
+});
+
 // Start server
 async function startServer() {
     console.log('🚀 Starting server...');

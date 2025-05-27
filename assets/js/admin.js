@@ -143,9 +143,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listener for text search input
     if (textSearchFilter) {
-        textSearchFilter.addEventListener('input', function() {
+        textSearchFilter.addEventListener('input', debounce(function() {
             applyFilters();
-        });
+        }, 300));
     }
     
     // Add event listener for clear search button
@@ -1467,10 +1467,59 @@ async function loadCarAvailability() {
     }
 }
 
-// Update manual status for a car
+// Add debounce utility function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Add toast notification function
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed top-0 end-0 m-3`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+
+// Add loading spinner function
+function showLoadingSpinner(element) {
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner-border spinner-border-sm text-primary me-2';
+    spinner.setAttribute('role', 'status');
+    spinner.innerHTML = '<span class="visually-hidden">Loading...</span>';
+    element.prepend(spinner);
+    return spinner;
+}
+
+// Modify updateManualStatus to show loading and toast
 async function updateManualStatus(carId, manualStatus) {
+    const dropdown = document.querySelector(`.manual-status-dropdown[data-car-id="${carId}"]`);
+    const originalValue = dropdown.value;
+    const spinner = showLoadingSpinner(dropdown.parentElement);
     try {
-        await fetch(`/api/admin/car/${carId}/manual-status`, {
+        dropdown.disabled = true;
+        dropdown.value = 'Updating...';
+        const response = await fetch(`/api/admin/car/${carId}/manual-status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1479,23 +1528,40 @@ async function updateManualStatus(carId, manualStatus) {
             credentials: 'include',
             body: JSON.stringify({ manual_status: manualStatus })
         });
+        const data = await response.json();
+        if (data.success) {
+            showToast('Manual status updated successfully');
+        } else {
+            throw new Error(data.error || 'Failed to update status');
+        }
     } catch (err) {
-        alert('Failed to update manual status.');
+        dropdown.value = originalValue;
+        showToast(err.message, 'danger');
+    } finally {
+        spinner.remove();
+        dropdown.disabled = false;
     }
 }
 
-// Add a manual block to a car
+// Modify addManualBlock to show loading and toast
 async function addManualBlock(carId, start, end) {
+    const btn = document.querySelector(`.add-block-btn[data-car-id="${carId}"]`);
+    const input = document.getElementById(`blockInput-${carId}`);
+    const originalBtnText = btn.textContent;
+    const spinner = showLoadingSpinner(btn);
     try {
-        // Fetch current manual blocks
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+        input.disabled = true;
         const res = await fetch(`/api/admin/car/${carId}`);
         const data = await res.json();
         let manualBlocks = [];
         if (data.success && data.car && data.car.unavailable_dates) {
-            manualBlocks = typeof data.car.unavailable_dates === 'string' ? JSON.parse(data.car.unavailable_dates) : data.car.unavailable_dates;
+            manualBlocks = typeof data.car.unavailable_dates === 'string' ? 
+                JSON.parse(data.car.unavailable_dates) : data.car.unavailable_dates;
         }
         manualBlocks.push({ start, end });
-        await fetch(`/api/admin/car/${carId}/manual-status`, {
+        const updateRes = await fetch(`/api/admin/car/${carId}/manual-status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1504,23 +1570,40 @@ async function addManualBlock(carId, start, end) {
             credentials: 'include',
             body: JSON.stringify({ manual_status: 'unavailable', unavailable_dates: manualBlocks })
         });
+        const updateData = await updateRes.json();
+        if (updateData.success) {
+            showToast('Manual block added successfully');
+            input.value = '';
+        } else {
+            throw new Error(updateData.error || 'Failed to add block');
+        }
     } catch (err) {
-        alert('Failed to add manual block.');
+        showToast(err.message, 'danger');
+    } finally {
+        spinner.remove();
+        btn.disabled = false;
+        btn.textContent = originalBtnText;
+        input.disabled = false;
     }
 }
 
-// Delete a manual block from a car
+// Modify deleteManualBlock to show loading and toast
 async function deleteManualBlock(carId, blockIdx) {
+    const deleteIcon = document.querySelector(`.delete-block[data-car-id="${carId}"][data-block-idx="${blockIdx}"]`);
+    const originalHtml = deleteIcon.innerHTML;
+    const spinner = showLoadingSpinner(deleteIcon.parentElement);
     try {
-        // Fetch current manual blocks
+        deleteIcon.innerHTML = '⌛';
+        deleteIcon.style.pointerEvents = 'none';
         const res = await fetch(`/api/admin/car/${carId}`);
         const data = await res.json();
         let manualBlocks = [];
         if (data.success && data.car && data.car.unavailable_dates) {
-            manualBlocks = typeof data.car.unavailable_dates === 'string' ? JSON.parse(data.car.unavailable_dates) : data.car.unavailable_dates;
+            manualBlocks = typeof data.car.unavailable_dates === 'string' ? 
+                JSON.parse(data.car.unavailable_dates) : data.car.unavailable_dates;
         }
         manualBlocks.splice(blockIdx, 1);
-        await fetch(`/api/admin/car/${carId}/manual-status`, {
+        const updateRes = await fetch(`/api/admin/car/${carId}/manual-status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1529,8 +1612,18 @@ async function deleteManualBlock(carId, blockIdx) {
             credentials: 'include',
             body: JSON.stringify({ manual_status: 'unavailable', unavailable_dates: manualBlocks })
         });
+        const updateData = await updateRes.json();
+        if (updateData.success) {
+            showToast('Manual block deleted successfully');
+        } else {
+            throw new Error(updateData.error || 'Failed to delete block');
+        }
     } catch (err) {
-        alert('Failed to delete manual block.');
+        deleteIcon.innerHTML = originalHtml;
+        showToast(err.message, 'danger');
+    } finally {
+        spinner.remove();
+        deleteIcon.style.pointerEvents = 'auto';
     }
 }
 
