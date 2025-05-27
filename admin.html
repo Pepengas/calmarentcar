@@ -1158,6 +1158,12 @@
                 showSection('editCar');
                 setActive(this);
             });
+            // Add handler for Cars Availability
+            document.getElementById('customersTab').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('customers');
+                setActive(this);
+            });
         });
     </script>
 
