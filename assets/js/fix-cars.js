@@ -413,6 +413,10 @@ document.addEventListener('DOMContentLoaded', function() {
     return typeof dateString === 'string' && dateString.length === 10 && !isNaN(Date.parse(dateString + 'T00:00:00Z'));
   }
   
+  function isValidDateObject(date) {
+    return date instanceof Date && !isNaN(date.getTime());
+  }
+  
   // Helper: Check if a car is available for the selected range
   function isCarAvailableForRange(car, pickupDate, dropoffDate) {
     if (!pickupDate || !dropoffDate) return true;
@@ -431,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const blockStart = parseDateUTC(block.start);
           const blockEnd = parseDateUTC(block.end);
           const overlap = rangesOverlap(userStart, userEnd, blockStart, blockEnd);
-          console.log(`[AVAILABILITY DEBUG] Manual block check: ${userStart.toISOString()} to ${userEnd.toISOString()} vs ${blockStart.toISOString()} to ${blockEnd.toISOString()} => overlap: ${overlap}`);
+          console.log(`[AVAILABILITY DEBUG] Manual block check: ${isValidDateObject(userStart) ? userStart.toISOString() : userStart} to ${isValidDateObject(userEnd) ? userEnd.toISOString() : userEnd} vs ${isValidDateObject(blockStart) ? blockStart.toISOString() : blockStart} to ${isValidDateObject(blockEnd) ? blockEnd.toISOString() : blockEnd} => overlap: ${overlap}`);
           if (overlap) {
             return false;
           }
@@ -449,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const blockStart = parseDateUTC(block.start);
         const blockEnd = parseDateUTC(block.end);
         const overlap = rangesOverlap(userStart, userEnd, blockStart, blockEnd);
-        console.log(`[AVAILABILITY DEBUG] Manual block check: ${userStart.toISOString()} to ${userEnd.toISOString()} vs ${blockStart.toISOString()} to ${blockEnd.toISOString()} => overlap: ${overlap}`);
+        console.log(`[AVAILABILITY DEBUG] Manual block check: ${isValidDateObject(userStart) ? userStart.toISOString() : userStart} to ${isValidDateObject(userEnd) ? userEnd.toISOString() : userEnd} vs ${isValidDateObject(blockStart) ? blockStart.toISOString() : blockStart} to ${isValidDateObject(blockEnd) ? blockEnd.toISOString() : blockEnd} => overlap: ${overlap}`);
         if (overlap) {
           return false;
         }
@@ -457,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (Array.isArray(car.booked_ranges)) {
       console.log(`\n[AVAILABILITY DEBUG] Car: ${car.name} (${car.id})`);
-      console.log(`Selected range: ${userStart.toISOString()} to ${userEnd.toISOString()}`);
+      console.log(`Selected range: ${isValidDateObject(userStart) ? userStart.toISOString() : userStart} to ${isValidDateObject(userEnd) ? userEnd.toISOString() : userEnd}`);
       for (const [idx, booking] of car.booked_ranges.entries()) {
         if (!isValidDateString(booking.start) || !isValidDateString(booking.end)) {
           console.warn(`[AVAILABILITY DEBUG] Skipping invalid booking:`, booking);
@@ -466,7 +470,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const bookingStart = parseDateUTC(booking.start);
         const bookingEnd = parseDateUTC(booking.end);
         const overlap = rangesOverlap(userStart, userEnd, bookingStart, bookingEnd);
-        console.log(`Booked range ${idx + 1}: ${bookingStart.toISOString()} to ${bookingEnd.toISOString()} (status: ${booking.status}) => overlap: ${overlap}`);
+        console.log(`Booked range ${idx + 1}: ${isValidDateObject(bookingStart) ? bookingStart.toISOString() : bookingStart} to ${isValidDateObject(bookingEnd) ? bookingEnd.toISOString() : bookingEnd} (status: ${booking.status}) => overlap: ${overlap}`);
         if (overlap) {
           console.log('-> Overlap detected! Car is unavailable for this range.');
           return false;
