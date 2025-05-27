@@ -442,7 +442,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
                     phone: booking.customer_phone,
                     age: booking.customer_age,
                     driverLicense: booking.driver_license,
-                    licenseExpiration: booking.license_expiration,
+                    licenseExpiry: booking.license_expiration,
                     country: booking.country
                 },
                 car_make: carMake,
@@ -1076,6 +1076,30 @@ app.post('/api/admin/car/:id/manual-status', requireAdminAuth, async (req, res) 
     } catch (error) {
         console.error(`[ADMIN] Error updating manual_status/unavailable_dates for car ${carId}:`, error);
         return res.status(500).json({ success: false, error: 'Failed to update manual status/unavailable dates' });
+    }
+});
+
+// Admin: Update car pricing (monthly_pricing JSONB)
+app.patch('/api/admin/car/:carId/pricing', requireAdminAuth, async (req, res) => {
+    const { carId } = req.params;
+    const { monthly_pricing } = req.body;
+
+    if (!monthly_pricing) {
+        return res.status(400).json({ success: false, error: 'Missing monthly_pricing data' });
+    }
+
+    try {
+        const result = await pool.query(
+            'UPDATE cars SET monthly_pricing = $1, updated_at = NOW() WHERE car_id = $2 RETURNING *',
+            [monthly_pricing, carId]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).json({ success: false, error: 'Car not found' });
+        }
+        res.json({ success: true, car: result.rows[0] });
+    } catch (err) {
+        console.error('Error updating car pricing:', err);
+        res.status(500).json({ success: false, error: 'Database error' });
     }
 });
 
