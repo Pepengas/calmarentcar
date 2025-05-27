@@ -188,15 +188,17 @@ document.addEventListener('DOMContentLoaded', function() {
   async function displayAvailableCars() {
     // Log the selected dates for debugging
     const urlParams = new URLSearchParams(window.location.search);
-    const pickupDate = urlParams.get('pickup-date');
-    const dropoffDate = urlParams.get('dropoff-date');
+    const pickupDateRaw = urlParams.get('pickup-date');
+    const dropoffDateRaw = urlParams.get('dropoff-date');
+    const pickupDate = toISODateString(pickupDateRaw);
+    const dropoffDate = toISODateString(dropoffDateRaw);
     console.log('[CAR SELECTION DEBUG] pickupDate:', pickupDate, 'dropoffDate:', dropoffDate);
     if (!pickupDate || !dropoffDate || isNaN(Date.parse(pickupDate + 'T00:00:00Z')) || isNaN(Date.parse(dropoffDate + 'T00:00:00Z'))) {
       const carContainer = document.getElementById('available-cars');
       if (carContainer) {
         carContainer.innerHTML = '<div class="loading">Please select valid pickup and return dates.</div>';
       }
-      console.error('[CAR SELECTION ERROR] Invalid pickup or dropoff date:', pickupDate, dropoffDate);
+      console.error('[CAR SELECTION ERROR] Invalid pickup or dropoff date:', pickupDateRaw, dropoffDateRaw);
       return;
     }
     console.log('Displaying available cars');
@@ -426,8 +428,19 @@ document.addEventListener('DOMContentLoaded', function() {
     return date instanceof Date && !isNaN(date.getTime());
   }
   
+  function toISODateString(dateStr) {
+    // Convert MM/DD/YYYY to YYYY-MM-DD
+    if (typeof dateStr !== 'string') return '';
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return '';
+    return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+  }
+  
   // Helper: Check if a car is available for the selected range
   function isCarAvailableForRange(car, pickupDate, dropoffDate) {
+    // Always convert to ISO format for parsing
+    pickupDate = toISODateString(pickupDate);
+    dropoffDate = toISODateString(dropoffDate);
     if (!pickupDate || !dropoffDate) return true;
     // Standardize date objects as UTC
     const userStart = parseDateUTC(pickupDate);
