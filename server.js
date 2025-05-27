@@ -1173,11 +1173,11 @@ app.get('/api/cars/availability/all', async (req, res) => {
         // Get all cars
         const carsResult = await pool.query('SELECT * FROM cars');
         const cars = carsResult.rows;
-        // Get all bookings with relevant statuses (name-based only)
+        // Get all bookings with relevant statuses (by car_id)
         let bookingsResult;
         try {
             bookingsResult = await pool.query(
-                `SELECT car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
+                `SELECT car_id, car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed')`
             );
         } catch (err) {
             console.error('[PUBLIC] Error fetching bookings:', err);
@@ -1197,10 +1197,8 @@ app.get('/api/cars/availability/all', async (req, res) => {
             } else if (Array.isArray(car.unavailable_dates)) {
                 manualBlocks = car.unavailable_dates;
             }
-            // Only match bookings by car name (case-insensitive)
-            const carBookings = bookings.filter(b =>
-                b.car_make && car.name && b.car_make.toLowerCase() === car.name.toLowerCase()
-            );
+            // Match bookings by car_id
+            const carBookings = bookings.filter(b => b.car_id && car.car_id && b.car_id === car.car_id);
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
             return {
                 id: car.car_id,

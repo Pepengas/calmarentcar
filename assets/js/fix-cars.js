@@ -492,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const bookingStart = parseDateUTC(booking.start);
         const bookingEnd = parseDateUTC(booking.end);
         const overlap = rangesOverlap(userStart, userEnd, bookingStart, bookingEnd);
-        console.log(`Booked range ${idx + 1}: ${isValidDateObject(bookingStart) ? bookingStart.toISOString() : bookingStart} to ${isValidDateObject(bookingEnd) ? bookingEnd.toISOString() : bookingEnd} (status: ${booking.status}) => overlap: ${overlap}`);
+        console.log(`[AVAILABILITY DEBUG] Booked range ${idx + 1}: ${isValidDateObject(bookingStart) ? bookingStart.toISOString() : bookingStart} to ${isValidDateObject(bookingEnd) ? bookingEnd.toISOString() : bookingEnd} (status: ${booking.status}) => overlap: ${overlap}`);
         if (overlap) {
           console.log('-> Overlap detected! Car is unavailable for this range.');
           return false;
