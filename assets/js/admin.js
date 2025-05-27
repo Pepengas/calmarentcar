@@ -1357,7 +1357,6 @@ async function loadCarAvailability() {
             credentials: 'include'
         });
         const data = await response.json();
-        console.log('[DEBUG] /api/admin/cars/availability data:', data);
         if (!data.success) throw new Error(data.error || 'Failed to fetch cars');
         tableBody.innerHTML = '';
         if (!data.cars || data.cars.length === 0) {
@@ -1365,7 +1364,28 @@ async function loadCarAvailability() {
             return;
         }
         data.cars.forEach((car, idx) => {
-            // Compose unavailable dates string
+            // Manual status dropdown
+            const statusOptions = ['automatic', 'available', 'unavailable'];
+            let statusDropdown = `<select class="form-select form-select-sm manual-status-dropdown" data-car-id="${car.id}">`;
+            statusOptions.forEach(opt => {
+                statusDropdown += `<option value="${opt}"${car.manual_status === opt ? ' selected' : ''}>${opt.charAt(0).toUpperCase() + opt.slice(1)}</option>`;
+            });
+            statusDropdown += '</select>';
+
+            // Manual block date range picker
+            const blockInputId = `blockInput-${car.id}`;
+            let blockInput = `<input type="text" class="form-control form-control-sm manual-block-input" id="${blockInputId}" placeholder="Add block..." data-car-id="${car.id}" style="max-width:160px;display:inline-block;" readonly>`;
+            let addBlockBtn = `<button class="btn btn-sm btn-outline-primary ms-1 add-block-btn" data-car-id="${car.id}" data-input-id="${blockInputId}">Add</button>`;
+
+            // Manual blocks display with delete icons
+            let manualBlocksHtml = '';
+            if (car.manual_blocks && car.manual_blocks.length > 0) {
+                manualBlocksHtml = car.manual_blocks.map((b, i) =>
+                    `<span class="badge bg-warning text-dark me-1 mb-1">${b.start} to ${b.end} <span class="delete-block" data-car-id="${car.id}" data-block-idx="${i}" style="cursor:pointer;">🗑️</span></span>`
+                ).join('');
+            }
+
+            // Booked ranges display
             let calendarHtml = '';
             if (car.booked_ranges && car.booked_ranges.length > 0) {
                 calendarHtml += '<div><b>Booked:</b><br>' + car.booked_ranges.map(r => `${r.start} to ${r.end} <span class='badge bg-secondary ms-1'>${r.status}</span>`).join('<br>') + '</div>';
@@ -1374,6 +1394,7 @@ async function loadCarAvailability() {
                 calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' + car.manual_blocks.map(b => `${b.start} to ${b.end}`).join('<br>') + '</div>';
             }
             if (!calendarHtml) calendarHtml = '—';
+
             // Determine status badge
             let statusBadge = '<span class="badge bg-success">Available</span>';
             if (car.manual_status === 'unavailable' || car.available === false) {
@@ -1383,20 +1404,133 @@ async function loadCarAvailability() {
             } else if (car.manual_status === 'automatic') {
                 statusBadge = '<span class="badge bg-primary">Automatic</span>';
             }
+
             tableBody.innerHTML += `
                 <tr>
                     <td>${car.name}</td>
                     <td>${statusBadge}</td>
-                    <td>${car.manual_status || 'automatic'}</td>
+                    <td>${statusDropdown}</td>
                     <td>${calendarHtml}</td>
-                    <td>${car.manual_status === 'unavailable' ? 'Blocked' : ''}</td>
+                    <td>${manualBlocksHtml}<div class="mt-2">${blockInput}${addBlockBtn}</div></td>
                 </tr>
             `;
         });
-        console.log('[DEBUG] Final tableBody.innerHTML:', tableBody.innerHTML);
+
+        // Attach event listeners for manual status dropdowns
+        document.querySelectorAll('.manual-status-dropdown').forEach(dropdown => {
+            dropdown.addEventListener('change', async function() {
+                const carId = this.getAttribute('data-car-id');
+                const newStatus = this.value;
+                await updateManualStatus(carId, newStatus);
+                loadCarAvailability();
+            });
+        });
+
+        // Attach flatpickr to all manual block inputs
+        if (window.flatpickr) {
+            document.querySelectorAll('.manual-block-input').forEach(input => {
+                flatpickr(input, {
+                    mode: 'range',
+                    dateFormat: 'Y-m-d',
+                    allowInput: false
+                });
+            });
+        }
+
+        // Add block button event
+        document.querySelectorAll('.add-block-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const carId = this.getAttribute('data-car-id');
+                const inputId = this.getAttribute('data-input-id');
+                const input = document.getElementById(inputId);
+                if (!input || !input.value) return;
+                const dates = input.value.split(' to ');
+                if (dates.length !== 2) return;
+                await addManualBlock(carId, dates[0], dates[1]);
+                loadCarAvailability();
+            });
+        });
+
+        // Delete block event
+        document.querySelectorAll('.delete-block').forEach(icon => {
+            icon.addEventListener('click', async function() {
+                const carId = this.getAttribute('data-car-id');
+                const blockIdx = parseInt(this.getAttribute('data-block-idx'));
+                await deleteManualBlock(carId, blockIdx);
+                loadCarAvailability();
+            });
+        });
+
     } catch (err) {
         console.log('[DEBUG] Error in loadCarAvailability:', err);
         tableBody.innerHTML = `<tr><td colspan="5" class="text-danger">Error: ${err.message}</td></tr>`;
+    }
+}
+
+// Update manual status for a car
+async function updateManualStatus(carId, manualStatus) {
+    try {
+        await fetch(`/api/admin/car/${carId}/manual-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            credentials: 'include',
+            body: JSON.stringify({ manual_status: manualStatus })
+        });
+    } catch (err) {
+        alert('Failed to update manual status.');
+    }
+}
+
+// Add a manual block to a car
+async function addManualBlock(carId, start, end) {
+    try {
+        // Fetch current manual blocks
+        const res = await fetch(`/api/admin/car/${carId}`);
+        const data = await res.json();
+        let manualBlocks = [];
+        if (data.success && data.car && data.car.unavailable_dates) {
+            manualBlocks = typeof data.car.unavailable_dates === 'string' ? JSON.parse(data.car.unavailable_dates) : data.car.unavailable_dates;
+        }
+        manualBlocks.push({ start, end });
+        await fetch(`/api/admin/car/${carId}/manual-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            credentials: 'include',
+            body: JSON.stringify({ manual_status: 'unavailable', unavailable_dates: manualBlocks })
+        });
+    } catch (err) {
+        alert('Failed to add manual block.');
+    }
+}
+
+// Delete a manual block from a car
+async function deleteManualBlock(carId, blockIdx) {
+    try {
+        // Fetch current manual blocks
+        const res = await fetch(`/api/admin/car/${carId}`);
+        const data = await res.json();
+        let manualBlocks = [];
+        if (data.success && data.car && data.car.unavailable_dates) {
+            manualBlocks = typeof data.car.unavailable_dates === 'string' ? JSON.parse(data.car.unavailable_dates) : data.car.unavailable_dates;
+        }
+        manualBlocks.splice(blockIdx, 1);
+        await fetch(`/api/admin/car/${carId}/manual-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            credentials: 'include',
+            body: JSON.stringify({ manual_status: 'unavailable', unavailable_dates: manualBlocks })
+        });
+    } catch (err) {
+        alert('Failed to delete manual block.');
     }
 }
 
