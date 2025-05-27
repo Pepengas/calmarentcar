@@ -1173,17 +1173,17 @@ app.get('/api/cars/availability/all', async (req, res) => {
         // Get all cars
         const carsResult = await pool.query('SELECT * FROM cars');
         const cars = carsResult.rows;
-        // Get all bookings with relevant statuses
+        // Get all bookings with relevant statuses (name-based only)
         let bookingsResult;
         try {
             bookingsResult = await pool.query(
-                `SELECT car_id, car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
+                `SELECT car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
             );
         } catch (err) {
             console.error('[PUBLIC] Error fetching bookings:', err);
             return res.status(500).json({
                 success: false,
-                error: 'Failed to fetch bookings. Check if car_id column exists in bookings table.',
+                error: 'Failed to fetch bookings.',
                 cars: []
             });
         }
@@ -1197,17 +1197,10 @@ app.get('/api/cars/availability/all', async (req, res) => {
             } else if (Array.isArray(car.unavailable_dates)) {
                 manualBlocks = car.unavailable_dates;
             }
-            // Get bookings for this car by matching car_id if present, else fallback to name
-            let carBookings = bookings.filter(b => b.car_id && car.car_id && String(b.car_id) === String(car.car_id));
-            if (carBookings.length === 0) {
-                // Fallback: match by car name (case-insensitive)
-                carBookings = bookings.filter(b =>
-                    b.car_make && car.name && b.car_make.toLowerCase() === car.name.toLowerCase()
-                );
-                if (carBookings.length > 0) {
-                    console.warn(`[PUBLIC] Fallback to name-based booking match for car: ${car.name}`);
-                }
-            }
+            // Only match bookings by car name (case-insensitive)
+            const carBookings = bookings.filter(b =>
+                b.car_make && car.name && b.car_make.toLowerCase() === car.name.toLowerCase()
+            );
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
             return {
                 id: car.car_id,
