@@ -409,6 +409,10 @@ document.addEventListener('DOMContentLoaded', function() {
     return new Date(dateString + 'T00:00:00Z');
   }
   
+  function isValidDateString(dateString) {
+    return typeof dateString === 'string' && dateString.length === 10 && !isNaN(Date.parse(dateString + 'T00:00:00Z'));
+  }
+  
   // Helper: Check if a car is available for the selected range
   function isCarAvailableForRange(car, pickupDate, dropoffDate) {
     if (!pickupDate || !dropoffDate) return true;
@@ -420,6 +424,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (car.manual_status === 'available') {
       if (Array.isArray(car.manual_blocks)) {
         for (const block of car.manual_blocks) {
+          if (!isValidDateString(block.start) || !isValidDateString(block.end)) {
+            console.warn(`[AVAILABILITY DEBUG] Skipping invalid manual block:`, block);
+            continue;
+          }
           const blockStart = parseDateUTC(block.start);
           const blockEnd = parseDateUTC(block.end);
           const overlap = rangesOverlap(userStart, userEnd, blockStart, blockEnd);
@@ -434,6 +442,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Automatic: unavailable if any booking or manual block overlaps
     if (Array.isArray(car.manual_blocks)) {
       for (const block of car.manual_blocks) {
+        if (!isValidDateString(block.start) || !isValidDateString(block.end)) {
+          console.warn(`[AVAILABILITY DEBUG] Skipping invalid manual block:`, block);
+          continue;
+        }
         const blockStart = parseDateUTC(block.start);
         const blockEnd = parseDateUTC(block.end);
         const overlap = rangesOverlap(userStart, userEnd, blockStart, blockEnd);
@@ -447,6 +459,10 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log(`\n[AVAILABILITY DEBUG] Car: ${car.name} (${car.id})`);
       console.log(`Selected range: ${userStart.toISOString()} to ${userEnd.toISOString()}`);
       for (const [idx, booking] of car.booked_ranges.entries()) {
+        if (!isValidDateString(booking.start) || !isValidDateString(booking.end)) {
+          console.warn(`[AVAILABILITY DEBUG] Skipping invalid booking:`, booking);
+          continue;
+        }
         const bookingStart = parseDateUTC(booking.start);
         const bookingEnd = parseDateUTC(booking.end);
         const overlap = rangesOverlap(userStart, userEnd, bookingStart, bookingEnd);
