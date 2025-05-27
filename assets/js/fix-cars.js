@@ -398,21 +398,27 @@ document.addEventListener('DOMContentLoaded', function() {
     return specs;
   }
   
+  // Helper: Check if two date ranges overlap (inclusive)
+  function rangesOverlap(start1, end1, start2, end2) {
+    // Convert to Date objects
+    const s1 = new Date(start1);
+    const e1 = new Date(end1);
+    const s2 = new Date(start2);
+    const e2 = new Date(end2);
+    // Overlap if start1 <= end2 && end1 >= start2
+    return s1 <= e2 && e1 >= s2;
+  }
+  
   // Helper: Check if a car is available for the selected range
   function isCarAvailableForRange(car, pickupDate, dropoffDate) {
-    // Convert to Date objects
     if (!pickupDate || !dropoffDate) return true;
-    const userStart = new Date(pickupDate);
-    const userEnd = new Date(dropoffDate);
     // Manual status logic
     if (car.manual_status === 'unavailable') return false;
     if (car.manual_status === 'available') {
       // Only unavailable if manually blocked for this range
       if (Array.isArray(car.manual_blocks)) {
         for (const block of car.manual_blocks) {
-          const blockStart = new Date(block.start);
-          const blockEnd = new Date(block.end);
-          if (userEnd >= blockStart && userStart <= blockEnd) {
+          if (rangesOverlap(pickupDate, dropoffDate, block.start, block.end)) {
             return false;
           }
         }
@@ -422,18 +428,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Automatic: unavailable if any booking or manual block overlaps
     if (Array.isArray(car.manual_blocks)) {
       for (const block of car.manual_blocks) {
-        const blockStart = new Date(block.start);
-        const blockEnd = new Date(block.end);
-        if (userEnd >= blockStart && userStart <= blockEnd) {
+        if (rangesOverlap(pickupDate, dropoffDate, block.start, block.end)) {
           return false;
         }
       }
     }
     if (Array.isArray(car.booked_ranges)) {
       for (const booking of car.booked_ranges) {
-        const bookingStart = new Date(booking.start);
-        const bookingEnd = new Date(booking.end);
-        if (userEnd >= bookingStart && userStart <= bookingEnd) {
+        if (rangesOverlap(pickupDate, dropoffDate, booking.start, booking.end)) {
           return false;
         }
       }
@@ -441,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return true;
   }
   
-  // Generate car cards with true availability
+  // Generate car cards with true availability and correct image
   function getAvailableCarsHTMLWithAvailability(duration, cars, pickupDate, dropoffDate) {
     let html = '<div class="cars-grid">';
     cars.forEach(car => {
@@ -462,10 +464,15 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
       // Check availability
       const isAvailable = isCarAvailableForRange(car, pickupDate, dropoffDate);
+      // Image logic
+      let imageUrl = 'images/CalmaLogo.jpg';
+      if (car.image && typeof car.image === 'string' && car.image.trim() !== '') {
+        imageUrl = `/assets/images/${car.image}`;
+      }
       html += `
         <div class="car-card" data-car-id="${car.id}">
           <div class="car-image">
-            <img src="${car.image}" alt="${car.name}" onerror="this.src='images/CalmaLogo.jpg'">
+            <img src="${imageUrl}" alt="${car.name}" onerror="this.src='images/CalmaLogo.jpg'">
             <div class="car-category">${car.category}</div>
           </div>
           <div class="car-details">
