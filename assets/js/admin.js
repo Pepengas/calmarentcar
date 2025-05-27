@@ -1344,14 +1344,25 @@ window.saveMonthlyPricingMonth = async function(carId, monthKey, btn) {
 async function loadCarAvailability() {
     console.log('[DEBUG] loadCarAvailability called');
     const tableBody = document.querySelector('#carAvailabilityTable tbody');
-    if (!tableBody) return;
+    if (!tableBody) {
+        console.log('[DEBUG] carAvailabilityTable tbody not found');
+        return;
+    }
     tableBody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
     try {
         const response = await fetch('/api/cars');
+        console.log('[DEBUG] /api/cars response:', response);
         const data = await response.json();
+        console.log('[DEBUG] /api/cars data:', data);
         if (!data.success) throw new Error(data.error || 'Failed to fetch cars');
         tableBody.innerHTML = '';
-        data.cars.forEach(car => {
+        if (!data.cars || data.cars.length === 0) {
+            console.log('[DEBUG] No cars returned from API');
+            tableBody.innerHTML = '<tr><td colspan="5">No cars found.</td></tr>';
+            return;
+        }
+        data.cars.forEach((car, idx) => {
+            console.log(`[DEBUG] Rendering car #${idx + 1}:`, car);
             // Compose unavailable dates string
             let unavailable = '—';
             if (car.unavailable_dates && car.unavailable_dates.length) {
@@ -1385,6 +1396,7 @@ async function loadCarAvailability() {
             `;
         });
     } catch (err) {
+        console.log('[DEBUG] Error in loadCarAvailability:', err);
         tableBody.innerHTML = `<tr><td colspan="5" class="text-danger">Error: ${err.message}</td></tr>`;
     }
 }
