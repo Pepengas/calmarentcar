@@ -1395,6 +1395,7 @@ async function loadCarAvailability() {
                 </tr>
             `;
         });
+        console.log('[DEBUG] Final tableBody.innerHTML:', tableBody.innerHTML);
     } catch (err) {
         console.log('[DEBUG] Error in loadCarAvailability:', err);
         tableBody.innerHTML = `<tr><td colspan="5" class="text-danger">Error: ${err.message}</td></tr>`;
