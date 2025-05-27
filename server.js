@@ -1118,7 +1118,7 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
         const cars = carsResult.rows;
         // Get all bookings with relevant statuses
         const bookingsResult = await pool.query(
-            `SELECT car_id, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
+            `SELECT car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
         );
         const bookings = bookingsResult.rows;
         // Build availability info for each car
@@ -1130,8 +1130,10 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
             } else if (Array.isArray(car.unavailable_dates)) {
                 manualBlocks = car.unavailable_dates;
             }
-            // Get bookings for this car
-            const carBookings = bookings.filter(b => b.car_id === car.car_id);
+            // Get bookings for this car by matching car.name to booking.car_make (case-insensitive)
+            const carBookings = bookings.filter(b =>
+                b.car_make && car.name && b.car_make.toLowerCase() === car.name.toLowerCase()
+            );
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
             return {
                 id: car.car_id,
