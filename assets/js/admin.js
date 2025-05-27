@@ -1350,32 +1350,30 @@ async function loadCarAvailability() {
     }
     tableBody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
     try {
-        const response = await fetch('/api/cars');
-        console.log('[DEBUG] /api/cars response:', response);
+        const response = await fetch('/api/admin/cars/availability', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            credentials: 'include'
+        });
         const data = await response.json();
-        console.log('[DEBUG] /api/cars data:', data);
+        console.log('[DEBUG] /api/admin/cars/availability data:', data);
         if (!data.success) throw new Error(data.error || 'Failed to fetch cars');
         tableBody.innerHTML = '';
         if (!data.cars || data.cars.length === 0) {
-            console.log('[DEBUG] No cars returned from API');
             tableBody.innerHTML = '<tr><td colspan="5">No cars found.</td></tr>';
             return;
         }
         data.cars.forEach((car, idx) => {
-            console.log(`[DEBUG] Rendering car #${idx + 1}:`, car);
             // Compose unavailable dates string
-            let unavailable = '—';
-            if (car.unavailable_dates && car.unavailable_dates.length) {
-                unavailable = car.unavailable_dates.map(d => {
-                    if (d.start && d.end) {
-                        return `${d.start} to ${d.end}`;
-                    } else if (d.start) {
-                        return d.start;
-                    } else {
-                        return '';
-                    }
-                }).join('<br>');
+            let calendarHtml = '';
+            if (car.booked_ranges && car.booked_ranges.length > 0) {
+                calendarHtml += '<div><b>Booked:</b><br>' + car.booked_ranges.map(r => `${r.start} to ${r.end} <span class='badge bg-secondary ms-1'>${r.status}</span>`).join('<br>') + '</div>';
             }
+            if (car.manual_blocks && car.manual_blocks.length > 0) {
+                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' + car.manual_blocks.map(b => `${b.start} to ${b.end}`).join('<br>') + '</div>';
+            }
+            if (!calendarHtml) calendarHtml = '—';
             // Determine status badge
             let statusBadge = '<span class="badge bg-success">Available</span>';
             if (car.manual_status === 'unavailable' || car.available === false) {
@@ -1387,10 +1385,10 @@ async function loadCarAvailability() {
             }
             tableBody.innerHTML += `
                 <tr>
-                    <td>${car.name || car.make + ' ' + car.model}</td>
+                    <td>${car.name}</td>
                     <td>${statusBadge}</td>
                     <td>${car.manual_status || 'automatic'}</td>
-                    <td>${unavailable}</td>
+                    <td>${calendarHtml}</td>
                     <td>${car.manual_status === 'unavailable' ? 'Blocked' : ''}</td>
                 </tr>
             `;
