@@ -1271,7 +1271,15 @@ async function startServerWithMigrations() {
         await createTables();
         await migrateAddCarIdToBookings();
     }
-    // Start Express server only after migrations
+
+    // Register all routes only after migrations are complete
+
+    // --- API Routes ---
+    // (Paste all app.get, app.post, etc. route definitions here)
+
+    // ... (all route definitions from above) ...
+
+    // Start Express server only after routes are registered
     app.listen(port, () => {
         console.log(`📡 Server running on port ${port}`);
         console.log(`🌐 Visit: http://localhost:${port}`);
