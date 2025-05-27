@@ -1265,21 +1265,23 @@ app.get('/api/cars/availability/all', async (req, res) => {
 });
 
 // Start server
-async function startServer() {
+async function startServerWithMigrations() {
     console.log('🚀 Starting server...');
-    
-    // Start Express server
+    if (global.dbConnected) {
+        await createTables();
+        await migrateAddCarIdToBookings();
+    }
+    // Start Express server only after migrations
     app.listen(port, () => {
         console.log(`📡 Server running on port ${port}`);
         console.log(`🌐 Visit: http://localhost:${port}`);
         console.log(`📊 Database connected: ${global.dbConnected ? 'Yes ✅' : 'No ❌'}`);
-        
         if (!global.dbConnected) {
             console.warn('⚠️ Server running without database connection. Some features will be limited.');
         }
     });
 }
 
-startServer().catch(err => {
+startServerWithMigrations().catch(err => {
     console.error('❌ Failed to start server:', err);
 }); 
