@@ -186,15 +186,24 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Function to display available cars on the car selection page
   async function displayAvailableCars() {
-    console.log('Displaying available cars');
-    // Get URL parameters
+    // Log the selected dates for debugging
     const urlParams = new URLSearchParams(window.location.search);
+    const pickupDate = urlParams.get('pickup-date');
+    const dropoffDate = urlParams.get('dropoff-date');
+    console.log('[CAR SELECTION DEBUG] pickupDate:', pickupDate, 'dropoffDate:', dropoffDate);
+    if (!pickupDate || !dropoffDate || isNaN(Date.parse(pickupDate + 'T00:00:00Z')) || isNaN(Date.parse(dropoffDate + 'T00:00:00Z'))) {
+      const carContainer = document.getElementById('available-cars');
+      if (carContainer) {
+        carContainer.innerHTML = '<div class="loading">Please select valid pickup and return dates.</div>';
+      }
+      console.error('[CAR SELECTION ERROR] Invalid pickup or dropoff date:', pickupDate, dropoffDate);
+      return;
+    }
+    console.log('Displaying available cars');
     // Get booking details from URL parameters
     const pickupLocation = urlParams.get('pickup-location');
     const dropoffLocation = urlParams.get('dropoff-location');
-    const pickupDate = urlParams.get('pickup-date');
     const pickupTime = urlParams.get('pickup-time');
-    const dropoffDate = urlParams.get('dropoff-date');
     const dropoffTime = urlParams.get('dropoff-time');
     const duration = parseInt(urlParams.get('duration') || '1');
     // Display booking summary if elements exist
@@ -504,7 +513,13 @@ document.addEventListener('DOMContentLoaded', function() {
       // Image logic
       let imageUrl = 'images/CalmaLogo.jpg';
       if (car.image && typeof car.image === 'string' && car.image.trim() !== '') {
-        imageUrl = `/assets/images/${car.image}`;
+        if (/^https?:\/\//.test(car.image)) {
+          imageUrl = car.image;
+        } else if (!car.image.includes('/') && !car.image.includes('\\')) {
+          imageUrl = `/assets/images/${car.image}`;
+        } else {
+          imageUrl = 'images/CalmaLogo.jpg';
+        }
       }
       html += `
         <div class="car-card" data-car-id="${car.id}">
