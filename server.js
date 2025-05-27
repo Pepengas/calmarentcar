@@ -1175,7 +1175,7 @@ app.get('/api/cars/availability/all', async (req, res) => {
         const cars = carsResult.rows;
         // Get all bookings with relevant statuses
         const bookingsResult = await pool.query(
-            `SELECT car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
+            `SELECT car_id, car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
         );
         const bookings = bookingsResult.rows;
         // Build availability info for each car
@@ -1187,10 +1187,8 @@ app.get('/api/cars/availability/all', async (req, res) => {
             } else if (Array.isArray(car.unavailable_dates)) {
                 manualBlocks = car.unavailable_dates;
             }
-            // Get bookings for this car by matching car.name to booking.car_make (case-insensitive)
-            const carBookings = bookings.filter(b =>
-                b.car_make && car.name && b.car_make.toLowerCase() === car.name.toLowerCase()
-            );
+            // Get bookings for this car by matching car_id
+            const carBookings = bookings.filter(b => b.car_id && car.car_id && String(b.car_id) === String(car.car_id));
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
             return {
                 id: car.car_id,
@@ -1200,7 +1198,9 @@ app.get('/api/cars/availability/all', async (req, res) => {
                 booked_ranges: bookedRanges,
                 category: car.category,
                 specs: car.specs,
-                available: car.available
+                available: car.available,
+                image: car.image,
+                features: car.features
             };
         });
         return res.json({

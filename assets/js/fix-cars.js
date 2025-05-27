@@ -400,25 +400,22 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Helper: Check if two date ranges overlap (inclusive)
   function rangesOverlap(start1, end1, start2, end2) {
-    // Convert to Date objects
-    const s1 = new Date(start1);
-    const e1 = new Date(end1);
-    const s2 = new Date(start2);
-    const e2 = new Date(end2);
-    // Overlap if start1 <= end2 && end1 >= start2
-    return s1 <= e2 && e1 >= s2;
+    // All params are Date objects
+    return start1 <= end2 && end1 >= start2;
   }
   
   // Helper: Check if a car is available for the selected range
   function isCarAvailableForRange(car, pickupDate, dropoffDate) {
     if (!pickupDate || !dropoffDate) return true;
+    // Standardize date objects
+    const userStart = new Date(pickupDate);
+    const userEnd = new Date(dropoffDate);
     // Manual status logic
     if (car.manual_status === 'unavailable') return false;
     if (car.manual_status === 'available') {
-      // Only unavailable if manually blocked for this range
       if (Array.isArray(car.manual_blocks)) {
         for (const block of car.manual_blocks) {
-          if (rangesOverlap(pickupDate, dropoffDate, block.start, block.end)) {
+          if (rangesOverlap(userStart, userEnd, new Date(block.start), new Date(block.end))) {
             return false;
           }
         }
@@ -428,14 +425,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Automatic: unavailable if any booking or manual block overlaps
     if (Array.isArray(car.manual_blocks)) {
       for (const block of car.manual_blocks) {
-        if (rangesOverlap(pickupDate, dropoffDate, block.start, block.end)) {
+        if (rangesOverlap(userStart, userEnd, new Date(block.start), new Date(block.end))) {
           return false;
         }
       }
     }
     if (Array.isArray(car.booked_ranges)) {
+      // Debug log: show selected range and all booked ranges
+      console.log(`\n[AVAILABILITY DEBUG] Car: ${car.name} (${car.id})`);
+      console.log(`Selected range: ${userStart.toISOString()} to ${userEnd.toISOString()}`);
+      car.booked_ranges.forEach((booking, idx) => {
+        const bookingStart = new Date(booking.start);
+        const bookingEnd = new Date(booking.end);
+        console.log(`Booked range ${idx + 1}: ${bookingStart.toISOString()} to ${bookingEnd.toISOString()} (status: ${booking.status})`);
+        if (rangesOverlap(userStart, userEnd, bookingStart, bookingEnd)) {
+          console.log('-> Overlap detected! Car is unavailable for this range.');
+          return false;
+        }
+      });
+      // Now actually check for overlap
       for (const booking of car.booked_ranges) {
-        if (rangesOverlap(pickupDate, dropoffDate, booking.start, booking.end)) {
+        const bookingStart = new Date(booking.start);
+        const bookingEnd = new Date(booking.end);
+        if (rangesOverlap(userStart, userEnd, bookingStart, bookingEnd)) {
           return false;
         }
       }
