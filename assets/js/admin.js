@@ -1364,24 +1364,26 @@ async function loadCarAvailability() {
             return;
         }
         data.cars.forEach((car, idx) => {
+            // Use car.car_id everywhere for data-car-id
+            const realCarId = car.car_id || car.id;
             // Manual status dropdown
             const statusOptions = ['automatic', 'available', 'unavailable'];
-            let statusDropdown = `<select class="form-select form-select-sm manual-status-dropdown" data-car-id="${car.id}">`;
+            let statusDropdown = `<select class="form-select form-select-sm manual-status-dropdown" data-car-id="${realCarId}">`;
             statusOptions.forEach(opt => {
                 statusDropdown += `<option value="${opt}"${car.manual_status === opt ? ' selected' : ''}>${opt.charAt(0).toUpperCase() + opt.slice(1)}</option>`;
             });
             statusDropdown += '</select>';
 
             // Manual block date range picker
-            const blockInputId = `blockInput-${car.id}`;
-            let blockInput = `<input type="text" class="form-control form-control-sm manual-block-input" id="${blockInputId}" placeholder="Add block..." data-car-id="${car.id}" style="max-width:160px;display:inline-block;" readonly>`;
-            let addBlockBtn = `<button class="btn btn-sm btn-outline-primary ms-1 add-block-btn" data-car-id="${car.id}" data-input-id="${blockInputId}">Add</button>`;
+            const blockInputId = `blockInput-${realCarId}`;
+            let blockInput = `<input type="text" class="form-control form-control-sm manual-block-input" id="${blockInputId}" placeholder="Add block..." data-car-id="${realCarId}" style="max-width:160px;display:inline-block;" readonly>`;
+            let addBlockBtn = `<button class="btn btn-sm btn-outline-primary ms-1 add-block-btn" data-car-id="${realCarId}" data-input-id="${blockInputId}">Add</button>`;
 
             // Manual blocks display with delete icons
             let manualBlocksHtml = '';
             if (car.manual_blocks && car.manual_blocks.length > 0) {
                 manualBlocksHtml = car.manual_blocks.map((b, i) =>
-                    `<span class="badge bg-warning text-dark me-1 mb-1">${b.start} to ${b.end} <span class="delete-block" data-car-id="${car.id}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;">🗑️</span></span>`
+                    `<span class="badge bg-warning text-dark me-1 mb-1">${b.start} to ${b.end} <span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;">🗑️</span></span>`
                 ).join('');
             }
 
