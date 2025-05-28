@@ -198,7 +198,17 @@ export const Fleet = {
     }
 };
 
-// Add a helper function for date range overlap
+// Add a helper function to normalize dates to the start of the day
+function normalizeDate(date) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
 function rangesOverlap(userStart, userEnd, blockStart, blockEnd) {
+    userStart = normalizeDate(userStart);
+    userEnd = normalizeDate(userEnd);
+    blockStart = normalizeDate(blockStart);
+    blockEnd = normalizeDate(blockEnd);
     return userEnd >= blockStart && userStart <= blockEnd;
 } 
