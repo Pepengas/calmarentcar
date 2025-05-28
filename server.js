@@ -1158,15 +1158,13 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
             `SELECT car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
         );
         const bookings = bookingsResult.rows;
+        // Get all manual blocks
+        const manualBlocksResult = await pool.query('SELECT * FROM manual_blocks');
+        const manualBlocks = manualBlocksResult.rows;
         // Build availability info for each car
         const carsWithAvailability = cars.map(car => {
-            // Parse manual unavailable_dates
-            let manualBlocks = [];
-            if (car.unavailable_dates && typeof car.unavailable_dates === 'string') {
-                try { manualBlocks = JSON.parse(car.unavailable_dates); } catch {}
-            } else if (Array.isArray(car.unavailable_dates)) {
-                manualBlocks = car.unavailable_dates;
-            }
+            // Merge manual blocks from manual_blocks table
+            const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ start: b.start_date, end: b.end_date }));
             // Get bookings for this car by matching car.name to booking.car_make (case-insensitive)
             const carBookings = bookings.filter(b =>
                 b.car_make && car.name && b.car_make.toLowerCase() === car.name.toLowerCase()
@@ -1176,7 +1174,7 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
                 id: car.car_id,
                 name: car.name,
                 manual_status: car.manual_status,
-                manual_blocks: manualBlocks,
+                manual_blocks: carManualBlocks,
                 booked_ranges: bookedRanges,
                 category: car.category,
                 specs: car.specs,
@@ -1225,15 +1223,13 @@ app.get('/api/cars/availability/all', async (req, res) => {
             });
         }
         const bookings = bookingsResult.rows;
+        // Get all manual blocks
+        const manualBlocksResult = await pool.query('SELECT * FROM manual_blocks');
+        const manualBlocks = manualBlocksResult.rows;
         // Build availability info for each car
         const carsWithAvailability = cars.map(car => {
-            // Parse manual unavailable_dates
-            let manualBlocks = [];
-            if (car.unavailable_dates && typeof car.unavailable_dates === 'string') {
-                try { manualBlocks = JSON.parse(car.unavailable_dates); } catch {}
-            } else if (Array.isArray(car.unavailable_dates)) {
-                manualBlocks = car.unavailable_dates;
-            }
+            // Merge manual blocks from manual_blocks table
+            const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ start: b.start_date, end: b.end_date }));
             // Match bookings by car_id
             const carBookings = bookings.filter(b => b.car_id && car.car_id && b.car_id === car.car_id);
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
@@ -1241,7 +1237,7 @@ app.get('/api/cars/availability/all', async (req, res) => {
                 id: car.car_id,
                 name: car.name,
                 manual_status: car.manual_status,
-                manual_blocks: manualBlocks,
+                manual_blocks: carManualBlocks,
                 booked_ranges: bookedRanges,
                 category: car.category,
                 specs: car.specs,
