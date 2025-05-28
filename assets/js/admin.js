@@ -1381,7 +1381,7 @@ async function loadCarAvailability() {
             let manualBlocksHtml = '';
             if (car.manual_blocks && car.manual_blocks.length > 0) {
                 manualBlocksHtml = car.manual_blocks.map((b, i) =>
-                    `<span class="badge bg-warning text-dark me-1 mb-1">${b.start} to ${b.end} <span class="delete-block" data-car-id="${car.id}" data-block-idx="${i}" style="cursor:pointer;">🗑️</span></span>`
+                    `<span class="badge bg-warning text-dark me-1 mb-1">${b.start} to ${b.end} <span class="delete-block" data-car-id="${car.id}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;">🗑️</span></span>`
                 ).join('');
             }
 
@@ -1472,9 +1472,9 @@ async function loadCarAvailability() {
         // Delete block event
         document.querySelectorAll('.delete-block').forEach(icon => {
             icon.addEventListener('click', async function() {
-                const carId = this.getAttribute('data-car-id');
-                const blockIdx = parseInt(this.getAttribute('data-block-idx'));
-                await deleteManualBlock(carId, blockIdx);
+                const blockId = this.getAttribute('data-block-id');
+                if (!blockId) return;
+                await deleteManualBlock(blockId);
                 loadCarAvailability();
             });
         });
@@ -1562,42 +1562,22 @@ async function updateManualStatus(carId, manualStatus) {
 }
 
 // Modify deleteManualBlock to show loading and toast
-async function deleteManualBlock(carId, blockIdx) {
-    const deleteIcon = document.querySelector(`.delete-block[data-car-id="${carId}"][data-block-idx="${blockIdx}"]`);
-    const originalHtml = deleteIcon.innerHTML;
-    const spinner = showLoadingSpinner(deleteIcon.parentElement);
+async function deleteManualBlock(blockId) {
     try {
-        deleteIcon.innerHTML = '⌛';
-        deleteIcon.style.pointerEvents = 'none';
-        const res = await fetch(`/api/admin/car/${carId}`);
-        const data = await res.json();
-        let manualBlocks = [];
-        if (data.success && data.car && data.car.unavailable_dates) {
-            manualBlocks = typeof data.car.unavailable_dates === 'string' ? 
-                JSON.parse(data.car.unavailable_dates) : data.car.unavailable_dates;
-        }
-        manualBlocks.splice(blockIdx, 1);
-        const updateRes = await fetch(`/api/admin/car/${carId}/manual-status`, {
-            method: 'POST',
+        const res = await fetch(`/api/admin/manual-block/${blockId}`, {
+            method: 'DELETE',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            },
-            credentials: 'include',
-            body: JSON.stringify({ manual_status: 'unavailable', unavailable_dates: manualBlocks })
+            }
         });
-        const updateData = await updateRes.json();
-        if (updateData.success) {
+        const data = await res.json();
+        if (data.success) {
             showToast('Manual block deleted successfully');
         } else {
-            throw new Error(updateData.error || 'Failed to delete block');
+            throw new Error(data.error || 'Failed to delete block');
         }
     } catch (err) {
-        deleteIcon.innerHTML = originalHtml;
         showToast(err.message, 'danger');
-    } finally {
-        spinner.remove();
-        deleteIcon.style.pointerEvents = 'auto';
     }
 }
 

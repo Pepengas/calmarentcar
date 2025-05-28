@@ -1289,6 +1289,21 @@ app.get('/api/manual-blocks', async (req, res) => {
     }
 });
 
+// Delete a manual block by ID (admin only)
+app.delete('/api/admin/manual-block/:id', requireAdminAuth, async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({ success: false, error: 'Missing block ID' });
+    }
+    try {
+        await pool.query('DELETE FROM manual_blocks WHERE id = $1', [id]);
+        return res.json({ success: true });
+    } catch (error) {
+        console.error('[ADMIN] Error deleting manual block:', error);
+        return res.status(500).json({ success: false, error: 'Failed to delete manual block' });
+    }
+});
+
 // Start server
 async function startServerWithMigrations() {
     console.log('🚀 Starting server...');

@@ -90,20 +90,16 @@ export const Fleet = {
                 unavailableReason = 'Unavailable';
             } else if (car.manual_status === 'available') {
                 isAvailable = true;
-            } else if (userRange && Array.isArray(car.unavailable_dates)) {
-                for (const range of car.unavailable_dates) {
-                    const rangeStart = new Date(range.start);
-                    const rangeEnd = new Date(range.end);
+            } else if (userRange && Array.isArray(car.manual_blocks) && car.manual_blocks.length > 0) {
+                for (const block of car.manual_blocks) {
+                    const rangeStart = new Date(block.start);
+                    const rangeEnd = new Date(block.end);
                     if (userRange[1] >= rangeStart && userRange[0] <= rangeEnd) {
                         isAvailable = false;
                         unavailableReason = 'Unavailable';
                         break;
                     }
                 }
-            }
-            if (car.manual_blocks && car.manual_blocks.length > 0) {
-                isAvailable = false;
-                unavailableReason = 'Unavailable';
             }
             card.innerHTML = `
                 <div class="car-image">
@@ -151,10 +147,10 @@ export const Fleet = {
                 isAvailable = false;
             } else if (car.manual_status === 'available') {
                 isAvailable = true;
-            } else if (userRange && Array.isArray(car.unavailable_dates)) {
-                for (const range of car.unavailable_dates) {
-                    const rangeStart = new Date(range.start);
-                    const rangeEnd = new Date(range.end);
+            } else if (userRange && Array.isArray(car.manual_blocks) && car.manual_blocks.length > 0) {
+                for (const block of car.manual_blocks) {
+                    const rangeStart = new Date(block.start);
+                    const rangeEnd = new Date(block.end);
                     if (userRange[1] >= rangeStart && userRange[0] <= rangeEnd) {
                         isAvailable = false;
                         break;
