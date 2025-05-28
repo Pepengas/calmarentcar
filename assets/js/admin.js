@@ -1443,11 +1443,30 @@ async function loadCarAvailability() {
                 const carId = this.getAttribute('data-car-id');
                 const inputId = this.getAttribute('data-input-id');
                 const input = document.getElementById(inputId);
-                if (!input || !input.value) return;
+                
+                console.log('[DEBUG] Add block button clicked');
+                console.log('[DEBUG] Car ID:', carId);
+                console.log('[DEBUG] Input value:', input?.value);
+                
+                if (!input || !input.value) {
+                    console.error('[DEBUG] No input value found');
+                    return;
+                }
+                
                 const dates = input.value.split(' to ');
-                if (dates.length !== 2) return;
-                const payload = { car_id: carId, start_date: dates[0], end_date: dates[1] };
-                console.log('[DEBUG] Adding manual block with payload:', payload);
+                if (dates.length !== 2) {
+                    console.error('[DEBUG] Invalid date format:', input.value);
+                    return;
+                }
+                
+                const payload = { 
+                    car_id: carId, 
+                    start_date: dates[0], 
+                    end_date: dates[1] 
+                };
+                
+                console.log('[DEBUG] Sending manual block request with payload:', payload);
+                
                 try {
                     const res = await fetch('/api/admin/manual-block', {
                         method: 'POST',
@@ -1457,7 +1476,11 @@ async function loadCarAvailability() {
                         },
                         body: JSON.stringify(payload)
                     });
+                    
+                    console.log('[DEBUG] Response status:', res.status);
                     const data = await res.json();
+                    console.log('[DEBUG] Response data:', data);
+                    
                     if (data.success) {
                         showToast('Manual block added successfully');
                         input.value = '';
@@ -1466,6 +1489,7 @@ async function loadCarAvailability() {
                         throw new Error(data.error || 'Failed to add block');
                     }
                 } catch (err) {
+                    console.error('[DEBUG] Error adding manual block:', err);
                     showToast(err.message, 'danger');
                 }
             });

@@ -1263,18 +1263,38 @@ app.get('/api/cars/availability/all', async (req, res) => {
 // Add manual block for a car (admin only)
 app.post('/api/admin/manual-block', requireAdminAuth, async (req, res) => {
     const { car_id, start_date, end_date } = req.body;
-    console.log('[DEBUG] /api/admin/manual-block payload:', req.body);
+    console.log('[DEBUG] /api/admin/manual-block received request');
+    console.log('[DEBUG] Request body:', JSON.stringify(req.body, null, 2));
+    console.log('[DEBUG] Headers:', JSON.stringify(req.headers, null, 2));
+    
     if (!car_id || !start_date || !end_date) {
+        console.error('[DEBUG] Missing required fields:', { car_id, start_date, end_date });
         return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
+
     try {
-        await pool.query(
-            'INSERT INTO manual_blocks (car_id, start_date, end_date) VALUES ($1, $2, $3)',
+        // First verify the car exists
+        const carCheck = await pool.query('SELECT car_id FROM cars WHERE car_id = $1', [car_id]);
+        if (carCheck.rows.length === 0) {
+            console.error('[DEBUG] Car not found:', car_id);
+            return res.status(404).json({ success: false, error: 'Car not found' });
+        }
+
+        // Insert the manual block
+        const result = await pool.query(
+            'INSERT INTO manual_blocks (car_id, start_date, end_date) VALUES ($1, $2, $3) RETURNING *',
             [car_id, start_date, end_date]
         );
-        return res.json({ success: true });
+        
+        console.log('[DEBUG] Manual block created successfully:', result.rows[0]);
+        return res.json({ success: true, block: result.rows[0] });
     } catch (error) {
-        console.error('[ADMIN] Error adding manual block:', error);
+        console.error('[DEBUG] Error adding manual block:', error);
+        console.error('[DEBUG] Error details:', {
+            message: error.message,
+            code: error.code,
+            detail: error.detail
+        });
         return res.status(500).json({ success: false, error: 'Failed to add manual block' });
     }
 });
