@@ -438,6 +438,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function toISODateString(dateStr) {
+    // If already YYYY-MM-DD, return as is
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
     // Convert MM/DD/YYYY to YYYY-MM-DD
     if (typeof dateStr !== 'string') return '';
     const parts = dateStr.split('/');
@@ -454,6 +456,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Standardize date objects as UTC
     const userStart = parseDateUTC(pickupDate);
     const userEnd = parseDateUTC(dropoffDate);
+    // Debug: log car_id and manual blocks
+    console.log(`[AVAILABILITY DEBUG] Checking car_id: ${car.id}`);
+    if (Array.isArray(car.manual_blocks)) {
+      car.manual_blocks.forEach((block, idx) => {
+        console.log(`[AVAILABILITY DEBUG] Manual block ${idx + 1} for car_id: ${block.car_id}, start: ${block.start}, end: ${block.end}`);
+      });
+    }
     // Manual status logic
     if (car.manual_status === 'unavailable') return false;
     if (car.manual_status === 'available') {
