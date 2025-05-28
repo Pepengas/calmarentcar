@@ -415,12 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Helper: Check if two date ranges overlap (inclusive)
   function rangesOverlap(start1, end1, start2, end2) {
-    // Normalize all dates to UTC start of day
-    start1 = parseDateUTC(start1);
-    end1 = parseDateUTC(end1);
-    start2 = parseDateUTC(start2);
-    end2 = parseDateUTC(end2);
-    return end1 >= start2 && start1 <= end2;
+    return !(end1 <= start2 || end2 <= start1);
   }
   
   function parseDateUTC(dateString) {
@@ -449,70 +444,36 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Helper: Check if a car is available for the selected range
   function isCarAvailableForRange(car, pickupDate, dropoffDate) {
-    // Always convert to ISO format for parsing
-    pickupDate = toISODateString(pickupDate);
-    dropoffDate = toISODateString(dropoffDate);
-    if (!pickupDate || !dropoffDate) return true;
-    // Standardize date objects as UTC
-    const userStart = parseDateUTC(pickupDate);
-    const userEnd = parseDateUTC(dropoffDate);
     // Debug: log car_id and manual blocks
-    console.log(`[AVAILABILITY DEBUG] Checking car_id: ${car.id}`);
+    console.log(`Checking ${car.id} for user range ${pickupDate} to ${dropoffDate}`);
     if (Array.isArray(car.manual_blocks)) {
-      car.manual_blocks.forEach((block, idx) => {
-        console.log(`[AVAILABILITY DEBUG] Manual block ${idx + 1} for car_id: ${block.car_id}, start: ${block.start}, end: ${block.end}`);
+      car.manual_blocks.forEach((block) => {
+        console.log(`Block: ${block.start} to ${block.end}`);
       });
     }
-    // Manual status logic
-    if (car.manual_status === 'unavailable') return false;
-    if (car.manual_status === 'available') {
-      if (Array.isArray(car.manual_blocks)) {
-        for (const block of car.manual_blocks) {
-          if (!isValidDateString(block.start) || !isValidDateString(block.end)) {
-            console.warn(`[AVAILABILITY DEBUG] Skipping invalid manual block:`, block);
-            continue;
-          }
-          const blockStart = parseDateUTC(block.start);
-          const blockEnd = parseDateUTC(block.end);
-          const overlap = rangesOverlap(userStart, userEnd, blockStart, blockEnd);
-          console.log(`[AVAILABILITY DEBUG] Manual block check: ${isValidDateObject(userStart) ? userStart.toISOString() : userStart} to ${isValidDateObject(userEnd) ? userEnd.toISOString() : userEnd} vs ${isValidDateObject(blockStart) ? blockStart.toISOString() : blockStart} to ${isValidDateObject(blockEnd) ? blockEnd.toISOString() : blockEnd} => overlap: ${overlap}`);
-          if (overlap) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }
-    // Automatic: unavailable if any booking or manual block overlaps
+    // Only mark unavailable if a block overlaps
     if (Array.isArray(car.manual_blocks)) {
+      const userStart = new Date(pickupDate);
+      const userEnd = new Date(dropoffDate);
       for (const block of car.manual_blocks) {
-        if (!isValidDateString(block.start) || !isValidDateString(block.end)) {
-          console.warn(`[AVAILABILITY DEBUG] Skipping invalid manual block:`, block);
-          continue;
-        }
-        const blockStart = parseDateUTC(block.start);
-        const blockEnd = parseDateUTC(block.end);
-        const overlap = rangesOverlap(userStart, userEnd, blockStart, blockEnd);
-        console.log(`[AVAILABILITY DEBUG] Manual block check: ${isValidDateObject(userStart) ? userStart.toISOString() : userStart} to ${isValidDateObject(userEnd) ? userEnd.toISOString() : userEnd} vs ${isValidDateObject(blockStart) ? blockStart.toISOString() : blockStart} to ${isValidDateObject(blockEnd) ? blockEnd.toISOString() : blockEnd} => overlap: ${overlap}`);
-        if (overlap) {
+        const blockStart = new Date(block.start);
+        const blockEnd = new Date(block.end);
+        if (rangesOverlap(userStart, userEnd, blockStart, blockEnd)) {
+          console.log(`-> Overlap detected for car ${car.id} with block ${block.start} to ${block.end}`);
           return false;
         }
       }
     }
+    // Manual status logic
+    if (car.manual_status === 'unavailable') return false;
+    // Bookings logic (keep as before)
     if (Array.isArray(car.booked_ranges)) {
-      console.log(`\n[AVAILABILITY DEBUG] Car: ${car.name} (${car.id})`);
-      console.log(`Selected range: ${isValidDateObject(userStart) ? userStart.toISOString() : userStart} to ${isValidDateObject(userEnd) ? userEnd.toISOString() : userEnd}`);
-      for (const [idx, booking] of car.booked_ranges.entries()) {
-        if (!isValidDateString(booking.start) || !isValidDateString(booking.end)) {
-          console.warn(`[AVAILABILITY DEBUG] Skipping invalid booking:`, booking);
-          continue;
-        }
-        const bookingStart = parseDateUTC(booking.start);
-        const bookingEnd = parseDateUTC(booking.end);
-        const overlap = rangesOverlap(userStart, userEnd, bookingStart, bookingEnd);
-        console.log(`[AVAILABILITY DEBUG] Booked range ${idx + 1}: ${isValidDateObject(bookingStart) ? bookingStart.toISOString() : bookingStart} to ${isValidDateObject(bookingEnd) ? bookingEnd.toISOString() : bookingEnd} (status: ${booking.status}) => overlap: ${overlap}`);
-        if (overlap) {
-          console.log('-> Overlap detected! Car is unavailable for this range.');
+      const userStart = new Date(pickupDate);
+      const userEnd = new Date(dropoffDate);
+      for (const booking of car.booked_ranges) {
+        const bookingStart = new Date(booking.start);
+        const bookingEnd = new Date(booking.end);
+        if (rangesOverlap(userStart, userEnd, bookingStart, bookingEnd)) {
           return false;
         }
       }
