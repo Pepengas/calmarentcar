@@ -1440,12 +1440,13 @@ async function loadCarAvailability() {
         // Add block button event (replace old logic)
         document.querySelectorAll('.add-block-btn').forEach(btn => {
             btn.addEventListener('click', async function() {
+                // Always use the real car.id from the cars table for car_id
                 const carId = this.getAttribute('data-car-id');
                 const inputId = this.getAttribute('data-input-id');
                 const input = document.getElementById(inputId);
                 
                 console.log('[DEBUG] Add block button clicked');
-                console.log('[DEBUG] Car ID:', carId);
+                console.log('[DEBUG] Car ID:', carId); // This should be the real car.id
                 console.log('[DEBUG] Input value:', input?.value);
                 
                 if (!input || !input.value) {
@@ -1459,6 +1460,7 @@ async function loadCarAvailability() {
                     return;
                 }
                 
+                // car_id must be the real car.id, not car.name or car.make
                 const payload = { 
                     car_id: carId, 
                     start_date: dates[0], 
