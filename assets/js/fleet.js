@@ -94,7 +94,7 @@ export const Fleet = {
                 for (const block of car.manual_blocks) {
                     const rangeStart = new Date(block.start);
                     const rangeEnd = new Date(block.end);
-                    if (userRange[1] >= rangeStart && userRange[0] <= rangeEnd) {
+                    if (rangesOverlap(userRange[0], userRange[1], rangeStart, rangeEnd)) {
                         isAvailable = false;
                         unavailableReason = 'Unavailable';
                         break;
@@ -151,14 +151,11 @@ export const Fleet = {
                 for (const block of car.manual_blocks) {
                     const rangeStart = new Date(block.start);
                     const rangeEnd = new Date(block.end);
-                    if (userRange[1] >= rangeStart && userRange[0] <= rangeEnd) {
+                    if (rangesOverlap(userRange[0], userRange[1], rangeStart, rangeEnd)) {
                         isAvailable = false;
                         break;
                     }
                 }
-            }
-            if (car.manual_blocks && car.manual_blocks.length > 0) {
-                isAvailable = false;
             }
             const option = document.createElement('option');
             option.value = car.id;
@@ -199,4 +196,9 @@ export const Fleet = {
     getCarById(carId) {
         return this.cars.find(car => car.id === carId);
     }
-}; 
+};
+
+// Add a helper function for date range overlap
+function rangesOverlap(userStart, userEnd, blockStart, blockEnd) {
+    return userEnd >= blockStart && userStart <= blockEnd;
+} 
