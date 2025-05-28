@@ -1164,7 +1164,7 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
         // Build availability info for each car
         const carsWithAvailability = cars.map(car => {
             // Merge manual blocks from manual_blocks table
-            const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ start: b.start_date, end: b.end_date }));
+            const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ id: b.id, start: b.start_date, end: b.end_date }));
             // Get bookings for this car by matching car.name to booking.car_make (case-insensitive)
             const carBookings = bookings.filter(b =>
                 b.car_make && car.name && b.car_make.toLowerCase() === car.name.toLowerCase()
@@ -1229,7 +1229,7 @@ app.get('/api/cars/availability/all', async (req, res) => {
         // Build availability info for each car
         const carsWithAvailability = cars.map(car => {
             // Merge manual blocks from manual_blocks table
-            const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ start: b.start_date, end: b.end_date }));
+            const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ id: b.id, start: b.start_date, end: b.end_date }));
             // Match bookings by car_id
             const carBookings = bookings.filter(b => b.car_id && car.car_id && b.car_id === car.car_id);
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
