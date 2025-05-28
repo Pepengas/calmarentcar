@@ -1437,7 +1437,7 @@ async function loadCarAvailability() {
             });
         }
 
-        // Add block button event
+        // Add block button event (replace old logic)
         document.querySelectorAll('.add-block-btn').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const carId = this.getAttribute('data-car-id');
@@ -1446,8 +1446,26 @@ async function loadCarAvailability() {
                 if (!input || !input.value) return;
                 const dates = input.value.split(' to ');
                 if (dates.length !== 2) return;
-                await addManualBlock(carId, dates[0], dates[1]);
-                loadCarAvailability();
+                try {
+                    const res = await fetch('/api/admin/manual-block', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                        },
+                        body: JSON.stringify({ car_id: carId, start_date: dates[0], end_date: dates[1] })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('Manual block added successfully');
+                        input.value = '';
+                        loadCarAvailability();
+                    } else {
+                        throw new Error(data.error || 'Failed to add block');
+                    }
+                } catch (err) {
+                    showToast(err.message, 'danger');
+                }
             });
         });
 
@@ -1540,50 +1558,6 @@ async function updateManualStatus(carId, manualStatus) {
     } finally {
         spinner.remove();
         dropdown.disabled = false;
-    }
-}
-
-// Modify addManualBlock to show loading and toast
-async function addManualBlock(carId, start, end) {
-    const btn = document.querySelector(`.add-block-btn[data-car-id="${carId}"]`);
-    const input = document.getElementById(`blockInput-${carId}`);
-    const originalBtnText = btn.textContent;
-    const spinner = showLoadingSpinner(btn);
-    try {
-        btn.disabled = true;
-        btn.textContent = 'Adding...';
-        input.disabled = true;
-        const res = await fetch(`/api/admin/car/${carId}`);
-        const data = await res.json();
-        let manualBlocks = [];
-        if (data.success && data.car && data.car.unavailable_dates) {
-            manualBlocks = typeof data.car.unavailable_dates === 'string' ? 
-                JSON.parse(data.car.unavailable_dates) : data.car.unavailable_dates;
-        }
-        manualBlocks.push({ start, end });
-        const updateRes = await fetch(`/api/admin/car/${carId}/manual-status`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            },
-            credentials: 'include',
-            body: JSON.stringify({ manual_status: 'unavailable', unavailable_dates: manualBlocks })
-        });
-        const updateData = await updateRes.json();
-        if (updateData.success) {
-            showToast('Manual block added successfully');
-            input.value = '';
-        } else {
-            throw new Error(updateData.error || 'Failed to add block');
-        }
-    } catch (err) {
-        showToast(err.message, 'danger');
-    } finally {
-        spinner.remove();
-        btn.disabled = false;
-        btn.textContent = originalBtnText;
-        input.disabled = false;
     }
 }
 

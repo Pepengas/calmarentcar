@@ -21,6 +21,8 @@ export const Fleet = {
     async loadCars() {
         try {
             this.cars = await this.fetchCars();
+            const manualBlocks = await this.fetchManualBlocks();
+            this.cars.forEach(car => { car.manual_blocks = manualBlocks.filter(b => b.car_id === car.id); });
             this.displayCars(this.cars);
             this.populateCarDropdown(this.cars);
         } catch (error) {
@@ -41,6 +43,17 @@ export const Fleet = {
             console.error('Failed to fetch cars:', error);
             if (this.carGrid) this.carGrid.innerHTML = '<p class="error-message">Failed to load car fleet. Please try refreshing.</p>';
             if (this.carSelectionDropdown) this.carSelectionDropdown.innerHTML = '<option value="" disabled selected>Failed to load cars</option>';
+            return [];
+        }
+    },
+    
+    async fetchManualBlocks() {
+        try {
+            const response = await fetch('/api/manual-blocks');
+            if (!response.ok) return [];
+            const data = await response.json();
+            return data.success ? data.blocks : [];
+        } catch (e) {
             return [];
         }
     },
@@ -87,6 +100,10 @@ export const Fleet = {
                         break;
                     }
                 }
+            }
+            if (car.manual_blocks && car.manual_blocks.length > 0) {
+                isAvailable = false;
+                unavailableReason = 'Unavailable';
             }
             card.innerHTML = `
                 <div class="car-image">
@@ -143,6 +160,9 @@ export const Fleet = {
                         break;
                     }
                 }
+            }
+            if (car.manual_blocks && car.manual_blocks.length > 0) {
+                isAvailable = false;
             }
             const option = document.createElement('option');
             option.value = car.id;

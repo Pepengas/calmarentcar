@@ -1264,6 +1264,35 @@ app.get('/api/cars/availability/all', async (req, res) => {
     }
 });
 
+// Add manual block for a car (admin only)
+app.post('/api/admin/manual-block', requireAdminAuth, async (req, res) => {
+    const { car_id, start_date, end_date } = req.body;
+    if (!car_id || !start_date || !end_date) {
+        return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+    try {
+        await pool.query(
+            'INSERT INTO manual_blocks (car_id, start_date, end_date) VALUES ($1, $2, $3)',
+            [car_id, start_date, end_date]
+        );
+        return res.json({ success: true });
+    } catch (error) {
+        console.error('[ADMIN] Error adding manual block:', error);
+        return res.status(500).json({ success: false, error: 'Failed to add manual block' });
+    }
+});
+
+// Get all manual blocks (public)
+app.get('/api/manual-blocks', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM manual_blocks');
+        return res.json({ success: true, blocks: result.rows });
+    } catch (error) {
+        console.error('[PUBLIC] Error fetching manual blocks:', error);
+        return res.status(500).json({ success: false, error: 'Failed to fetch manual blocks' });
+    }
+});
+
 // Start server
 async function startServerWithMigrations() {
     console.log('🚀 Starting server...');
