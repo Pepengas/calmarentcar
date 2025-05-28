@@ -75,6 +75,8 @@ export const Fleet = {
             userRange = [new Date(pickupDate), new Date(dropoffDate)];
         }
         cars.forEach(car => {
+            console.log('Rendering car:', car);
+            console.log('Manual blocks for this car:', car.manual_blocks);
             const card = document.createElement('div');
             card.className = 'car-card';
             const imageUrl = car.image.startsWith('http') ? car.image : `${API_BASE_URL}/${car.image}`;
@@ -201,8 +203,8 @@ export const Fleet = {
 // Add a helper function to normalize dates to the start of the day
 function normalizeDate(date) {
     const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    return d;
+    // Always use UTC to avoid timezone issues
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
 
 function rangesOverlap(userStart, userEnd, blockStart, blockEnd) {
