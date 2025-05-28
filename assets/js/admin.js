@@ -1446,6 +1446,8 @@ async function loadCarAvailability() {
                 if (!input || !input.value) return;
                 const dates = input.value.split(' to ');
                 if (dates.length !== 2) return;
+                const payload = { car_id: carId, start_date: dates[0], end_date: dates[1] };
+                console.log('[DEBUG] Adding manual block with payload:', payload);
                 try {
                     const res = await fetch('/api/admin/manual-block', {
                         method: 'POST',
@@ -1453,7 +1455,7 @@ async function loadCarAvailability() {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                         },
-                        body: JSON.stringify({ car_id: carId, start_date: dates[0], end_date: dates[1] })
+                        body: JSON.stringify(payload)
                     });
                     const data = await res.json();
                     if (data.success) {

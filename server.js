@@ -1263,6 +1263,7 @@ app.get('/api/cars/availability/all', async (req, res) => {
 // Add manual block for a car (admin only)
 app.post('/api/admin/manual-block', requireAdminAuth, async (req, res) => {
     const { car_id, start_date, end_date } = req.body;
+    console.log('[DEBUG] /api/admin/manual-block payload:', req.body);
     if (!car_id || !start_date || !end_date) {
         return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
