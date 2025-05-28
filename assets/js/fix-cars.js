@@ -335,6 +335,10 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
       }
+      // In displayAvailableCars, after fetching cars:
+      cars.forEach(car => {
+        console.log('[DEBUG] Car:', car.name, 'Manual blocks:', car.manual_blocks);
+      });
     } catch (err) {
       carContainer.innerHTML = '<div class="loading">Failed to load cars.</div>';
       console.error('Error fetching cars:', err);
@@ -411,13 +415,18 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Helper: Check if two date ranges overlap (inclusive)
   function rangesOverlap(start1, end1, start2, end2) {
-    // All params are Date objects (UTC)
-    return start1 <= end2 && end1 >= start2;
+    // Normalize all dates to UTC start of day
+    start1 = parseDateUTC(start1);
+    end1 = parseDateUTC(end1);
+    start2 = parseDateUTC(start2);
+    end2 = parseDateUTC(end2);
+    return end1 >= start2 && start1 <= end2;
   }
   
   function parseDateUTC(dateString) {
-    // Always parse as UTC midnight
-    return new Date(dateString + 'T00:00:00Z');
+    // Always parse as UTC to avoid timezone issues
+    const d = new Date(dateString);
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
   }
   
   function isValidDateString(dateString) {
