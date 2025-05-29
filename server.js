@@ -1153,6 +1153,8 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
         // Get all cars
         const carsResult = await pool.query('SELECT * FROM cars');
         const cars = carsResult.rows;
+        console.log('[DEBUG] Cars from database:', cars.map(c => ({ id: c.id, car_id: c.car_id, name: c.name })));
+        
         // Get all bookings with relevant statuses
         const bookingsResult = await pool.query(
             `SELECT car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
@@ -1161,10 +1163,14 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
         // Get all manual blocks
         const manualBlocksResult = await pool.query('SELECT * FROM manual_blocks');
         const manualBlocks = manualBlocksResult.rows;
+        console.log('[DEBUG] Manual blocks from database:', manualBlocks);
+        
         // Build availability info for each car
         const carsWithAvailability = cars.map(car => {
             // Merge manual blocks from manual_blocks table
             const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ id: b.id, start: b.start_date, end: b.end_date }));
+            console.log(`[DEBUG] Car ${car.name} (${car.car_id}) has ${carManualBlocks.length} manual blocks:`, carManualBlocks);
+            
             // Get bookings for this car by matching car.name to booking.car_make (case-insensitive)
             const carBookings = bookings.filter(b =>
                 b.car_make && car.name && b.car_make.toLowerCase() === car.name.toLowerCase()
@@ -1273,8 +1279,10 @@ app.post('/api/admin/manual-block', requireAdminAuth, async (req, res) => {
     }
 
     try {
-        // First verify the car exists
-        const carCheck = await pool.query('SELECT car_id FROM cars WHERE car_id = $1', [car_id]);
+        // First verify the car exists and log its details
+        const carCheck = await pool.query('SELECT id, car_id, name FROM cars WHERE car_id = $1', [car_id]);
+        console.log('[DEBUG] Car check result:', carCheck.rows);
+        
         if (carCheck.rows.length === 0) {
             console.error('[DEBUG] Car not found:', car_id);
             return res.status(404).json({ success: false, error: 'Car not found' });
