@@ -998,7 +998,8 @@
                             <h3 class="text-primary mb-4"><i class="fas fa-euro-sign me-2"></i>Car Pricing</h3>
                             <div class="table-responsive">
                                 <table class="table table-striped table-lg align-middle" id="priceEditorTable">
-                                    <!-- Table content rendered by JS -->
+                                    <thead></thead>
+                                    <tbody></tbody>
                                 </table>
                             </div>
                         </div>
@@ -1024,6 +1025,9 @@
                     <div class="container-fluid">
                         <div class="card shadow-sm p-4 mb-4 border border-blue-100">
                             <h3 class="text-primary mb-4"><i class="fas fa-edit me-2"></i>Edit Car</h3>
+                            <select id="editCarDropdown" class="form-select mb-3">
+                                <!-- Options will be populated by JS -->
+                            </select>
                             <form id="editCarForm" class="row g-4">
                                 <!-- Form fields rendered by JS -->
                             </form>
