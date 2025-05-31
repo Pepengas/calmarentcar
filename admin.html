@@ -777,10 +777,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-cog me-2"></i>
-                            Settings
-                        </a>
+                        <a class="nav-link" id="settingsTab" href="#"><i class="fas fa-cog me-2"></i>Settings</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="editCarTab" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a>
@@ -1312,6 +1309,11 @@
             document.getElementById('customersTab').addEventListener('click', function(e) {
                 e.preventDefault();
                 showSection('customers');
+                setActive(this);
+            });
+            document.getElementById('settingsTab').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('settings');
                 setActive(this);
             });
         });
