@@ -107,6 +107,36 @@ document.addEventListener('DOMContentLoaded', function() {
     textSearchFilter = document.getElementById('textSearchFilter');
     clearSearchBtn = document.getElementById('clearSearchBtn');
     
+    // Tab click handlers
+    const tabHandlers = {
+        'dashboardTab': 'dashboard',
+        'carsTab': 'cars',
+        'customersTab': 'customers',
+        'reportsTab': 'reports',
+        'settingsTab': 'settings',
+        'editCarTab': 'editCar',
+        'addonsTab': 'addons'
+    };
+
+    // Add click handlers for all tabs
+    Object.entries(tabHandlers).forEach(([tabId, section]) => {
+        const tab = document.getElementById(tabId);
+        if (tab) {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection(section);
+                setActive(this);
+            });
+        }
+    });
+
+    // Show dashboard by default
+    showSection('dashboard');
+    const dashboardTab = document.getElementById('dashboardTab');
+    if (dashboardTab) {
+        setActive(dashboardTab);
+    }
+
     // Event listeners
     const filterFormElem = document.getElementById('filterForm');
     if (filterFormElem) {

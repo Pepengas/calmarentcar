@@ -994,7 +994,7 @@
                     </div>
                 </div>
 
-                <!-- Cars Content (hidden by default) -->
+                <!-- Cars Content -->
                 <div id="carsContent" class="content-section d-none">
                     <div class="container-fluid">
                         <div class="card shadow-sm p-4 mb-4 border border-blue-100">
@@ -1009,21 +1009,44 @@
                     </div>
                 </div>
 
-                <!-- Cars Availability Content (to be rebuilt) -->
+                <!-- Customers Content -->
                 <div id="customersContent" class="content-section d-none">
-                    <div class="container-fluid">
-                        <div class="card shadow-sm p-4 mb-4 border border-blue-100">
-                            <h3 class="text-primary mb-4"><i class="fas fa-car me-2"></i>Cars Availability</h3>
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-lg align-middle" id="carAvailabilityTable">
-                                    <tbody></tbody>
-                                </table>
-                            </div>
+                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
+                        <h4 class="text-primary mb-3"><i class="fas fa-users me-2"></i>Cars Availability</h4>
+                        <div class="table-responsive">
+                            <table class="table" id="carAvailabilityTable">
+                                <thead>
+                                    <tr>
+                                        <th>Car</th>
+                                        <th>Status</th>
+                                        <th>Manual Status</th>
+                                        <th>Calendar</th>
+                                        <th>Manual Blocks</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- Add Edit Car Content Section (hidden by default) -->
+                <!-- Reports Content -->
+                <div id="reportsContent" class="content-section d-none">
+                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
+                        <h4 class="text-primary mb-3"><i class="fas fa-chart-line me-2"></i>Reports</h4>
+                        <p>Reports section coming soon...</p>
+                    </div>
+                </div>
+
+                <!-- Settings Content -->
+                <div id="settingsContent" class="content-section d-none">
+                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
+                        <h4 class="text-primary mb-3"><i class="fas fa-cog me-2"></i>Settings</h4>
+                        <p>Settings section coming soon...</p>
+                    </div>
+                </div>
+
+                <!-- Edit Car Content -->
                 <div id="editCarContent" class="content-section d-none">
                     <div class="container-fluid">
                         <div class="card shadow-sm p-4 mb-4 border border-blue-100">
@@ -1099,60 +1122,12 @@
                     </div>
                 </div>
 
-                <!-- Settings Content (hidden by default) -->
-                <div id="settingsContent" class="content-section d-none">
-                    <!-- Change Password Section -->
-                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
-                        <h4 class="text-primary mb-3"><i class="fas fa-key me-2"></i>Change Password</h4>
-                        <form id="changePasswordForm" class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Current Password</label>
-                                <input type="password" name="current" class="form-control" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">New Password</label>
-                                <input type="password" name="new" class="form-control" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Confirm New Password</label>
-                                <input type="password" name="confirm" class="form-control" required>
-                            </div>
-                            <div class="col-12 text-end">
-                                <button type="submit" class="btn btn-primary px-4">Update Password</button>
-                            </div>
-                            <div id="changePasswordMsg" class="mt-2 text-danger fw-semibold"></div>
-                        </form>
-                    </div>
-                    <!-- Add User Section -->
-                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
-                        <h4 class="text-primary mb-3"><i class="fas fa-user-plus me-2"></i>Add New User</h4>
-                        <form id="addUserForm" class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Email</label>
-                                <input type="email" name="email" class="form-control" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Password</label>
-                                <input type="password" name="password" class="form-control" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Confirm Password</label>
-                                <input type="password" name="confirm" class="form-control" required>
-                            </div>
-                            <div class="col-12 text-end">
-                                <button type="submit" class="btn btn-success px-4">Add User</button>
-                            </div>
-                            <div id="addUserMsg" class="mt-2 text-danger fw-semibold"></div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Addons Content (hidden by default) -->
+                <!-- Addons Content -->
                 <div id="addonsContent" class="content-section d-none">
                     <div class="card shadow-sm p-4 mb-4 border border-blue-100">
                         <h4 class="text-primary mb-3"><i class="fas fa-puzzle-piece me-2"></i>Manage Addons</h4>
                         <div id="addonsList" class="row g-3">
-                            <!-- Addons will be injected here by JS -->
+                            <!-- Addon items will be injected here -->
                         </div>
                     </div>
                 </div>
