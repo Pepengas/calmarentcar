@@ -1039,7 +1039,7 @@ function updateBookingStatus() {
  */
 function showErrorMessage(message) {
     console.error('[Admin] showErrorMessage:', message); // Log the error
-    const errorContainer = document.getElementById('adminErrorContainer'); // Assuming you add an error container div
+    const errorContainer = document.getElementById('adminErrorContainer');
     if (errorContainer) {
         errorContainer.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
             ${message}
@@ -1047,6 +1047,7 @@ function showErrorMessage(message) {
         </div>`;
         errorContainer.style.display = 'block';
     } else {
+        console.warn('[Admin] adminErrorContainer not found in DOM. Error message:', message);
         // Fallback to alert if no dedicated container
         alert('Admin Page Error: ' + message);
     }
