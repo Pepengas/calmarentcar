@@ -46,6 +46,56 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('adminToken');
         window.location.href = 'admin-login.html';
     });
+
+    const changePasswordForm = document.getElementById('changePasswordForm');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const current = e.target.current.value;
+            const newPass = e.target.new.value;
+            const confirm = e.target.confirm.value;
+            if (newPass !== confirm) {
+                document.getElementById('changePasswordMsg').textContent = "Passwords do not match.";
+                return;
+            }
+            const res = await fetch('/api/admin/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify({ current, new: newPass })
+            });
+            const data = await res.json();
+            document.getElementById('changePasswordMsg').textContent = data.success ? 'Password updated.' : data.error;
+            console.log('[DEBUG] Change password response:', data);
+        });
+    }
+
+    const addUserForm = document.getElementById('addUserForm');
+    if (addUserForm) {
+        addUserForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = e.target.email.value;
+            const password = e.target.password.value;
+            const confirm = e.target.confirm.value;
+            if (password !== confirm) {
+                document.getElementById('addUserMsg').textContent = "Passwords do not match.";
+                return;
+            }
+            const res = await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            document.getElementById('addUserMsg').textContent = data.success ? 'User added.' : data.error;
+            console.log('[DEBUG] Add user response:', data);
+        });
+    }
 });
 
 /**

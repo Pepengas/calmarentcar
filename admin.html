@@ -1190,6 +1190,26 @@
                         </form>
                     </div>
                 </div>
+
+                <!-- Settings Content (hidden by default) -->
+                <div id="settingsContent" class="content-section d-none">
+                    <h3>Change Password</h3>
+                    <form id="changePasswordForm">
+                        <input type="password" placeholder="Current Password" name="current" required>
+                        <input type="password" placeholder="New Password" name="new" required>
+                        <input type="password" placeholder="Confirm New Password" name="confirm" required>
+                        <button type="submit">Update Password</button>
+                        <div id="changePasswordMsg"></div>
+                    </form>
+                    <h3>Add New User</h3>
+                    <form id="addUserForm">
+                        <input type="email" placeholder="Email" name="email" required>
+                        <input type="password" placeholder="Password" name="password" required>
+                        <input type="password" placeholder="Confirm Password" name="confirm" required>
+                        <button type="submit">Add User</button>
+                        <div id="addUserMsg"></div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
