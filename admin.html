@@ -821,19 +821,37 @@
 
                 <!-- Cars Content -->
                 <div id="carsContent" class="content-section d-none">
-                    <div class="card shadow-sm p-4 mb-4">
-                        <h4 class="text-primary mb-3"><i class="fas fa-car me-2"></i>Cars Pricing</h4>
-                        <p>Cars pricing management section.</p>
-                        <div id="carPricingTableContainer"></div>
+                    <div class="container-fluid">
+                        <div class="card shadow-sm p-4 mb-4 border border-blue-100">
+                            <h3 class="text-primary mb-4"><i class="fas fa-euro-sign me-2"></i>Car Pricing</h3>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-lg align-middle" id="priceEditorTable">
+                                    <thead></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Customers Content -->
                 <div id="customersContent" class="content-section d-none">
-                    <div class="card shadow-sm p-4 mb-4">
+                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
                         <h4 class="text-primary mb-3"><i class="fas fa-users me-2"></i>Cars Availability</h4>
-                        <p>Cars availability management section.</p>
-                        <div id="carAvailabilityTableContainer"></div>
+                        <div class="table-responsive">
+                            <table class="table" id="carAvailabilityTable">
+                                <thead>
+                                    <tr>
+                                        <th>Car</th>
+                                        <th>Status</th>
+                                        <th>Manual Status</th>
+                                        <th>Calendar</th>
+                                        <th>Manual Blocks</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
