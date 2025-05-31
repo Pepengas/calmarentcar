@@ -1190,22 +1190,50 @@
 
                 <!-- Settings Content (hidden by default) -->
                 <div id="settingsContent" class="content-section d-none">
-                    <h3>Change Password</h3>
-                    <form id="changePasswordForm">
-                        <input type="password" placeholder="Current Password" name="current" required>
-                        <input type="password" placeholder="New Password" name="new" required>
-                        <input type="password" placeholder="Confirm New Password" name="confirm" required>
-                        <button type="submit">Update Password</button>
-                        <div id="changePasswordMsg"></div>
-                    </form>
-                    <h3>Add New User</h3>
-                    <form id="addUserForm">
-                        <input type="email" placeholder="Email" name="email" required>
-                        <input type="password" placeholder="Password" name="password" required>
-                        <input type="password" placeholder="Confirm Password" name="confirm" required>
-                        <button type="submit">Add User</button>
-                        <div id="addUserMsg"></div>
-                    </form>
+                    <!-- Change Password Section -->
+                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
+                        <h4 class="text-primary mb-3"><i class="fas fa-key me-2"></i>Change Password</h4>
+                        <form id="changePasswordForm" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Current Password</label>
+                                <input type="password" name="current" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">New Password</label>
+                                <input type="password" name="new" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Confirm New Password</label>
+                                <input type="password" name="confirm" class="form-control" required>
+                            </div>
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-primary px-4">Update Password</button>
+                            </div>
+                            <div id="changePasswordMsg" class="mt-2 text-danger fw-semibold"></div>
+                        </form>
+                    </div>
+                    <!-- Add User Section -->
+                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
+                        <h4 class="text-primary mb-3"><i class="fas fa-user-plus me-2"></i>Add New User</h4>
+                        <form id="addUserForm" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Confirm Password</label>
+                                <input type="password" name="confirm" class="form-control" required>
+                            </div>
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-success px-4">Add User</button>
+                            </div>
+                            <div id="addUserMsg" class="mt-2 text-danger fw-semibold"></div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
