@@ -144,6 +144,29 @@ function requireAdminAuth(req, res, next) {
     });
 }
 
+// --- Addons In-Memory Store and API ---
+let addons = [
+  { id: 'gps', name: 'GPS Navigation', price: 5 },
+  { id: 'insurance', name: 'Full Insurance', price: 10 },
+  { id: 'child-seat', name: 'Child Seat', price: 7.5 }
+];
+
+// Get all addons
+app.get('/api/admin/addons', (req, res) => {
+  res.json({ success: true, addons });
+});
+
+// Update an addon by ID
+app.patch('/api/admin/addons/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, price } = req.body;
+  const addon = addons.find(a => a.id === id);
+  if (!addon) return res.status(404).json({ success: false, error: 'Addon not found' });
+  if (name !== undefined) addon.name = name;
+  if (price !== undefined && !isNaN(price)) addon.price = parseFloat(price);
+  res.json({ success: true });
+});
+
 /**
  * API Routes
  */
