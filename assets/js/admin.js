@@ -359,21 +359,22 @@ document.addEventListener('DOMContentLoaded', function() {
         { tab: 'addonsTab', content: 'addonsContent' }
     ];
     function showSection(section) {
-        tabSectionMap.forEach(({ content }) => {
-            const el = document.getElementById(content);
-            if (el) el.style.display = 'none';
-        });
-        const target = document.getElementById(section);
-        if (target) target.style.display = 'block';
-        // Remove active from all tabs, add to current
-        tabSectionMap.forEach(({ tab }) => {
-            const tabEl = document.getElementById(tab);
-            if (tabEl) tabEl.classList.remove('active');
-        });
-        const activeTab = tabSectionMap.find(({ content }) => content === section);
-        if (activeTab) {
-            const tabEl = document.getElementById(activeTab.tab);
-            if (tabEl) tabEl.classList.add('active');
+        // Hide all sections
+        document.querySelectorAll('.content-section').forEach(el => el.classList.add('d-none'));
+        
+        // Show selected section
+        const target = document.getElementById(section + 'Content');
+        if (target) target.classList.remove('d-none');
+        
+        // Scroll to top
+        window.scrollTo(0, 0);
+
+        // Load section-specific data
+        if (section === 'cars' && typeof loadCarsForPricing === 'function') {
+            loadCarsForPricing();
+        }
+        if (section === 'editCar' && typeof loadEditCarDropdown === 'function') {
+            loadEditCarDropdown();
         }
         if (section === 'addons' && typeof loadAddons === 'function') {
             loadAddons();
@@ -1640,11 +1641,13 @@ async function loadAddons() {
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed to load addons');
+
         const container = document.getElementById('addonsList');
         if (!container) {
             console.warn('[Admin] addonsList container not found');
             return;
         }
+
         container.innerHTML = '';
         data.addons.forEach(addon => {
             const div = document.createElement('div');
@@ -1660,11 +1663,22 @@ async function loadAddons() {
             `;
             container.appendChild(div);
         });
+
+        // Handle save buttons
         document.querySelectorAll('.save-addon-btn').forEach(button => {
             button.addEventListener('click', async () => {
                 const id = button.dataset.id;
-                const name = document.querySelector(`input[data-id="${id}"][data-field="name"]`).value;
-                const price = parseFloat(document.querySelector(`input[data-id="${id}"][data-field="price"]`).value);
+                const nameInput = document.querySelector(`input[data-id="${id}"][data-field="name"]`);
+                const priceInput = document.querySelector(`input[data-id="${id}"][data-field="price"]`);
+                
+                if (!nameInput || !priceInput) {
+                    console.warn(`[Admin] Input fields not found for addon ${id}`);
+                    return;
+                }
+
+                const name = nameInput.value;
+                const price = parseFloat(priceInput.value);
+
                 try {
                     const response = await fetch(`/api/admin/addons/${id}`, {
                         method: 'PATCH',
@@ -1674,17 +1688,21 @@ async function loadAddons() {
                         },
                         body: JSON.stringify({ name, price })
                     });
+
                     const result = await response.json();
-                    alert(result.success ? 'Addon updated' : result.error || 'Failed to save');
-                } catch (err) {
-                    alert('Error saving addon: ' + err.message);
+                    if (!result.success) throw new Error(result.error || 'Failed to save addon');
+
+                    // Show success message
+                    showToast('Addon updated successfully', 'success');
+                } catch (error) {
+                    console.error('[Admin] Error saving addon:', error);
+                    showToast(error.message || 'Failed to save addon', 'error');
                 }
             });
         });
-    } catch (err) {
-        console.error('Error loading addons:', err);
-        const container = document.getElementById('addonsList');
-        if (container) container.innerHTML = `<div class="text-danger">Error loading addons</div>`;
+    } catch (error) {
+        console.error('[Admin] Error loading addons:', error);
+        showToast(error.message || 'Failed to load addons', 'error');
     }
 }
 
