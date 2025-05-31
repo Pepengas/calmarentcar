@@ -577,6 +577,10 @@ function hideLoader() {
  * Populate the car filter dropdown with unique car models
  */
 function populateCarFilter() {
+    if (!carFilter) {
+        console.warn('[Admin] carFilter element not found in DOM');
+        return;
+    }
     carFilter.innerHTML = '<option value="">All Cars</option>';
     
     // Sort car models alphabetically
