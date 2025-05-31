@@ -1611,4 +1611,13 @@ async function deleteManualBlock(blockId) {
     }
 }
 
+// Example: Add existence checks and warnings for key elements
+function robustGetElement(id, name) {
+    const el = document.getElementById(id);
+    if (!el) {
+        console.warn(`[Admin] ${name || id} not found in DOM`);
+    }
+    return el;
+}
+
        
