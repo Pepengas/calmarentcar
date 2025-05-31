@@ -782,6 +782,9 @@
                     <li class="nav-item">
                         <a class="nav-link" id="editCarTab" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="addonsTab" href="#"><i class="fas fa-puzzle-piece me-2"></i>Addons</a>
+                    </li>
                     <li class="nav-item mt-3">
                         <a class="nav-link text-danger" href="#" id="logoutBtn">
                             <i class="fas fa-sign-out-alt me-2"></i>
@@ -1141,6 +1144,16 @@
                             </div>
                             <div id="addUserMsg" class="mt-2 text-danger fw-semibold"></div>
                         </form>
+                    </div>
+                </div>
+
+                <!-- Addons Content (hidden by default) -->
+                <div id="addonsContent" class="content-section d-none">
+                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
+                        <h4 class="text-primary mb-3"><i class="fas fa-puzzle-piece me-2"></i>Manage Addons</h4>
+                        <div id="addonsList" class="row g-3">
+                            <!-- Addon items will be injected here -->
+                        </div>
                     </div>
                 </div>
             </div>

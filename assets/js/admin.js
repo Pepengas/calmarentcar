@@ -355,7 +355,8 @@ document.addEventListener('DOMContentLoaded', function() {
         { tab: 'customersTab', content: 'customersContent' },
         { tab: 'reportsTab', content: 'reportsContent' },
         { tab: 'settingsTab', content: 'settingsContent' },
-        { tab: 'editCarTab', content: 'editCarContent' }
+        { tab: 'editCarTab', content: 'editCarContent' },
+        { tab: 'addonsTab', content: 'addonsContent' }
     ];
     function showSection(section) {
         tabSectionMap.forEach(({ content }) => {
@@ -373,6 +374,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (activeTab) {
             const tabEl = document.getElementById(activeTab.tab);
             if (tabEl) tabEl.classList.add('active');
+        }
+        if (section === 'addons' && typeof loadAddons === 'function') {
+            loadAddons();
         }
     }
     // Attach click listeners
@@ -393,6 +397,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     // Show dashboard by default on load
     showSection('dashboardContent');
+
+    const addonsTab = document.getElementById('addonsTab');
+    if (addonsTab) {
+        addonsTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            showSection('addons');
+            setActive(this);
+        });
+    }
 });
 
 /**
@@ -1618,6 +1631,61 @@ function robustGetElement(id, name) {
         console.warn(`[Admin] ${name || id} not found in DOM`);
     }
     return el;
+}
+
+async function loadAddons() {
+    try {
+        const res = await fetch('/api/admin/addons', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to load addons');
+        const container = document.getElementById('addonsList');
+        if (!container) {
+            console.warn('[Admin] addonsList container not found');
+            return;
+        }
+        container.innerHTML = '';
+        data.addons.forEach(addon => {
+            const div = document.createElement('div');
+            div.className = 'col-md-6';
+            div.innerHTML = `
+                <div class="border rounded p-3">
+                    <label class="form-label fw-bold">Name</label>
+                    <input type="text" class="form-control mb-2" value="${addon.name}" data-id="${addon.id}" data-field="name">
+                    <label class="form-label fw-bold">Price (€)</label>
+                    <input type="number" class="form-control mb-2" value="${addon.price}" step="0.01" data-id="${addon.id}" data-field="price">
+                    <button class="btn btn-primary save-addon-btn" data-id="${addon.id}">Save</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+        document.querySelectorAll('.save-addon-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const id = button.dataset.id;
+                const name = document.querySelector(`input[data-id="${id}"][data-field="name"]`).value;
+                const price = parseFloat(document.querySelector(`input[data-id="${id}"][data-field="price"]`).value);
+                try {
+                    const response = await fetch(`/api/admin/addons/${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                        },
+                        body: JSON.stringify({ name, price })
+                    });
+                    const result = await response.json();
+                    alert(result.success ? 'Addon updated' : result.error || 'Failed to save');
+                } catch (err) {
+                    alert('Error saving addon: ' + err.message);
+                }
+            });
+        });
+    } catch (err) {
+        console.error('Error loading addons:', err);
+        const container = document.getElementById('addonsList');
+        if (container) container.innerHTML = `<div class="text-danger">Error loading addons</div>`;
+    }
 }
 
        
