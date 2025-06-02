@@ -13,6 +13,14 @@ const bookingDetailsModal = new bootstrap.Modal(document.getElementById('booking
 const bookingDetailsContent = document.getElementById('bookingDetailsContent');
 const updateStatusBtn = document.getElementById('updateStatusBtn');
 
+// Tab content elements
+const dashboardContent = document.getElementById('dashboardContent');
+const carsContent = document.getElementById('carsContent');
+const customersContent = document.getElementById('customersContent');
+const settingsContent = document.getElementById('settingsContent');
+const editCarContent = document.getElementById('editCarContent');
+const addonsContent = document.getElementById('addonsContent');
+
 // Initialize the dashboard when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Check if user is authenticated
@@ -26,6 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDebugTools();
     
     loadBookings();
+    
+    // Setup tab switching
+    setupTabSwitching();
     
     // Setup event listeners
     filterForm.addEventListener('submit', (e) => {
@@ -206,4 +217,70 @@ function debugInfo(message) {
             ? message 
             : `<pre>${JSON.stringify(message, null, 2)}</pre>`;
     }
+}
+
+/**
+ * Setup tab switching functionality
+ */
+function setupTabSwitching() {
+    // Get all tab links
+    const tabLinks = document.querySelectorAll('.nav-link');
+    
+    // Add click event listener to each tab
+    tabLinks.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Remove active class from all tabs
+            tabLinks.forEach(t => t.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            tab.classList.add('active');
+            
+            // Hide all content sections
+            const contentSections = [
+                dashboardContent,
+                carsContent,
+                customersContent,
+                settingsContent,
+                editCarContent,
+                addonsContent
+            ];
+            
+            contentSections.forEach(section => {
+                if (section) section.classList.add('d-none');
+            });
+            
+            // Show the corresponding content section
+            switch(tab.id) {
+                case 'dashboardTab':
+                case 'mobileDashboardTab':
+                    if (dashboardContent) dashboardContent.classList.remove('d-none');
+                    break;
+                case 'carsTab':
+                case 'mobileCarsTab':
+                    if (carsContent) carsContent.classList.remove('d-none');
+                    break;
+                case 'customersTab':
+                case 'mobileCustomersTab':
+                    if (customersContent) customersContent.classList.remove('d-none');
+                    break;
+                case 'settingsTab':
+                case 'mobileSettingsTab':
+                    if (settingsContent) settingsContent.classList.remove('d-none');
+                    break;
+                case 'editCarTab':
+                case 'mobileEditCarTab':
+                    if (editCarContent) editCarContent.classList.remove('d-none');
+                    break;
+                case 'addonsTab':
+                    if (addonsContent) addonsContent.classList.remove('d-none');
+                    break;
+            }
+        });
+    });
+    
+    // Activate the dashboard tab by default
+    const defaultTab = document.getElementById('dashboardTab');
+    if (defaultTab) defaultTab.click();
 } 
