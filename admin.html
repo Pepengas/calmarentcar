@@ -37,15 +37,25 @@
             padding: 0.75rem 1rem;
             background: none;
             font-weight: 500;
+            outline: none;
+            transition: background 0.2s, color 0.2s;
+        }
+        .sidebar .nav-link:focus {
+            background-color: rgba(52, 152, 219, 0.25);
+            color: #fff;
         }
         .sidebar .nav-link:hover {
             color: #fff;
             background-color: rgba(52, 152, 219, 0.15);
         }
-        .sidebar .nav-link.active {
+        .sidebar .nav-link.active, .sidebar .nav-link[aria-selected="true"] {
             color: #fff;
             background-color: var(--secondary-color);
             font-weight: bold;
+        }
+        .sidebar .nav-link:active {
+            color: #fff;
+            background-color: var(--secondary-color);
         }
         .card-stats {
             border-left: 4px solid var(--secondary-color);
@@ -752,39 +762,39 @@
             <!-- Sidebar -->
             <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
                 <div class="position-sticky pt-3 d-flex flex-column h-100">
-                    <ul class="nav flex-column mb-auto">
+                    <ul class="nav flex-column mb-auto" role="tablist" aria-label="Admin sections">
                         <li class="nav-item">
-                            <a class="nav-link active" href="#" data-section="dashboard">
+                            <a class="nav-link active" href="#" data-section="dashboard" role="tab" aria-selected="true" tabindex="0">
                                 <i class="fas fa-chart-line me-2"></i>
                                 Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" data-section="cars">
+                            <a class="nav-link" href="#" data-section="cars" role="tab" aria-selected="false" tabindex="0">
                                 <i class="fas fa-car me-2"></i>
                                 Car Pricing
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" data-section="customers">
+                            <a class="nav-link" href="#" data-section="customers" role="tab" aria-selected="false" tabindex="0">
                                 <i class="fas fa-users me-2"></i>
                                 Car Availability
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" data-section="editCar">
+                            <a class="nav-link" href="#" data-section="editCar" role="tab" aria-selected="false" tabindex="0">
                                 <i class="fas fa-edit me-2"></i>
                                 Edit Car
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" data-section="addons">
+                            <a class="nav-link" href="#" data-section="addons" role="tab" aria-selected="false" tabindex="0">
                                 <i class="fas fa-puzzle-piece me-2"></i>
                                 Addons
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" data-section="settings">
+                            <a class="nav-link" href="#" data-section="settings" role="tab" aria-selected="false" tabindex="0">
                                 <i class="fas fa-cog me-2"></i>
                                 Settings
                             </a>
@@ -1111,6 +1121,22 @@
 
             // Default to dashboard
             showSection('dashboard');
+
+            // Sidebar keyboard navigation for accessibility
+            const sidebarLinks = document.querySelectorAll('.sidebar .nav-link');
+            sidebarLinks.forEach((link, idx) => {
+                link.addEventListener('keydown', function(e) {
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        const next = sidebarLinks[idx + 1] || sidebarLinks[0];
+                        next.focus();
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        const prev = sidebarLinks[idx - 1] || sidebarLinks[sidebarLinks.length - 1];
+                        prev.focus();
+                    }
+                });
+            });
         });
     </script>
 
