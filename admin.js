@@ -410,34 +410,55 @@ async function loadAddons() {
     try {
         const response = await fetch('/api/admin/addons', {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                'Authorization': `Bearer ${API_TOKEN}`
             }
         });
         
         if (!response.ok) {
-            throw new Error('Failed to load addons data');
+            throw new Error('Failed to load addons');
         }
         
         const data = await response.json();
-        const addonsList = document.getElementById('addonsList');
-        if (!addonsList) return;
+        const addonsContent = document.getElementById('addonsContent');
         
-        addonsList.innerHTML = data.addons.map(addon => `
-            <div class="col-md-4">
+        if (addonsContent) {
+            addonsContent.innerHTML = `
                 <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Manage Add-ons</h5>
+                    </div>
                     <div class="card-body">
-                        <h5 class="card-title">${addon.name}</h5>
-                        <p class="card-text">Price: €${addon.price}</p>
-                        <button class="btn btn-primary btn-sm" onclick="editAddon('${addon.id}')">
-                            Edit
-                        </button>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Price</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.addons.map(addon => `
+                                        <tr>
+                                            <td>${addon.name}</td>
+                                            <td>$${addon.price.toFixed(2)}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary" onclick="editAddon('${addon.id}')">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }
     } catch (error) {
         console.error('Error loading addons:', error);
-        showError('Failed to load addons data');
+        showError('Failed to load addons');
     }
 }
 
@@ -541,38 +562,57 @@ function getStatusClass(status) {
     }
 }
 
+/**
+ * Format ISO timestamp to YYYY-MM-DD HH:mm
+ * @param {string} isoString - ISO format timestamp
+ * @returns {string} Formatted date string
+ */
+function formatTimestamp(isoString) {
+    if (!isoString) return 'N/A';
+    const date = new Date(isoString);
+    return date.toLocaleString('en-GB', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    }).replace(',', '');
+}
+
 function showBookingDetails(booking) {
-    // Format booking creation date and time
-    let createdDateTime = 'N/A';
-    if (booking.date_submitted) {
-        const dt = new Date(booking.date_submitted);
-        createdDateTime = dt.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
-    }
-    // Add-ons: Only show Child Seat and Booster Seat
-    const childSeat = booking.child_seat || false;
-    const boosterSeat = booking.booster_seat || false;
+    if (!bookingDetailsContent) return;
+    
+    const statusClass = getStatusClass(booking.status);
+    const formattedDate = formatTimestamp(booking.createdAt);
+    
     bookingDetailsContent.innerHTML = `
         <div class="booking-details-header">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h4 class="mb-0">Booking #${booking.booking_reference || booking.id}</h4>
-                <span class="badge ${getStatusClass(booking.status)}">
-                    ${booking.status || 'pending'}
-                </span>
-            </div>
-            <div class="text-white-50">Created: ${createdDateTime}</div>
+            <h5 class="mb-0">Booking Details</h5>
         </div>
         <div class="booking-details-body">
-            <!-- Customer Information -->
             <div class="detail-section">
-                <!-- ... existing customer info ... -->
+                <h6 class="fw-bold mb-3">Booking Information</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Booking ID:</strong> ${booking.booking_reference}</p>
+                        <p><strong>Created:</strong> ${formattedDate}</p>
+                        <p><strong>Status:</strong> <span class="booking-status ${statusClass}">${booking.status}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Pickup Date:</strong> ${new Date(booking.pickup_date).toLocaleDateString()}</p>
+                        <p><strong>Return Date:</strong> ${new Date(booking.return_date).toLocaleDateString()}</p>
+                        <p><strong>Total Price:</strong> $${booking.total_price}</p>
+                    </div>
+                </div>
             </div>
             <!-- Add-ons -->
             <div class="detail-section">
                 <h5 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add-ons</h5>
                 <div class="row">
-                    ${childSeat ? `<div class='col-md-6 mb-2'><strong>Child Seat:</strong> Yes</div>` : ''}
-                    ${boosterSeat ? `<div class='col-md-6 mb-2'><strong>Booster Seat:</strong> Yes</div>` : ''}
-                    ${!childSeat && !boosterSeat ? `<div class='col-12 mb-2 text-muted'>No add-ons selected.</div>` : ''}
+                    ${booking.child_seat ? `<div class='col-md-6 mb-2'><strong>Child Seat:</strong> Yes</div>` : ''}
+                    ${booking.booster_seat ? `<div class='col-md-6 mb-2'><strong>Booster Seat:</strong> Yes</div>` : ''}
+                    ${!booking.child_seat && !booking.booster_seat ? `<div class='col-12 mb-2 text-muted'>No add-ons selected.</div>` : ''}
                 </div>
                 <div class="mt-3">
                     <strong>Special Requests:</strong>

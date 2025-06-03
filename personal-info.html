@@ -1248,20 +1248,28 @@
             <div id="specialRequests-error" class="validation-message"></div>
           </div>
 
-          <div class="form-group">
-            <div class="addons-grid">
-              <div class="addons-card">
-                <div class="form-check">
-                  <input type="checkbox" id="childSeat" name="childSeat">
-                  <label for="childSeat">Child Seat (+€4/day)</label>
+          <!-- Add-ons Section -->
+          <div class="addons-section mb-6">
+            <h3 class="text-xl font-semibold mb-4">Add-ons</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="addon-option p-4 border rounded-lg hover:border-blue-500 transition-colors">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" name="addons" value="child-seat" class="form-checkbox h-5 w-5 text-blue-600">
+                        <div>
+                            <span class="font-medium">Child Seat</span>
+                            <p class="text-sm text-gray-600">$7.50 per day</p>
+                        </div>
+                    </label>
                 </div>
-              </div>
-              <div class="addons-card">
-                <div class="form-check">
-                  <input type="checkbox" id="boosterSeat" name="boosterSeat">
-                  <label for="boosterSeat">Booster Seat (+€5/day)</label>
+                <div class="addon-option p-4 border rounded-lg hover:border-blue-500 transition-colors">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" name="addons" value="booster-seat" class="form-checkbox h-5 w-5 text-blue-600">
+                        <div>
+                            <span class="font-medium">Booster Seat</span>
+                            <p class="text-sm text-gray-600">$5.00 per day</p>
+                        </div>
+                    </label>
                 </div>
-              </div>
             </div>
           </div>
         </div>
