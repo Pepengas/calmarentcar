@@ -1086,7 +1086,10 @@
                     if (typeof loadBookings === 'function') loadBookings();
                     break;
                 case 'cars':
-                    if (typeof loadCarPricing === 'function') loadCarPricing();
+                    if (typeof loadCarPricing === 'function') {
+                        console.log('DEBUG: showSection calling loadCarPricing');
+                        loadCarPricing();
+                    }
                     break;
                 case 'customers':
                     if (typeof loadCarAvailability === 'function') loadCarAvailability();
