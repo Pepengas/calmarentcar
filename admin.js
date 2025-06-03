@@ -291,7 +291,7 @@ function showSection(sectionName) {
             loadBookings();
             break;
         case 'cars':
-            loadCarPricing();
+            loadCarsForPricing();
             break;
         case 'customers':
             loadCarAvailability();
@@ -305,7 +305,7 @@ function showSection(sectionName) {
 /**
  * Load car pricing data
  */
-async function loadCarPricing() {
+async function loadCarsForPricing() {
     try {
         const response = await fetch('/api/admin/cars', {
             headers: {
