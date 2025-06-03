@@ -9,7 +9,7 @@ const filterForm = document.getElementById('filterForm');
 const statusFilter = document.getElementById('statusFilter');
 const dateFilter = document.getElementById('dateFilter');
 const carFilter = document.getElementById('carFilter');
-const bookingDetailsModal = new bootstrap.Modal(document.getElementById('bookingDetailsModal'));
+const bookingDetailsModal = document.getElementById('bookingDetailsModal') ? new bootstrap.Modal(document.getElementById('bookingDetailsModal')) : null;
 const bookingDetailsContent = document.getElementById('bookingDetailsContent');
 const updateStatusBtn = document.getElementById('updateStatusBtn');
 
@@ -39,24 +39,30 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTabSwitching();
     
     // Setup event listeners
-    filterForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        applyFilters();
-    });
+    if (filterForm) {
+        filterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            applyFilters();
+        });
+        filterForm.addEventListener('reset', () => {
+            setTimeout(() => {
+                resetFilters();
+            }, 10);
+        });
+    }
     
-    filterForm.addEventListener('reset', () => {
-        setTimeout(() => {
-            resetFilters();
-        }, 10);
-    });
-    
-    updateStatusBtn.addEventListener('click', updateBookingStatus);
+    if (updateStatusBtn) {
+        updateStatusBtn.addEventListener('click', updateBookingStatus);
+    }
     
     // Add logout functionality
-    document.getElementById('logoutBtn')?.addEventListener('click', () => {
-        localStorage.removeItem('adminToken');
-        window.location.href = 'admin-login.html';
-    });
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'admin-login.html';
+        });
+    }
 
     const changePasswordForm = document.getElementById('changePasswordForm');
     if (changePasswordForm) {
@@ -575,4 +581,13 @@ function showBookingDetails(booking) {
             </div>
         </div>
     `;
+}
+
+function populateCarFilter() {
+    if (!carFilter) {
+        console.warn('[Admin] carFilter element not found in DOM');
+        return;
+    }
+    carFilter.innerHTML = '<option value="">All Cars</option>';
+    // ... existing code ...
 } 
