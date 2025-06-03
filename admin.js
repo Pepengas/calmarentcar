@@ -484,7 +484,7 @@ async function loadBookings() {
                 </td>
                 <td data-label="Submitted">${new Date(booking.date_submitted).toLocaleDateString()}</td>
                 <td data-label="Actions">
-                    <button class="btn btn-sm btn-primary" onclick="showBookingDetails('${booking.booking_reference}')">
+                    <button class="btn btn-sm btn-primary" onclick="showBookingDetailsFromTable('${booking.booking_reference}')">
                         View
                     </button>
                 </td>
@@ -590,4 +590,17 @@ function populateCarFilter() {
     }
     carFilter.innerHTML = '<option value="">All Cars</option>';
     // ... existing code ...
+}
+
+function showBookingDetailsFromTable(bookingRef) {
+    if (!window.allBookings) {
+        alert('Booking data not loaded!');
+        return;
+    }
+    const booking = allBookings.find(b => b.booking_reference === bookingRef);
+    if (booking) {
+        showBookingDetails(booking);
+    } else {
+        alert('Booking not found!');
+    }
 } 
