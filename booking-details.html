@@ -571,13 +571,16 @@
           
           // Format options
           let options = [];
-          if (formData.additionalOptions.additionalDriver) options.push('Additional Driver');
-          if (formData.additionalOptions.fullInsurance) options.push('Full Insurance');
-          if (formData.additionalOptions.gpsNavigation) options.push('GPS Navigation');
           if (formData.additionalOptions.childSeat) options.push('Child Seat');
-          
           document.getElementById('conf-options').textContent = options.length > 0 ? options.join(', ') : 'None';
           document.getElementById('conf-total').textContent = `€${totalPrice.toFixed(2)}`;
+          
+          // Add booking creation time
+          const createdDateTime = completeBooking.dateSubmitted ? new Date(completeBooking.dateSubmitted).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+          const createdElem = document.createElement('div');
+          createdElem.className = 'summary-item';
+          createdElem.innerHTML = `<span class="summary-label">Booking Made:</span><span>${createdDateTime}</span>`;
+          document.getElementById('confirmation-details').prepend(createdElem);
           
           // Show success message
           successMessage.style.display = 'block';
