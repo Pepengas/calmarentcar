@@ -533,4 +533,48 @@ function getStatusClass(status) {
         default:
             return 'bg-secondary';
     }
+}
+
+function showBookingDetails(booking) {
+    // Format booking creation date and time
+    let createdDateTime = 'N/A';
+    if (booking.date_submitted) {
+        const dt = new Date(booking.date_submitted);
+        createdDateTime = dt.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    // Add-ons: Only show Child Seat and Booster Seat
+    const childSeat = booking.child_seat || false;
+    const boosterSeat = booking.booster_seat || false;
+
+    bookingDetailsContent.innerHTML = `
+        <div class="booking-details-header">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h4 class="mb-0">Booking #${booking.booking_reference || booking.id}</h4>
+                <span class="badge ${getStatusClass(booking.status)}">
+                    ${booking.status || 'pending'}
+                </span>
+            </div>
+            <div class="text-white-50">Created: ${createdDateTime}</div>
+        </div>
+        <div class="booking-details-body">
+            <!-- Customer Information -->
+            <div class="detail-section">
+                <!-- ... existing customer info ... -->
+            </div>
+            <!-- Add-ons -->
+            <div class="detail-section">
+                <h5 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add-ons</h5>
+                <div class="row">
+                    ${childSeat ? `<div class='col-md-6 mb-2'><strong>Child Seat:</strong> Yes</div>` : ''}
+                    ${boosterSeat ? `<div class='col-md-6 mb-2'><strong>Booster Seat:</strong> Yes</div>` : ''}
+                    ${!childSeat && !boosterSeat ? `<div class='col-12 mb-2 text-muted'>No add-ons selected.</div>` : ''}
+                </div>
+                <div class="mt-3">
+                    <strong>Special Requests:</strong>
+                    <p class="mb-0 mt-2">${booking.special_requests || 'None'}</p>
+                </div>
+            </div>
+        </div>
+    `;
 } 
