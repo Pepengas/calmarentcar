@@ -312,15 +312,21 @@ async function loadCarPricing() {
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             }
         });
-        
-        if (!response.ok) {
-            throw new Error('Failed to load car pricing data');
-        }
-        
-        const data = await response.json();
         const tableBody = document.querySelector('#priceEditorTable tbody');
         if (!tableBody) return;
-        
+        if (!response.ok) {
+            let msg = 'Failed to load car pricing data.';
+            if (response.status === 404) {
+                msg = 'API endpoint /api/admin/cars not found (404). Please check your backend deployment.';
+            }
+            tableBody.innerHTML = `<tr><td colspan="2" class="text-danger">${msg}</td></tr>`;
+            throw new Error(msg);
+        }
+        const data = await response.json();
+        if (!data.cars || !Array.isArray(data.cars) || data.cars.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="2" class="text-warning">No car data returned from API.</td></tr>';
+            return;
+        }
         tableBody.innerHTML = data.cars.map(car => `
             <tr>
                 <td>${car.make} ${car.model}</td>
@@ -331,6 +337,10 @@ async function loadCarPricing() {
             </tr>
         `).join('');
     } catch (error) {
+        const tableBody = document.querySelector('#priceEditorTable tbody');
+        if (tableBody) {
+            tableBody.innerHTML = `<tr><td colspan="2" class="text-danger">Error: ${error.message}</td></tr>`;
+        }
         console.error('Error loading car pricing:', error);
         showError('Failed to load car pricing data');
     }
