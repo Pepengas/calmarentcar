@@ -746,52 +746,47 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-                <div class="pt-3 pb-2 mb-3 border-bottom text-center">
-                    <h4 class="text-white">Calma Car Rental</h4>
-                    <p class="text-white-50">Admin Dashboard</p>
+            <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" data-section="dashboard">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="cars">
+                                <i class="fas fa-car me-2"></i>
+                                Car Pricing
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="customers">
+                                <i class="fas fa-users me-2"></i>
+                                Car Availability
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="editCar">
+                                <i class="fas fa-edit me-2"></i>
+                                Edit Car
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="addons">
+                                <i class="fas fa-puzzle-piece me-2"></i>
+                                Addons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="settings">
+                                <i class="fas fa-cog me-2"></i>
+                                Settings
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="dashboardTab" href="#">
-                            <i class="fas fa-tachometer-alt me-2"></i>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="carsTab" href="#">
-                            <i class="fas fa-car me-2"></i>
-                            Cars Pricing
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="customersTab" href="#">
-                            <i class="fas fa-users me-2"></i>
-                            Cars Availability
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-chart-line me-2"></i>
-                            Reports
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="settingsTab" href="#"><i class="fas fa-cog me-2"></i>Settings</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="editCarTab" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="addonsTab" href="#"><i class="fas fa-puzzle-piece me-2"></i>Addons</a>
-                    </li>
-                    <li class="nav-item mt-3">
-                        <a class="nav-link text-danger" href="#" id="logoutBtn">
-                            <i class="fas fa-sign-out-alt me-2"></i>
-                            Logout
-                        </a>
-                    </li>
-                </ul>
             </div>
 
             <!-- Main Content -->
@@ -964,25 +959,25 @@
     <nav class="mobile-nav fixed-bottom bg-white border-top d-md-none">
         <div class="row g-0 text-center">
             <div class="col">
-                <button onclick="showSection('dashboard')" class="btn btn-link w-100 py-2 text-muted">
+                <button class="btn btn-link w-100 py-2 text-muted" data-section="dashboard">
                     <i class="fas fa-chart-line d-block"></i>
                     <small>Dashboard</small>
                 </button>
             </div>
             <div class="col">
-                <button onclick="showSection('cars')" class="btn btn-link w-100 py-2 text-muted">
+                <button class="btn btn-link w-100 py-2 text-muted" data-section="cars">
                     <i class="fas fa-car d-block"></i>
                     <small>Cars</small>
                 </button>
             </div>
             <div class="col">
-                <button onclick="showSection('editCar')" class="btn btn-link w-100 py-2 text-muted">
+                <button class="btn btn-link w-100 py-2 text-muted" data-section="editCar">
                     <i class="fas fa-edit d-block"></i>
                     <small>Edit Car</small>
                 </button>
             </div>
             <div class="col">
-                <button onclick="logout()" class="btn btn-link w-100 py-2 text-muted">
+                <button class="btn btn-link w-100 py-2 text-muted" id="logoutBtn">
                     <i class="fas fa-sign-out-alt d-block"></i>
                     <small>Logout</small>
                 </button>
@@ -1018,53 +1013,60 @@
             const target = document.getElementById(section + 'Content');
             if (target) target.classList.remove('d-none');
             
+            // Update active states in navigation
+            document.querySelectorAll('.nav-link, .mobile-nav .btn').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-section') === section) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Load section-specific content
+            switch(section) {
+                case 'dashboard':
+                    if (typeof loadBookings === 'function') loadBookings();
+                    break;
+                case 'cars':
+                    if (typeof loadCarPricing === 'function') loadCarPricing();
+                    break;
+                case 'customers':
+                    if (typeof loadCarAvailability === 'function') loadCarAvailability();
+                    break;
+                case 'editCar':
+                    if (typeof loadEditCarDropdown === 'function') loadEditCarDropdown();
+                    break;
+                case 'addons':
+                    if (typeof loadAddons === 'function') loadAddons();
+                    break;
+            }
+            
             // Scroll to top
             window.scrollTo(0, 0);
-            // --- Ensure car data loads when switching tabs ---
-            if (section === 'cars' && typeof loadCarsForPricing === 'function') {
-                loadCarsForPricing();
-            }
-            if (section === 'editCar' && typeof loadEditCarDropdown === 'function') {
-                loadEditCarDropdown();
-            }
-        }
-
-        function setActive(tab) {
-            document.querySelectorAll('.sidebar .nav-link').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Setup click handlers for all navigation links
+            document.querySelectorAll('.nav-link, .mobile-nav .btn').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    if (section) {
+                        showSection(section);
+                    }
+                });
+            });
+
+            // Setup mobile menu button
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileSidebar = document.getElementById('mobileSidebar');
+            if (mobileMenuBtn && mobileSidebar) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileSidebar.classList.toggle('active');
+                });
+            }
+
             // Default to dashboard
             showSection('dashboard');
-            setActive(document.getElementById('dashboardTab'));
-            // Sidebar tab click handlers
-            document.getElementById('dashboardTab').addEventListener('click', function(e) {
-                e.preventDefault();
-                showSection('dashboard');
-                setActive(this);
-            });
-            document.getElementById('carsTab').addEventListener('click', function(e) {
-                e.preventDefault();
-                showSection('cars');
-                setActive(this);
-            });
-            document.getElementById('editCarTab').addEventListener('click', function(e) {
-                e.preventDefault();
-                showSection('editCar');
-                setActive(this);
-            });
-            // Add handler for Cars Availability
-            document.getElementById('customersTab').addEventListener('click', function(e) {
-                e.preventDefault();
-                showSection('customers');
-                setActive(this);
-            });
-            document.getElementById('settingsTab').addEventListener('click', function(e) {
-                e.preventDefault();
-                showSection('settings');
-                setActive(this);
-            });
         });
     </script>
 

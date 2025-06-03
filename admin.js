@@ -230,57 +230,297 @@ function setupTabSwitching() {
     tabLinks.forEach(tab => {
         tab.addEventListener('click', (e) => {
             e.preventDefault();
-            
-            // Remove active class from all tabs
-            tabLinks.forEach(t => t.classList.remove('active'));
-            
-            // Add active class to clicked tab
-            tab.classList.add('active');
-            
-            // Hide all content sections
-            const contentSections = [
-                dashboardContent,
-                carsContent,
-                customersContent,
-                settingsContent,
-                editCarContent,
-                addonsContent
-            ];
-            
-            contentSections.forEach(section => {
-                if (section) section.classList.add('d-none');
-            });
-            
-            // Show the corresponding content section
-            switch(tab.id) {
-                case 'dashboardTab':
-                case 'mobileDashboardTab':
-                    if (dashboardContent) dashboardContent.classList.remove('d-none');
-                    break;
-                case 'carsTab':
-                case 'mobileCarsTab':
-                    if (carsContent) carsContent.classList.remove('d-none');
-                    break;
-                case 'customersTab':
-                case 'mobileCustomersTab':
-                    if (customersContent) customersContent.classList.remove('d-none');
-                    break;
-                case 'settingsTab':
-                case 'mobileSettingsTab':
-                    if (settingsContent) settingsContent.classList.remove('d-none');
-                    break;
-                case 'editCarTab':
-                case 'mobileEditCarTab':
-                    if (editCarContent) editCarContent.classList.remove('d-none');
-                    break;
-                case 'addonsTab':
-                    if (addonsContent) addonsContent.classList.remove('d-none');
-                    break;
-            }
+            showSection(tab.getAttribute('data-section'));
+        });
+    });
+    
+    // Setup mobile navigation
+    const mobileNavButtons = document.querySelectorAll('.mobile-nav .btn');
+    mobileNavButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = button.getAttribute('onclick').match(/'([^']+)'/)[1];
+            showSection(section);
         });
     });
     
     // Activate the dashboard tab by default
-    const defaultTab = document.getElementById('dashboardTab');
-    if (defaultTab) defaultTab.click();
+    showSection('dashboard');
+}
+
+/**
+ * Show the specified section and hide others
+ */
+function showSection(sectionName) {
+    // Hide all content sections
+    const contentSections = [
+        'dashboardContent',
+        'carsContent',
+        'customersContent',
+        'settingsContent',
+        'editCarContent',
+        'addonsContent'
+    ];
+    
+    contentSections.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.add('d-none');
+        }
+    });
+    
+    // Show the selected section
+    const selectedSection = document.getElementById(`${sectionName}Content`);
+    if (selectedSection) {
+        selectedSection.classList.remove('d-none');
+    }
+    
+    // Update active states in navigation
+    const allNavLinks = document.querySelectorAll('.nav-link, .mobile-nav .btn');
+    allNavLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('data-section') === sectionName || 
+            (link.getAttribute('onclick') && link.getAttribute('onclick').includes(sectionName))) {
+            link.classList.add('active');
+        }
+    });
+    
+    // Load section-specific content
+    switch(sectionName) {
+        case 'dashboard':
+            loadBookings();
+            break;
+        case 'cars':
+            loadCarPricing();
+            break;
+        case 'customers':
+            loadCarAvailability();
+            break;
+        case 'addons':
+            loadAddons();
+            break;
+    }
+}
+
+/**
+ * Load car pricing data
+ */
+async function loadCarPricing() {
+    try {
+        const response = await fetch('/api/admin/cars', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load car pricing data');
+        }
+        
+        const data = await response.json();
+        const tableBody = document.querySelector('#priceEditorTable tbody');
+        if (!tableBody) return;
+        
+        tableBody.innerHTML = data.cars.map(car => `
+            <tr>
+                <td>${car.make} ${car.model}</td>
+                <td>
+                    <input type="number" class="form-control" value="${car.daily_rate || 0}" 
+                           onchange="updateCarPrice('${car.car_id}', this.value)">
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading car pricing:', error);
+        showError('Failed to load car pricing data');
+    }
+}
+
+/**
+ * Load car availability data
+ */
+async function loadCarAvailability() {
+    try {
+        const response = await fetch('/api/admin/cars/availability', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load car availability data');
+        }
+        
+        const data = await response.json();
+        const tableBody = document.querySelector('#carAvailabilityTable tbody');
+        if (!tableBody) return;
+        
+        tableBody.innerHTML = data.cars.map(car => `
+            <tr>
+                <td>${car.make} ${car.model}</td>
+                <td>
+                    <span class="badge ${car.is_available ? 'bg-success' : 'bg-danger'}">
+                        ${car.is_available ? 'Available' : 'Not Available'}
+                    </span>
+                </td>
+                <td>
+                    <select class="form-select" onchange="updateCarStatus('${car.car_id}', this.value)">
+                        <option value="available" ${car.is_available ? 'selected' : ''}>Available</option>
+                        <option value="unavailable" ${!car.is_available ? 'selected' : ''}>Not Available</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="showCarCalendar('${car.car_id}')">
+                        View Calendar
+                    </button>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="showManualBlocks('${car.car_id}')">
+                        Manage Blocks
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading car availability:', error);
+        showError('Failed to load car availability data');
+    }
+}
+
+/**
+ * Load addons data
+ */
+async function loadAddons() {
+    try {
+        const response = await fetch('/api/admin/addons', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load addons data');
+        }
+        
+        const data = await response.json();
+        const addonsList = document.getElementById('addonsList');
+        if (!addonsList) return;
+        
+        addonsList.innerHTML = data.addons.map(addon => `
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">${addon.name}</h5>
+                        <p class="card-text">Price: €${addon.price}</p>
+                        <button class="btn btn-primary btn-sm" onclick="editAddon('${addon.id}')">
+                            Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading addons:', error);
+        showError('Failed to load addons data');
+    }
+}
+
+/**
+ * Show error message
+ */
+function showError(message) {
+    const errorContainer = document.getElementById('adminErrorContainer');
+    if (errorContainer) {
+        errorContainer.textContent = message;
+        errorContainer.classList.remove('d-none');
+        setTimeout(() => {
+            errorContainer.classList.add('d-none');
+        }, 5000);
+    }
+}
+
+/**
+ * Load bookings data for dashboard
+ */
+async function loadBookings() {
+    try {
+        const response = await fetch('/api/admin/bookings', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load bookings data');
+        }
+        
+        const data = await response.json();
+        const tableBody = document.getElementById('bookingsTableBody');
+        if (!tableBody) return;
+        
+        tableBody.innerHTML = data.bookings.map(booking => `
+            <tr>
+                <td data-label="Booking Ref">${booking.booking_reference}</td>
+                <td data-label="Customer">${booking.customer_first_name} ${booking.customer_last_name}</td>
+                <td data-label="Car">${booking.car_make} ${booking.car_model}</td>
+                <td data-label="Status">
+                    <span class="badge ${getStatusClass(booking.status)}">${booking.status}</span>
+                </td>
+                <td data-label="Submitted">${new Date(booking.date_submitted).toLocaleDateString()}</td>
+                <td data-label="Actions">
+                    <button class="btn btn-sm btn-primary" onclick="showBookingDetails('${booking.booking_reference}')">
+                        View
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        
+        // Update stats
+        updateDashboardStats(data);
+    } catch (error) {
+        console.error('Error loading bookings:', error);
+        showError('Failed to load bookings data');
+    }
+}
+
+/**
+ * Update dashboard statistics
+ */
+function updateDashboardStats(data) {
+    const totalBookingsElement = document.getElementById('totalBookings');
+    const totalRevenueElement = document.getElementById('totalRevenue');
+    const carsBookedTodayElement = document.getElementById('carsBookedToday');
+    
+    if (totalBookingsElement) {
+        totalBookingsElement.textContent = data.bookings.length;
+    }
+    
+    if (totalRevenueElement) {
+        const totalRevenue = data.bookings.reduce((sum, booking) => sum + (booking.total_price || 0), 0);
+        totalRevenueElement.textContent = `€${totalRevenue.toFixed(2)}`;
+    }
+    
+    if (carsBookedTodayElement) {
+        const today = new Date().toISOString().split('T')[0];
+        const todayBookings = data.bookings.filter(booking => 
+            booking.pickup_date === today || booking.return_date === today
+        );
+        carsBookedTodayElement.textContent = todayBookings.length;
+    }
+}
+
+/**
+ * Get status badge class
+ */
+function getStatusClass(status) {
+    switch(status.toLowerCase()) {
+        case 'completed':
+            return 'bg-success';
+        case 'pending':
+            return 'bg-warning';
+        case 'cancelled':
+            return 'bg-danger';
+        default:
+            return 'bg-secondary';
+    }
 } 
