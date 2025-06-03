@@ -542,11 +542,9 @@ function showBookingDetails(booking) {
         const dt = new Date(booking.date_submitted);
         createdDateTime = dt.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
     }
-
     // Add-ons: Only show Child Seat and Booster Seat
     const childSeat = booking.child_seat || false;
     const boosterSeat = booking.booster_seat || false;
-
     bookingDetailsContent.innerHTML = `
         <div class="booking-details-header">
             <div class="d-flex justify-content-between align-items-center mb-2">
