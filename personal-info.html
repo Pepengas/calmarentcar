@@ -1553,21 +1553,24 @@
         // Calculate base price
         let totalPrice = dailyRate * durationDays;
         
-        // Add costs for additional options
-        const childSeat = document.getElementById('childSeat').checked;
-        const boosterSeat = document.getElementById('boosterSeat').checked;
+        // Check additional options
+        const childSeatElem = document.getElementById('childSeat');
+        const boosterSeatElem = document.getElementById('boosterSeat');
+        const childSeat = childSeatElem ? childSeatElem.checked : false;
+        const boosterSeat = boosterSeatElem ? boosterSeatElem.checked : false;
+        // Add additional options costs
+        if (childSeat) totalPrice += optionPrices.childSeat * durationDays;
+        if (boosterSeat) totalPrice += optionPrices.boosterSeat * durationDays;
         
         // Update additional options summary
         const additionalOptionsSummary = document.getElementById('additional-options-summary');
         additionalOptionsSummary.innerHTML = '';
         
         if (childSeat) {
-          totalPrice += optionPrices.childSeat * durationDays;
           additionalOptionsSummary.innerHTML += `<div class="option-item">Child Seat: €${(optionPrices.childSeat * durationDays).toFixed(2)}</div>`;
         }
         
         if (boosterSeat) {
-          totalPrice += optionPrices.boosterSeat * durationDays;
           additionalOptionsSummary.innerHTML += `<div class="option-item">Booster Seat: €${(optionPrices.boosterSeat * durationDays).toFixed(2)}</div>`;
         }
         
