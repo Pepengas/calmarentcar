@@ -165,8 +165,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     const logoutBtn = document.getElementById('logoutBtn');
     const logoutBtnMobile = document.getElementById('logoutBtnMobile');
+    const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
 
-    [logoutBtn, logoutBtnMobile].forEach(btn => {
+    [logoutBtn, logoutBtnMobile, mobileLogoutBtn].forEach(btn => {
         if (btn) {
             btn.addEventListener('click', function() {
                 localStorage.removeItem('adminToken');
