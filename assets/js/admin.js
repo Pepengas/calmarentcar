@@ -626,6 +626,29 @@ function formatDate(dateString) {
 }
 
 /**
+ * Format a date string including time
+ * @param {string} dateString - The date string to format
+ * @returns {string} - Formatted date and time string
+ */
+function formatDateTime(dateString) {
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date)) return dateString;
+        return date.toLocaleString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+    } catch (e) {
+        return dateString;
+    }
+}
+
+/**
  * Format a number as currency
  * @param {number} amount - The amount to format
  * @returns {string} - Formatted currency string
@@ -740,7 +763,7 @@ function renderBookings(bookings) {
             <td data-label="Return Date" class="align-middle">${formatDate(booking.return_date)}</td>
             <td data-label="Total Price" class="align-middle">${formattedPrice}</td>
             <td data-label="Status" class="align-middle"><span class="booking-status ${getStatusClass(booking.status)}">${booking.status || 'N/A'}</span></td>
-            <td data-label="Submitted" class="align-middle">${formatDate(booking.date_submitted)}</td>
+            <td data-label="Submitted" class="align-middle">${formatDateTime(booking.date_submitted)}</td>
             <td data-label="Actions" class="align-middle">
                 <div class="d-flex gap-1 justify-content-start">
                     <button class="btn btn-sm btn-outline-primary view-details-btn" title="View Details" data-booking-id="${booking.id}">
@@ -878,7 +901,7 @@ function showBookingDetails(booking) {
                     ${booking.status || 'pending'}
                 </span>
             </div>
-            <div class="text-white-50">Created: ${formatDate(booking.date_submitted)}</div>
+            <div class="text-white-50">Created: ${formatDateTime(booking.date_submitted)}</div>
         </div>
         
         <div class="booking-details-body">
