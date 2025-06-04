@@ -40,6 +40,7 @@ async function createTables() {
             CREATE TABLE IF NOT EXISTS bookings (
                 id SERIAL PRIMARY KEY,
                 booking_reference TEXT UNIQUE,
+                car_id TEXT REFERENCES cars(car_id),
                 customer_first_name TEXT,
                 customer_last_name TEXT,
                 customer_email TEXT,
@@ -352,17 +353,19 @@ app.post('/api/bookings', async (req, res) => {
         const insertResult = await pool.query(`
             INSERT INTO bookings (
                 booking_reference,
-                customer_first_name, customer_last_name, customer_email, 
+                car_id,
+                customer_first_name, customer_last_name, customer_email,
                 customer_phone, customer_age, driver_license, license_expiration, country,
-                pickup_date, return_date, pickup_location, dropoff_location, 
-                car_make, car_model, daily_rate, total_price, status, 
+                pickup_date, return_date, pickup_location, dropoff_location,
+                car_make, car_model, daily_rate, total_price, status,
                 additional_driver, full_insurance, gps_navigation, child_seat,
                 booster_seat, special_requests
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
             RETURNING *
         `, [
             bookingRef,
+            booking.car_id,
             booking.customer_first_name,
             booking.customer_last_name,
             booking.customer_email,
@@ -669,7 +672,7 @@ app.patch('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
         const allowed = [
             'customer_first_name','customer_last_name','customer_email','customer_phone',
             'pickup_date','return_date','pickup_location','dropoff_location',
-            'car_make','car_model','status','child_seat','booster_seat','special_requests'
+            'car_make','car_model','car_id','status','child_seat','booster_seat','special_requests'
         ];
         const fields = [];
         const values = [];
@@ -1318,7 +1321,7 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
         
         // Get all bookings with relevant statuses
         const bookingsResult = await pool.query(
-            `SELECT car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
+            `SELECT car_id, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
         );
         const bookings = bookingsResult.rows;
         // Get all manual blocks
@@ -1332,9 +1335,9 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
             const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ id: b.id, start: b.start_date, end: b.end_date }));
             console.log(`[DEBUG] Car ${car.name} (${car.car_id}) has ${carManualBlocks.length} manual blocks:`, carManualBlocks);
             
-            // Get bookings for this car by matching car.name to booking.car_make (case-insensitive)
+            // Get bookings for this car by matching car_id
             const carBookings = bookings.filter(b =>
-                b.car_make && car.name && b.car_make.toLowerCase() === car.name.toLowerCase()
+                b.car_id && car.car_id && b.car_id === car.car_id
             );
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
             return {
