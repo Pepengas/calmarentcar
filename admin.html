@@ -761,6 +761,7 @@
         <span class="navbar-title">Calma Car Rental Admin</span>
     </div>
     <div class="mobile-sidebar" id="mobileSidebar">
+        <button class="close-sidebar-btn" id="closeSidebarBtn" style="background:none;border:none;color:#fff;font-size:2rem;position:absolute;top:10px;right:16px;z-index:2100;" aria-label="Close sidebar">&times;</button>
         <ul class="nav flex-column">
             <li class="nav-item"><a class="nav-link" id="mobileDashboardTab" data-section="dashboard" href="#"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" id="mobileCarsTab" data-section="cars" href="#"><i class="fas fa-car me-2"></i>Cars Pricing</a></li>
@@ -1158,9 +1159,15 @@
             // Setup mobile menu button
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
             const mobileSidebar = document.getElementById('mobileSidebar');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
             if (mobileMenuBtn && mobileSidebar) {
                 mobileMenuBtn.addEventListener('click', function() {
                     mobileSidebar.classList.toggle('active');
+                });
+            }
+            if (closeSidebarBtn && mobileSidebar) {
+                closeSidebarBtn.addEventListener('click', function() {
+                    mobileSidebar.classList.remove('active');
                 });
             }
 
