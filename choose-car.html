@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Choose Your Car - Calma Car Rental Chania</title>
+    <meta name="description" content="Select the perfect car for your journey in Chania, Crete. Calma Car Rental offers a wide range of vehicles to suit your needs.">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/booking.css">
+    <!-- Add Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Add Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Add progress tracker CSS -->
+    <link rel="stylesheet" href="assets/css/progress-tracker.css">
+    
+    <!-- Preloading Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content flex justify-between items-center w-full">
+                <div class="logo flex-shrink-0">
+                    <a href="index.html" aria-label="Calma Car Rental Home" class="block">
+                        <img src="images/CalmaLogo.png" alt="Calma Car Rental Logo" width="160" height="50">
+                    </a>
+                </div>
+                <nav class="hidden md:block">
+                    <ul class="nav-links flex space-x-6">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="index.html#cars">Our Cars</a></li>
+                        <li><a href="index.html#about">About Us</a></li>
+                        <li><a href="index.html#faq">FAQ</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </nav>
+                <div class="header-actions md:hidden">
+                    <button class="mobile-menu" aria-expanded="false" aria-label="Toggle mobile menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Car Selection Section -->
+        <section class="car-selection-section" style="padding-top: 120px; padding-bottom: 80px;">
+            <div class="container">
+                <div class="section-header">
+                    <h1>Choose Your Car</h1>
+                    <p>Step 2: Select the perfect vehicle for your journey</p>
+                </div>
+                
+                <!-- Form Progress Indicator -->
+                <div class="form-progress" style="margin-bottom: 40px;">
+                    <div class="w-full max-w-2xl mx-auto mt-6 px-4">
+                      <div class="flex justify-between items-center text-sm md:text-base">
+                        <!-- Step 1 (completed) -->
+                        <div class="flex flex-col items-center flex-1">
+                          <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+                            <span class="fas fa-check" style="font-size: 0.8rem;"></span>
+                          </div>
+                          <span class="mt-1 text-blue-600 font-semibold">Trip Details</span>
+                        </div>
+
+                        <div class="h-1 bg-blue-600 flex-1 mx-2"></div>
+
+                        <!-- Step 2 (active) -->
+                        <div class="flex flex-col items-center flex-1">
+                          <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+                            2
+                          </div>
+                          <span class="mt-1 text-blue-600 font-semibold">Vehicle Selection</span>
+                        </div>
+
+                        <div class="h-1 bg-gray-300 flex-1 mx-2"></div>
+
+                        <!-- Step 3 (inactive) -->
+                        <div class="flex flex-col items-center flex-1">
+                          <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">
+                            3
+                          </div>
+                          <span class="mt-1 text-gray-600">Personal Info</span>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Hide old step titles -->
+                    <div class="step-titles" style="display: none;">
+                        <div class="step-title">Trip Details</div>
+                        <div class="step-title active">Choose Car</div>
+                        <div class="step-title">Personal Information</div>
+                    </div>
+                </div>
+                
+                <!-- Trip Summary -->
+                <div class="trip-summary" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                    <h3>Your Trip Details</h3>
+                    <div class="trip-details-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div class="trip-detail-item">
+                            <strong>Pick-up:</strong> 
+                            <span id="summary-pickup-location">Loading...</span>
+                        </div>
+                        <div class="trip-detail-item">
+                            <strong>Drop-off:</strong> 
+                            <span id="summary-dropoff-location">Loading...</span>
+                        </div>
+                        <div class="trip-detail-item">
+                            <strong>Pick-up Date:</strong> 
+                            <span id="summary-pickup-date">Loading...</span>
+                        </div>
+                        <div class="trip-detail-item">
+                            <strong>Drop-off Date:</strong> 
+                            <span id="summary-dropoff-date">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Special Requests Section -->
+                <div class="special-requests" style="background: #f0f4f8; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #4a6fa1;">
+                    <h3 style="margin-top: 0; color: #4a6fa1;">Special Requests</h3>
+                    <p>Do you have any special requirements for your rental?</p>
+                    <div class="special-requests-options" style="margin-top: 15px;">
+                        <div class="special-request-item" style="margin-bottom: 10px;">
+                            <input type="checkbox" id="gps-request" name="special-requests" value="gps">
+                            <label for="gps-request">GPS Navigation System (+€5/day)</label>
+                        </div>
+                        <div class="special-request-item" style="margin-bottom: 10px;">
+                            <input type="checkbox" id="baby-seat-request" name="special-requests" value="baby-seat">
+                            <label for="baby-seat-request">Baby/Child Seat (+€3/day)</label>
+                        </div>
+                        <div class="special-request-item" style="margin-bottom: 10px;">
+                            <input type="checkbox" id="additional-driver-request" name="special-requests" value="additional-driver">
+                            <label for="additional-driver-request">Additional Driver (+€7/day)</label>
+                        </div>
+                        <div class="special-request-item" style="margin-bottom: 10px;">
+                            <input type="checkbox" id="full-insurance-request" name="special-requests" value="full-insurance">
+                            <label for="full-insurance-request">Full Insurance Coverage (+€10/day)</label>
+                        </div>
+                        <div class="special-request-item" style="margin-top: 15px;">
+                            <label for="other-requests">Other special requests:</label>
+                            <textarea id="other-requests" name="other-requests" rows="2" style="width: 100%; margin-top: 5px; padding: 8px; border-radius: 4px; border: 1px solid #ddd;" placeholder="Please specify any other requirements..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Cars Grid -->
+                <div class="cars-grid" id="available-cars">
+                    <!-- Cars will be loaded here dynamically -->
+                    <div class="loading-cars" style="text-align: center; padding: 40px 0;">
+                        <div class="spinner"></div>
+                        <p>Loading available cars...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/CalmaLogo.png" alt="Calma Car Rental Logo" width="120" height="40">
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Quick Links</h3>
+                        <ul>
+                            <li><a href="index.html">Home</a></li>
+                            <li><a href="index.html#cars">Our Cars</a></li>
+                            <li><a href="index.html#about">About Us</a></li>
+                            <li><a href="index.html#faq">FAQ</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Support</h3>
+                        <ul>
+                            <li><a href="index.html#faq">FAQ</a></li>
+                            <li><a href="index.html#contact">Contact Us</a></li>
+                            <li><a href="#">Terms & Conditions</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Contact</h3>
+                        <p>123 Main Street, Chania</p>
+                        <p>Crete, Greece</p>
+                        <p>Phone: +30 123 456 7890</p>
+                        <p>Email: info@calmarental.com</p>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 Calma Car Rental. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notification-container"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/main.js"></script>
+    <script src="assets/js/mobile-menu.js"></script>
+</body>
+</html> 
