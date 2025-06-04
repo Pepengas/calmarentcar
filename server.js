@@ -171,6 +171,11 @@ app.get('/api/admin/addons', (req, res) => {
   res.json({ success: true, addons });
 });
 
+// Public endpoint to fetch addon prices
+app.get('/api/addons', (req, res) => {
+  res.json({ success: true, addons });
+});
+
 // Update an addon by ID
 app.patch('/api/admin/addons/:id', (req, res) => {
   const { id } = req.params;
