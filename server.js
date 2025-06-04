@@ -40,6 +40,7 @@ async function createTables() {
             CREATE TABLE IF NOT EXISTS bookings (
                 id SERIAL PRIMARY KEY,
                 booking_reference TEXT UNIQUE,
+                car_id TEXT REFERENCES cars(car_id),
                 customer_first_name TEXT,
                 customer_last_name TEXT,
                 customer_email TEXT,
@@ -67,6 +68,18 @@ async function createTables() {
             )
         `);
         console.log('✅ Bookings table created successfully.');
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS manual_blocks (
+                id SERIAL PRIMARY KEY,
+                car_id TEXT REFERENCES cars(car_id),
+                start_date DATE,
+                end_date DATE,
+                source TEXT DEFAULT 'manual',
+                UNIQUE(car_id, start_date, end_date)
+            )
+        `);
+        console.log('✅ Manual blocks table created successfully.');
     } catch (error) {
         console.error('❌ Error creating tables:', error);
     }
@@ -125,11 +138,48 @@ async function migrateAddBoosterSeatToBookings() {
     }
 }
 
+// Migration: add source column to manual_blocks
+async function migrateAddSourceToManualBlocks() {
+    try {
+        if (!global.dbConnected) {
+            console.warn('⚠️ Cannot run migration: database not connected');
+            return;
+        }
+        await pool.query("ALTER TABLE manual_blocks ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'manual'");
+        console.log('✅ Migration: source column ensured in manual_blocks table.');
+    } catch (err) {
+        console.error('❌ Migration error (add source to manual_blocks):', err);
+    }
+}
+
 // Create tables when database is connected
 if (global.dbConnected) {
     createTables();
     migrateAddCarIdToBookings();
     migrateAddBoosterSeatToBookings();
+    migrateAddSourceToManualBlocks();
+}
+
+// Ensure a manual block exists for confirmed bookings and remove it otherwise
+async function syncManualBlockWithBooking(booking) {
+    if (!booking || !booking.car_id || !booking.pickup_date || !booking.return_date) return;
+    try {
+        if (booking.status === 'confirmed') {
+            await pool.query(
+                `INSERT INTO manual_blocks (car_id, start_date, end_date, source)
+                 VALUES ($1, $2, $3, 'booking')
+                 ON CONFLICT (car_id, start_date, end_date) DO NOTHING`,
+                [booking.car_id, booking.pickup_date, booking.return_date]
+            );
+        } else {
+            await pool.query(
+                'DELETE FROM manual_blocks WHERE car_id = $1 AND start_date = $2 AND end_date = $3',
+                [booking.car_id, booking.pickup_date, booking.return_date]
+            );
+        }
+    } catch (err) {
+        console.error('[ManualBlock] sync error:', err.message);
+    }
 }
 
 // Admin authentication middleware
@@ -168,6 +218,11 @@ let addons = [
 
 // Get all addons
 app.get('/api/admin/addons', (req, res) => {
+  res.json({ success: true, addons });
+});
+
+// Public endpoint to fetch addon prices
+app.get('/api/addons', (req, res) => {
   res.json({ success: true, addons });
 });
 
@@ -313,18 +368,20 @@ app.post('/api/bookings', async (req, res) => {
         // Insert booking into database
         const insertResult = await pool.query(`
             INSERT INTO bookings (
-                booking_reference, 
-                customer_first_name, customer_last_name, customer_email, 
+                booking_reference,
+                car_id,
+                customer_first_name, customer_last_name, customer_email,
                 customer_phone, customer_age, driver_license, license_expiration, country,
-                pickup_date, return_date, pickup_location, dropoff_location, 
-                car_make, car_model, daily_rate, total_price, status, 
+                pickup_date, return_date, pickup_location, dropoff_location,
+                car_make, car_model, daily_rate, total_price, status,
                 additional_driver, full_insurance, gps_navigation, child_seat,
                 booster_seat, special_requests
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
             RETURNING *
         `, [
             bookingRef,
+            booking.car_id,
             booking.customer_first_name,
             booking.customer_last_name,
             booking.customer_email,
@@ -349,9 +406,13 @@ app.post('/api/bookings', async (req, res) => {
             booking.booster_seat || false,
             booking.special_requests || null
         ]);
-        
+
         console.log('✅ Booking saved to database successfully, reference:', bookingRef);
-        
+
+        if (insertResult.rows && insertResult.rows.length > 0) {
+            await syncManualBlockWithBooking(insertResult.rows[0]);
+        }
+
         return res.status(200).json({
             success: true,
             booking_reference: bookingRef,
@@ -595,6 +656,10 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
             WHERE id = $2
             RETURNING *
         `, [status, id]);
+
+        if (result.rows.length > 0) {
+            await syncManualBlockWithBooking(result.rows[0]);
+        }
         
         if (result.rows.length === 0) {
             return res.status(404).json({
@@ -616,6 +681,43 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
     }
 });
 
+// Update booking details (admin only)
+app.patch('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const allowed = [
+            'customer_first_name','customer_last_name','customer_email','customer_phone',
+            'pickup_date','return_date','pickup_location','dropoff_location',
+            'car_make','car_model','car_id','status','child_seat','booster_seat','special_requests'
+        ];
+        const fields = [];
+        const values = [];
+        let idx = 1;
+        for (const key of allowed) {
+            if (req.body[key] !== undefined) {
+                fields.push(`${key} = $${idx++}`);
+                values.push(req.body[key]);
+            }
+        }
+        if (fields.length === 0) {
+            return res.status(400).json({ success: false, error: 'No fields to update' });
+        }
+        values.push(id);
+        const query = `UPDATE bookings SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`;
+        const result = await pool.query(query, values);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Booking not found' });
+        }
+
+        await syncManualBlockWithBooking(result.rows[0]);
+
+        return res.json({ success: true, booking: result.rows[0] });
+    } catch (error) {
+        console.error('Error updating booking:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Delete booking (admin only) (DELETE /api/admin/bookings/:id)
 app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
     try {
@@ -629,8 +731,8 @@ app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
             });
         }
         
-        // Get booking reference before deletion (for logging purposes)
-        const bookingResult = await pool.query('SELECT booking_reference FROM bookings WHERE id = $1', [id]);
+        // Get booking data before deletion (for logging purposes)
+        const bookingResult = await pool.query('SELECT * FROM bookings WHERE id = $1', [id]);
         
         if (bookingResult.rows.length === 0) {
             return res.status(404).json({
@@ -639,10 +741,13 @@ app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
             });
         }
         
-        const bookingRef = bookingResult.rows[0].booking_reference;
+        const bookingRow = bookingResult.rows[0];
+        const bookingRef = bookingRow.booking_reference;
         
         // Delete the booking
         await pool.query('DELETE FROM bookings WHERE id = $1', [id]);
+
+        await syncManualBlockWithBooking({ ...bookingRow, status: 'deleted' });
         
         console.log(`🗑️ Admin deleted booking ID ${id}, reference ${bookingRef}`);
         
@@ -850,7 +955,7 @@ app.get('/api/cars/availability', async (req, res) => {
 
         // Get car data from database
         const result = await pool.query(
-            'SELECT manual_status, unavailable_dates FROM cars WHERE id = $1',
+            'SELECT manual_status, unavailable_dates FROM cars WHERE car_id = $1',
             [carId]
         );
 
@@ -881,11 +986,11 @@ app.get('/api/cars/availability', async (req, res) => {
             });
         }
 
+        const userPickup = new Date(pickupDate);
+        const userDropoff = new Date(dropoffDate);
+
         // Check unavailable dates if they exist
         if (car.unavailable_dates && Array.isArray(car.unavailable_dates)) {
-            const userPickup = new Date(pickupDate);
-            const userDropoff = new Date(dropoffDate);
-
             for (const range of car.unavailable_dates) {
                 const rangeStart = new Date(range.start);
                 const rangeEnd = new Date(range.end);
@@ -897,6 +1002,40 @@ app.get('/api/cars/availability', async (req, res) => {
                         message: "Car is unavailable for the selected dates"
                     });
                 }
+            }
+        }
+
+        // Check manual blocks
+        const blocksRes = await pool.query(
+            'SELECT start_date, end_date FROM manual_blocks WHERE car_id = $1',
+            [carId]
+        );
+        for (const b of blocksRes.rows) {
+            const rangeStart = new Date(b.start_date);
+            const rangeEnd = new Date(b.end_date);
+            if (userDropoff >= rangeStart && userPickup <= rangeEnd) {
+                return res.json({
+                    success: true,
+                    available: false,
+                    message: 'Car is unavailable for the selected dates'
+                });
+            }
+        }
+
+        // Check existing bookings
+        const bookingsRes = await pool.query(
+            "SELECT pickup_date, return_date FROM bookings WHERE car_id = $1 AND status IN ('pending','confirmed','completed')",
+            [carId]
+        );
+        for (const b of bookingsRes.rows) {
+            const rangeStart = new Date(b.pickup_date);
+            const rangeEnd = new Date(b.return_date);
+            if (userDropoff >= rangeStart && userPickup <= rangeEnd) {
+                return res.json({
+                    success: true,
+                    available: false,
+                    message: 'Car is unavailable for the selected dates'
+                });
             }
         }
 
@@ -1198,7 +1337,7 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
         
         // Get all bookings with relevant statuses
         const bookingsResult = await pool.query(
-            `SELECT car_make, car_model, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
+            `SELECT car_id, pickup_date, return_date, status FROM bookings WHERE status IN ('pending', 'confirmed', 'completed')`
         );
         const bookings = bookingsResult.rows;
         // Get all manual blocks
@@ -1209,12 +1348,12 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
         // Build availability info for each car
         const carsWithAvailability = cars.map(car => {
             // Merge manual blocks from manual_blocks table
-            const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ id: b.id, start: b.start_date, end: b.end_date }));
+            const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ id: b.id, start: b.start_date, end: b.end_date, source: b.source }));
             console.log(`[DEBUG] Car ${car.name} (${car.car_id}) has ${carManualBlocks.length} manual blocks:`, carManualBlocks);
             
-            // Get bookings for this car by matching car.name to booking.car_make (case-insensitive)
+            // Get bookings for this car by matching car_id
             const carBookings = bookings.filter(b =>
-                b.car_make && car.name && b.car_make.toLowerCase() === car.name.toLowerCase()
+                b.car_id && car.car_id && b.car_id === car.car_id
             );
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
             return {
@@ -1276,7 +1415,7 @@ app.get('/api/cars/availability/all', async (req, res) => {
         // Build availability info for each car
         const carsWithAvailability = cars.map(car => {
             // Merge manual blocks from manual_blocks table
-            const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ id: b.id, start: b.start_date, end: b.end_date }));
+            const carManualBlocks = manualBlocks.filter(b => b.car_id === car.car_id).map(b => ({ id: b.id, start: b.start_date, end: b.end_date, source: b.source }));
             // Match bookings by car_id
             const carBookings = bookings.filter(b => b.car_id && car.car_id && b.car_id === car.car_id);
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
@@ -1320,10 +1459,8 @@ app.post('/api/admin/manual-block', requireAdminAuth, async (req, res) => {
     }
 
     try {
-        // First verify the car exists and log its details
-        const carCheck = await pool.query('SELECT id, car_id, name FROM cars WHERE car_id = $1', [car_id]);
-        console.log('[DEBUG] Car check result:', carCheck.rows);
-        
+        // Verify the car exists to satisfy the foreign key constraint
+        const carCheck = await pool.query('SELECT car_id FROM cars WHERE car_id = $1', [car_id]);
         if (carCheck.rows.length === 0) {
             console.error('[DEBUG] Car not found:', car_id);
             return res.status(404).json({ success: false, error: 'Car not found' });
@@ -1331,12 +1468,19 @@ app.post('/api/admin/manual-block', requireAdminAuth, async (req, res) => {
 
         // Insert the manual block
         const result = await pool.query(
-            'INSERT INTO manual_blocks (car_id, start_date, end_date) VALUES ($1, $2, $3) RETURNING *',
+            `INSERT INTO manual_blocks (car_id, start_date, end_date, source)
+             VALUES ($1, $2, $3, 'manual')
+             ON CONFLICT (car_id, start_date, end_date) DO NOTHING
+             RETURNING *`,
             [car_id, start_date, end_date]
         );
-        
-        console.log('[DEBUG] Manual block created successfully:', result.rows[0]);
-        return res.json({ success: true, block: result.rows[0] });
+
+        if (result.rows.length > 0) {
+            console.log('[DEBUG] Manual block created successfully:', result.rows[0]);
+            return res.json({ success: true, block: result.rows[0] });
+        }
+
+        return res.json({ success: true, message: 'Block already exists' });
     } catch (error) {
         console.error('[DEBUG] Error adding manual block:', error);
         console.error('[DEBUG] Error details:', {
@@ -1381,6 +1525,7 @@ async function startServerWithMigrations() {
         await createTables();
         await migrateAddCarIdToBookings();
         await migrateAddBoosterSeatToBookings();
+        await migrateAddSourceToManualBlocks();
     }
 
     // Register all routes only after migrations are complete

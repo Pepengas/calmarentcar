@@ -55,6 +55,14 @@ if (bookingDetailsModalElem) {
     bookingDetailsModal = new bootstrap.Modal(bookingDetailsModalElem);
 }
 
+// Edit booking modal
+let editBookingModal = null;
+const editBookingModalElem = document.getElementById('editBookingModal');
+const editBookingForm = document.getElementById('editBookingForm');
+if (editBookingModalElem) {
+    editBookingModal = new bootstrap.Modal(editBookingModalElem);
+}
+
 // --- Cars Tab: Monthly Pricing Management ---
 const carsContent = document.getElementById('carsContent');
 const priceEditorTable = document.getElementById('priceEditorTable');
@@ -162,6 +170,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (updateStatusBtn) {
         updateStatusBtn.addEventListener('click', updateBookingStatus);
+    }
+
+    if (editBookingForm) {
+        editBookingForm.addEventListener('submit', saveBookingEdits);
     }
     const logoutBtn = document.getElementById('logoutBtn');
     const logoutBtnMobile = document.getElementById('logoutBtnMobile');
@@ -774,7 +786,7 @@ function renderBookings(bookings) {
                     <button class="btn btn-sm btn-outline-primary view-details-btn" title="View Details" data-booking-id="${booking.id}">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary edit-status-btn" title="Edit Status" data-booking-id="${booking.id}" data-current-status="${booking.status}">
+                    <button class="btn btn-sm btn-outline-secondary edit-booking-btn" title="Edit Booking" data-booking-id="${booking.id}">
                         <i class="fas fa-edit"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-danger delete-booking-btn" title="Delete Booking" data-booking-id="${booking.id}" data-booking-ref="${booking.booking_reference || booking.id}">
@@ -800,9 +812,9 @@ function attachActionListeners() {
         btn.removeEventListener('click', handleViewDetailsClick); // Avoid adding multiple listeners
         btn.addEventListener('click', handleViewDetailsClick);
     });
-    bookingsTableBody.querySelectorAll('.edit-status-btn').forEach(btn => {
-        btn.removeEventListener('click', handleEditStatusClick); // Avoid adding multiple listeners
-        btn.addEventListener('click', handleEditStatusClick);
+    bookingsTableBody.querySelectorAll('.edit-booking-btn').forEach(btn => {
+        btn.removeEventListener('click', handleEditBookingClick); // Avoid adding multiple listeners
+        btn.addEventListener('click', handleEditBookingClick);
     });
     bookingsTableBody.querySelectorAll('.delete-booking-btn').forEach(btn => {
         btn.removeEventListener('click', handleDeleteBookingClick); // Avoid adding multiple listeners
@@ -847,6 +859,70 @@ function handleEditStatusClick(event) {
         }
     } else {
         showErrorMessage('Could not find booking to update status.');
+    }
+}
+
+function handleEditBookingClick(event) {
+    if (!event || !event.currentTarget) return;
+    const bookingId = event.currentTarget.dataset.bookingId;
+    const booking = allBookings.find(b => b.id.toString() === bookingId.toString());
+    if (!booking || !editBookingForm) return;
+    currentBookingId = booking.id;
+    editBookingForm.elements['customer_first_name'].value = booking.customer?.firstName || booking.customer_first_name || '';
+    editBookingForm.elements['customer_last_name'].value = booking.customer?.lastName || booking.customer_last_name || '';
+    editBookingForm.elements['customer_email'].value = booking.customer?.email || booking.customer_email || '';
+    editBookingForm.elements['customer_phone'].value = booking.customer?.phone || booking.customer_phone || '';
+    editBookingForm.elements['pickup_date'].value = booking.pickup_date ? new Date(booking.pickup_date).toISOString().split('T')[0] : '';
+    editBookingForm.elements['return_date'].value = booking.return_date ? new Date(booking.return_date).toISOString().split('T')[0] : '';
+    editBookingForm.elements['car_make'].value = booking.car_make || '';
+    editBookingForm.elements['car_model'].value = booking.car_model || '';
+    editBookingForm.elements['status'].value = booking.status || 'pending';
+    editBookingForm.elements['child_seat'].checked = !!booking.child_seat;
+    editBookingForm.elements['booster_seat'].checked = !!booking.booster_seat;
+    editBookingForm.elements['special_requests'].value = booking.special_requests || '';
+    if (editBookingModal) editBookingModal.show();
+}
+
+async function saveBookingEdits(e) {
+    e.preventDefault();
+    if (!currentBookingId) return;
+    const payload = {
+        customer_first_name: editBookingForm.elements['customer_first_name'].value.trim(),
+        customer_last_name: editBookingForm.elements['customer_last_name'].value.trim(),
+        customer_email: editBookingForm.elements['customer_email'].value.trim(),
+        customer_phone: editBookingForm.elements['customer_phone'].value.trim(),
+        pickup_date: editBookingForm.elements['pickup_date'].value,
+        return_date: editBookingForm.elements['return_date'].value,
+        car_make: editBookingForm.elements['car_make'].value.trim(),
+        car_model: editBookingForm.elements['car_model'].value.trim(),
+        status: editBookingForm.elements['status'].value,
+        child_seat: editBookingForm.elements['child_seat'].checked,
+        booster_seat: editBookingForm.elements['booster_seat'].checked,
+        special_requests: editBookingForm.elements['special_requests'].value.trim()
+    };
+    showLoader();
+    try {
+        const res = await fetch(`/api/admin/bookings/${currentBookingId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${API_TOKEN}`
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            if (editBookingModal) editBookingModal.hide();
+            loadBookings();
+            loadCarAvailability();
+        } else {
+            alert('Failed to update booking: ' + (data.error || 'Unknown error'));
+        }
+    } catch (err) {
+        console.error('Error updating booking:', err);
+        alert('Error updating booking: ' + err.message);
+    } finally {
+        hideLoader();
     }
 }
 
@@ -1036,9 +1112,10 @@ function updateBookingStatus() {
         if (data.success) {
             // Close modal
             bookingDetailsModal.hide();
-            
-            // Reload bookings to get fresh data
+
+            // Reload bookings and availability
             loadBookings();
+            loadCarAvailability();
             
             alert('Booking status updated successfully!');
         } else {
@@ -1258,8 +1335,9 @@ function handleDeleteBookingClick(event) {
     })
     .then(data => {
         if (data.success) {
-            // Success - reload bookings
+            // Success - reload bookings and car availability
             loadBookings();
+            loadCarAvailability();
             alert(`Booking ${bookingRef} deleted successfully.`);
         } else {
             // API request was successful but operation failed
@@ -1448,9 +1526,10 @@ async function loadCarAvailability() {
             // Manual blocks display with delete icons
             let manualBlocksHtml = '';
             if (car.manual_blocks && car.manual_blocks.length > 0) {
-                manualBlocksHtml = car.manual_blocks.map((b, i) =>
-                    `<span class="badge bg-warning text-dark me-1 mb-1">${b.start} to ${b.end} <span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;">🗑️</span></span>`
-                ).join('');
+                manualBlocksHtml = car.manual_blocks.map((b, i) => {
+                    const color = b.source === 'booking' ? 'info' : 'warning';
+                    return `<span class="badge bg-${color} text-dark me-1 mb-1">${b.start} to ${b.end} <span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;">🗑️</span></span>`;
+                }).join('');
             }
 
             // Booked ranges display
@@ -1459,7 +1538,10 @@ async function loadCarAvailability() {
                 calendarHtml += '<div><b>Booked:</b><br>' + car.booked_ranges.map(r => `${r.start} to ${r.end} <span class='badge bg-secondary ms-1'>${r.status}</span>`).join('<br>') + '</div>';
             }
             if (car.manual_blocks && car.manual_blocks.length > 0) {
-                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' + car.manual_blocks.map(b => `${b.start} to ${b.end}`).join('<br>') + '</div>';
+                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' + car.manual_blocks.map(b => {
+                    const c = b.source === 'booking' ? 'info' : 'warning';
+                    return `${b.start} to ${b.end} <span class="badge bg-${c} ms-1">${b.source}</span>`;
+                }).join('<br>') + '</div>';
             }
             if (!calendarHtml) calendarHtml = '—';
 
