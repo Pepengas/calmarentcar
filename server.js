@@ -621,6 +621,40 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
     }
 });
 
+// Update booking details (admin only)
+app.patch('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const allowed = [
+            'customer_first_name','customer_last_name','customer_email','customer_phone',
+            'pickup_date','return_date','pickup_location','dropoff_location',
+            'car_make','car_model','status','child_seat','booster_seat','special_requests'
+        ];
+        const fields = [];
+        const values = [];
+        let idx = 1;
+        for (const key of allowed) {
+            if (req.body[key] !== undefined) {
+                fields.push(`${key} = $${idx++}`);
+                values.push(req.body[key]);
+            }
+        }
+        if (fields.length === 0) {
+            return res.status(400).json({ success: false, error: 'No fields to update' });
+        }
+        values.push(id);
+        const query = `UPDATE bookings SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`;
+        const result = await pool.query(query, values);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Booking not found' });
+        }
+        return res.json({ success: true, booking: result.rows[0] });
+    } catch (error) {
+        console.error('Error updating booking:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Delete booking (admin only) (DELETE /api/admin/bookings/:id)
 app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
     try {
