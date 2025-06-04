@@ -163,13 +163,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (updateStatusBtn) {
         updateStatusBtn.addEventListener('click', updateBookingStatus);
     }
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            localStorage.removeItem('adminToken');
-            window.location.href = 'admin-login.html';
-        });
-    }
+    ['logoutBtn', 'logoutBtnMobile', 'mobileLogoutBtn'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('click', function () {
+                localStorage.removeItem('adminToken');
+                window.location.href = 'admin-login.html';
+            });
+        }
+    });
     
     // Add event listener for text search input
     if (textSearchFilter) {
