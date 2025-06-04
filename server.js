@@ -67,6 +67,17 @@ async function createTables() {
             )
         `);
         console.log('✅ Bookings table created successfully.');
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS manual_blocks (
+                id SERIAL PRIMARY KEY,
+                car_id TEXT REFERENCES cars(car_id),
+                start_date DATE,
+                end_date DATE,
+                UNIQUE(car_id, start_date, end_date)
+            )
+        `);
+        console.log('✅ Manual blocks table created successfully.');
     } catch (error) {
         console.error('❌ Error creating tables:', error);
     }
@@ -132,6 +143,28 @@ if (global.dbConnected) {
     migrateAddBoosterSeatToBookings();
 }
 
+// Ensure a manual block exists for confirmed bookings and remove it otherwise
+async function syncManualBlockWithBooking(booking) {
+    if (!booking || !booking.car_id || !booking.pickup_date || !booking.return_date) return;
+    try {
+        if (booking.status === 'confirmed') {
+            await pool.query(
+                `INSERT INTO manual_blocks (car_id, start_date, end_date)
+                 VALUES ($1, $2, $3)
+                 ON CONFLICT (car_id, start_date, end_date) DO NOTHING`,
+                [booking.car_id, booking.pickup_date, booking.return_date]
+            );
+        } else {
+            await pool.query(
+                'DELETE FROM manual_blocks WHERE car_id = $1 AND start_date = $2 AND end_date = $3',
+                [booking.car_id, booking.pickup_date, booking.return_date]
+            );
+        }
+    } catch (err) {
+        console.error('[ManualBlock] sync error:', err.message);
+    }
+}
+
 // Admin authentication middleware
 function requireAdminAuth(req, res, next) {
     // For testing purposes, you can disable auth with an env variable
@@ -168,6 +201,11 @@ let addons = [
 
 // Get all addons
 app.get('/api/admin/addons', (req, res) => {
+  res.json({ success: true, addons });
+});
+
+// Public endpoint to fetch addon prices
+app.get('/api/addons', (req, res) => {
   res.json({ success: true, addons });
 });
 
@@ -595,6 +633,10 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
             WHERE id = $2
             RETURNING *
         `, [status, id]);
+
+        if (result.rows.length > 0) {
+            await syncManualBlockWithBooking(result.rows[0]);
+        }
         
         if (result.rows.length === 0) {
             return res.status(404).json({
@@ -616,6 +658,43 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
     }
 });
 
+// Update booking details (admin only)
+app.patch('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const allowed = [
+            'customer_first_name','customer_last_name','customer_email','customer_phone',
+            'pickup_date','return_date','pickup_location','dropoff_location',
+            'car_make','car_model','status','child_seat','booster_seat','special_requests'
+        ];
+        const fields = [];
+        const values = [];
+        let idx = 1;
+        for (const key of allowed) {
+            if (req.body[key] !== undefined) {
+                fields.push(`${key} = $${idx++}`);
+                values.push(req.body[key]);
+            }
+        }
+        if (fields.length === 0) {
+            return res.status(400).json({ success: false, error: 'No fields to update' });
+        }
+        values.push(id);
+        const query = `UPDATE bookings SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`;
+        const result = await pool.query(query, values);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Booking not found' });
+        }
+
+        await syncManualBlockWithBooking(result.rows[0]);
+
+        return res.json({ success: true, booking: result.rows[0] });
+    } catch (error) {
+        console.error('Error updating booking:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Delete booking (admin only) (DELETE /api/admin/bookings/:id)
 app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
     try {
@@ -629,8 +708,8 @@ app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
             });
         }
         
-        // Get booking reference before deletion (for logging purposes)
-        const bookingResult = await pool.query('SELECT booking_reference FROM bookings WHERE id = $1', [id]);
+        // Get booking data before deletion (for logging purposes)
+        const bookingResult = await pool.query('SELECT * FROM bookings WHERE id = $1', [id]);
         
         if (bookingResult.rows.length === 0) {
             return res.status(404).json({
@@ -639,10 +718,13 @@ app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
             });
         }
         
-        const bookingRef = bookingResult.rows[0].booking_reference;
+        const bookingRow = bookingResult.rows[0];
+        const bookingRef = bookingRow.booking_reference;
         
         // Delete the booking
         await pool.query('DELETE FROM bookings WHERE id = $1', [id]);
+
+        await syncManualBlockWithBooking({ ...bookingRow, status: 'deleted' });
         
         console.log(`🗑️ Admin deleted booking ID ${id}, reference ${bookingRef}`);
         
