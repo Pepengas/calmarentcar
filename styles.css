@@ -1,0 +1,7 @@
+/**
+ * Calma Car Rental - Main Stylesheet
+ * This file imports the main CSS from assets/css/styles.css
+ * It exists for backward compatibility with pages that reference /styles.css directly
+ */
+
+@import url('assets/css/styles.css'); 

@@ -1,0 +1,1307 @@
+<!-- Version: 1.0.2 - Hide mobile sidebar on desktop fix -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Calma Car Rental - Admin Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --dark-bg: #343a40;
+        }
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,.75);
+            border-radius: 0;
+            padding: 0.75rem 1rem;
+        }
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255,255,255,.1);
+        }
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: var(--secondary-color);
+        }
+        .card-stats {
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 4px;
+            transition: transform 0.3s;
+        }
+        .card-stats:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,.1);
+        }
+        .card-revenue {
+            border-left: 4px solid #27ae60;
+        }
+        .card-bookings {
+            border-left: 4px solid #e74c3c;
+        }
+        .card-cars {
+            border-left: 4px solid #f39c12;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0;
+            padding: 0;
+        }
+        .booking-status {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-weight: bold;
+        }
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .btn-filter {
+            background-color: var(--light-bg);
+            border: 1px solid #dee2e6;
+            color: #495057;
+        }
+        .loader {
+            display: none;
+            width: 100%;
+            height: 5px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: linear-gradient(90deg, #3498db, #27ae60, #f39c12, #e74c3c);
+            background-size: 400% 400%;
+            animation: loading 2s ease infinite;
+            z-index: 9999;
+        }
+        @keyframes loading {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .booking-details-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 4px 4px 0 0;
+        }
+        .booking-details-body {
+            padding: 1.5rem;
+        }
+        .detail-section {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 1rem;
+        }
+        .detail-section:last-child {
+            border-bottom: none;
+        }
+        .car-tabs-custom {
+            margin-bottom: 0.5rem !important;
+            padding-bottom: 0 !important;
+            border-bottom: none !important;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: thin;
+        }
+        .car-tabs-custom .nav-link {
+            font-size: 1.1rem;
+            border-radius: 2rem;
+            margin-right: 0.5rem;
+            background: #f8f9fa;
+            color: #3498db;
+            border: 1px solid #e3e6ea;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            min-width: 160px;
+            text-align: center;
+        }
+        .car-tabs-custom .nav-link.active {
+            background: linear-gradient(90deg, #3498db 60%, #6dd5fa 100%);
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 2px 8px #3498db33;
+        }
+        .car-tabs-custom .nav-link:hover {
+            background: #e3e6ea;
+            color: #217dbb;
+        }
+        .car-tabs-divider {
+            margin: 0 0 1rem 0;
+            border-top: 2px solid #e3e6ea;
+        }
+        .price-input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px #3498db33;
+        }
+        .save-btn {
+            margin-top: 0.5rem;
+            border-radius: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            box-shadow: 0 2px 8px #3498db22;
+        }
+        .bg-light { background: #f8f9fa !important; }
+        .bg-white { background: #fff !important; }
+        .fw-semibold { font-weight: 500; }
+        .fw-bold { font-weight: 700; }
+        .table th, .table td { vertical-align: middle; }
+        .bg-white.rounded-lg.shadow-md.p-6.mb-8 { margin-top: 0 !important; padding-top: 1.5rem !important; }
+        @media (max-width: 900px) {
+            .car-tabs-custom .nav-link { min-width: 120px; font-size: 1rem; }
+        }
+        @media (max-width: 600px) {
+            .car-tabs-custom .nav-link { min-width: 90px; font-size: 0.95rem; padding: 0.3rem 0.7rem; }
+        }
+        .car-dropdown-custom {
+            font-size: 1.2rem;
+            border-radius: 2rem;
+            box-shadow: 0 2px 8px #3498db22;
+            border: 1.5px solid #3498db;
+            color: #217dbb;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 1.2rem !important;
+        }
+        .car-dropdown-custom:focus {
+            border-color: #217dbb;
+            box-shadow: 0 0 0 2px #3498db33;
+        }
+        .car-title-custom {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 1.2rem 0 1.2rem 0;
+            color: #217dbb;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.7rem;
+        }
+        .car-title-icon {
+            font-size: 2.2rem;
+            color: #3498db;
+        }
+        .car-title-text {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .save-btn.btn-lg {
+            font-size: 1.1rem;
+            padding: 0.7rem 2.2rem;
+            border-radius: 2rem;
+            box-shadow: 0 2px 8px #3498db22;
+        }
+        #editCarContent .bg-white.rounded-3xl.shadow-lg.p-8.mb-8.border.border-blue-100 {
+            max-width: none !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding-left: 2.5vw !important;
+            padding-right: 2.5vw !important;
+            box-sizing: border-box;
+        }
+        @media (max-width: 900px) {
+            #editCarContent .bg-white.rounded-3xl.shadow-lg.p-8.mb-8.border.border-blue-100 {
+                padding-left: 1vw !important;
+                padding-right: 1vw !important;
+            }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none !important;
+            }
+            .mobile-navbar {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                background: var(--primary-color);
+                color: #fff;
+                padding: 0.7rem 1.2rem;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+            .mobile-navbar .navbar-title {
+                font-size: 1.1rem;
+                font-weight: bold;
+                color: #fff;
+            }
+            .mobile-navbar .hamburger {
+                font-size: 1.8rem;
+                background: none;
+                border: none;
+                color: #fff;
+                padding: 0.3rem;
+            }
+            .mobile-sidebar {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 80vw;
+                max-width: 300px;
+                height: 100vh;
+                background: var(--primary-color);
+                z-index: 2000;
+                box-shadow: 2px 0 12px #0002;
+                padding: 1.5rem 1rem;
+                transition: transform 0.3s ease;
+                transform: translateX(-100%);
+            }
+            .mobile-sidebar.active {
+                display: block;
+                transform: translateX(0);
+            }
+            .mobile-sidebar .nav-link {
+                color: rgba(255,255,255,.85);
+                font-size: 1rem;
+                margin-bottom: 0.8rem;
+                display: flex;
+                align-items: center;
+                padding: 0.8rem 1rem;
+                border-radius: 0.5rem;
+                transition: all 0.2s ease;
+            }
+            .mobile-sidebar .nav-link.active {
+                background: var(--secondary-color);
+                color: #fff;
+                border-radius: 0.5rem;
+            }
+            .mobile-sidebar .nav-link:hover {
+                background: rgba(255,255,255,.1);
+                color: #fff;
+            }
+            .container-fluid, .row, .col-md-9, .col-lg-10, .px-md-4 {
+                padding: 0.8rem !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .card, .card-stats, .card-revenue, .card-bookings, .card-cars {
+                width: 100% !important;
+                margin: 0 0 1rem 0 !important;
+                border-radius: 0.8rem !important;
+                font-size: 0.95rem !important;
+                padding: 1rem !important;
+            }
+            .card-title, .h2 {
+                font-size: 1.05rem !important;
+                margin-bottom: 0.8rem !important;
+            }
+            .btn-toolbar, .btn-group {
+                flex-direction: column;
+                width: 100%;
+                gap: 0.5rem;
+            }
+            .form-label, .form-control, .form-select, .input-group-text {
+                font-size: 0.95rem !important;
+            }
+            .table-responsive {
+                font-size: 0.9rem;
+                margin: 0 -0.8rem;
+                padding: 0 0.8rem;
+            }
+            .bottom-nav {
+                display: flex !important;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background: var(--primary-color);
+                z-index: 3000;
+                height: 60px;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                justify-content: space-around;
+                align-items: center;
+                padding: 0.5rem 0;
+            }
+            .bottom-nav .nav-btn {
+                flex: 1;
+                text-align: center;
+                color: rgba(255,255,255,.7);
+                font-size: 1.1rem;
+                background: none;
+                border: none;
+                outline: none;
+                padding: 0.5rem 0;
+                transition: all 0.2s ease;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.2rem;
+            }
+            .bottom-nav .nav-btn i {
+                font-size: 1.3rem;
+                margin-bottom: 0.2rem;
+            }
+            .bottom-nav .nav-btn span {
+                font-size: 0.75rem;
+                font-weight: 500;
+            }
+            .bottom-nav .nav-btn.active {
+                color: var(--secondary-color);
+            }
+            .bottom-nav .nav-btn:active {
+                transform: scale(0.95);
+            }
+            body { 
+                padding-bottom: 70px !important;
+                font-size: 14px !important;
+            }
+            .filter-section {
+                margin-bottom: 1rem;
+                padding: 0.8rem;
+                background: #fff;
+                border-radius: 0.8rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+            .filter-section .btn-filter {
+                width: 100%;
+                margin-bottom: 0.5rem;
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+            .filter-section .form-control,
+            .filter-section .form-select {
+                margin-bottom: 0.5rem;
+            }
+            .filter-section .collapse {
+                margin-top: 0.5rem;
+            }
+            .filter-toggle {
+                width: 100%;
+                text-align: left;
+                padding: 0.5rem;
+                background: none;
+                border: none;
+                color: var(--primary-color);
+                font-weight: 500;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .filter-toggle i {
+                transition: transform 0.2s ease;
+            }
+            .filter-toggle[aria-expanded="true"] i {
+                transform: rotate(180deg);
+            }
+        }
+        @media (min-width: 769px) {
+            .bottom-nav { display: none !important; }
+            #bookingsTable thead { display: table-header-group !important; }
+            #bookingsTable tbody tr, #bookingsTable td, #bookingsTable td:before {
+                display: table-row !important;
+                background: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: initial !important;
+                font-size: initial !important;
+                color: initial !important;
+                min-width: initial !important;
+                margin-right: 0 !important;
+            }
+        }
+        /* Table Styles */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0;
+            padding: 0;
+        }
+
+        #bookingsTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        #bookingsTable thead {
+            background-color: var(--light-bg);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        #bookingsTable th {
+            white-space: nowrap;
+            padding: 0.75rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            border-bottom: 2px solid #dee2e6;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        #bookingsTable td {
+            padding: 0.75rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #dee2e6;
+            text-align: left;
+        }
+
+        /* Mobile Table Styles */
+        @media (max-width: 767px) {
+            #bookingsTable thead {
+                display: none;
+            }
+
+            #bookingsTable tbody tr {
+                display: block;
+                margin-bottom: 1rem;
+                background: #fff;
+                border-radius: 0.5rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                padding: 0.5rem;
+            }
+
+            #bookingsTable td {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
+                border: none;
+                padding: 0.5rem;
+                text-align: right;
+            }
+
+            #bookingsTable td:before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: var(--primary-color);
+                margin-right: 1rem;
+                text-align: left;
+                min-width: 120px;
+            }
+
+            #bookingsTable td:last-child {
+                border-bottom: none;
+            }
+
+            /* Adjust action buttons for mobile */
+            #bookingsTable td[data-label="Actions"] {
+                justify-content: flex-end;
+                gap: 0.5rem;
+            }
+
+            #bookingsTable td[data-label="Actions"] .btn {
+                padding: 0.25rem 0.5rem;
+            }
+        }
+
+        /* Desktop Table Styles */
+        @media (min-width: 768px) {
+            #bookingsTable thead {
+                display: table-header-group !important;
+            }
+
+            #bookingsTable tbody tr {
+                display: table-row !important;
+            }
+
+            #bookingsTable td {
+                display: table-cell !important;
+                text-align: left !important;
+            }
+
+            #bookingsTable td:before {
+                display: none !important;
+            }
+
+            .table-responsive {
+                margin: 0;
+                padding: 0;
+            }
+        }
+        @media (min-width: 768px) {
+            .mobile-sidebar {
+                display: none !important;
+            }
+        }
+        /* Mobile-specific styles */
+        .mobile-layout {
+            padding-bottom: 70px; /* Space for bottom nav */
+        }
+        .mobile-header {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .mobile-nav {
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        .mobile-nav .btn-link {
+            text-decoration: none;
+            color: #6c757d;
+        }
+        .mobile-nav .btn-link.active {
+            color: var(--bs-primary);
+        }
+        .bookings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .booking-item {
+            background: #fff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .booking-item .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+        }
+        .mobile-section {
+            min-height: calc(100vh - 130px);
+        }
+        /* Toast Notifications */
+        .toast {
+            z-index: 9999;
+            min-width: 250px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.bg-success {
+            background-color: #28a745 !important;
+        }
+        .toast.bg-danger {
+            background-color: #dc3545 !important;
+        }
+        .toast.bg-warning {
+            background-color: #ffc107 !important;
+        }
+        .toast.bg-info {
+            background-color: #17a2b8 !important;
+        }
+
+        /* Mobile Responsiveness Improvements */
+        @media (max-width: 768px) {
+            #carAvailabilityTable td {
+                display: block;
+                width: 100%;
+                text-align: left;
+                padding: 0.5rem;
+                border: none;
+            }
+
+            #carAvailabilityTable td:before {
+                content: attr(data-label);
+                font-weight: bold;
+                display: block;
+                margin-bottom: 0.3rem;
+                color: var(--primary-color);
+            }
+
+            #carAvailabilityTable tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #dee2e6;
+                border-radius: 0.5rem;
+                background: #fff;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+
+            .manual-block-input {
+                width: 100% !important;
+                margin-bottom: 0.5rem;
+            }
+
+            .add-block-btn {
+                width: 100%;
+                margin-left: 0 !important;
+            }
+
+            .badge {
+                display: inline-block;
+                margin-bottom: 0.3rem;
+            }
+
+            .delete-block {
+                margin-left: 0.3rem;
+            }
+
+            /* Improve form controls on mobile */
+            .form-control, .form-select {
+                font-size: 16px !important; /* Prevent zoom on iOS */
+                padding: 0.5rem;
+            }
+
+            /* Improve button touch targets */
+            .btn {
+                padding: 0.5rem 1rem;
+                min-height: 44px;
+            }
+
+            /* Improve dropdown touch targets */
+            .dropdown-item {
+                padding: 0.75rem 1rem;
+            }
+
+            /* Improve table scrolling */
+            .table-responsive {
+                margin: 0 -0.8rem;
+                padding: 0 0.8rem;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* Loading Spinner Improvements */
+        .spinner-border {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.15em;
+        }
+
+        .spinner-border-sm {
+            width: 0.8rem;
+            height: 0.8rem;
+            border-width: 0.1em;
+        }
+
+        /* Improve button states */
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Improve form feedback */
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .form-control.is-invalid, .form-select.is-invalid {
+            border-color: #dc3545;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Navbar and Sidebar (moved to top) -->
+    <div class="mobile-navbar" style="display:none;">
+        <button class="hamburger" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+        <span class="navbar-title">Calma Car Rental Admin</span>
+    </div>
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" id="mobileDashboardTab" href="#"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileCarsTab" href="#"><i class="fas fa-car me-2"></i>Cars Pricing</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileCustomersTab" href="#"><i class="fas fa-users me-2"></i>Cars Availability</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileReportsTab" href="#"><i class="fas fa-chart-line me-2"></i>Reports</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileSettingsTab" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileEditCarTab" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a></li>
+            <li class="nav-item mt-3"><a class="nav-link text-danger" id="mobileLogoutBtn" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+        </ul>
+    </div>
+    <div class="loader" id="pageLoader"></div>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="pt-3 pb-2 mb-3 border-bottom text-center">
+                    <h4 class="text-white">Calma Car Rental</h4>
+                    <p class="text-white-50">Admin Dashboard</p>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="dashboardTab" href="#">
+                            <i class="fas fa-tachometer-alt me-2"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="carsTab" href="#">
+                            <i class="fas fa-car me-2"></i>
+                            Cars Pricing
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="customersTab" href="#">
+                            <i class="fas fa-users me-2"></i>
+                            Cars Availability
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-cog me-2"></i>
+                            Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="editCarTab" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a>
+                    </li>
+                    <li class="nav-item mt-3">
+                        <a class="nav-link text-danger" href="#" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <!-- Dashboard Content (visible by default) -->
+                <div id="dashboardContent" class="content-section">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Dashboard</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-download me-1"></i> Export
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-plus me-1"></i> New Booking
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error container for displaying messages -->
+                    <div id="adminErrorContainer" style="display: none;"></div>
+
+                    <!-- Debug info for developers -->
+                    <div id="debugInfo" class="alert alert-info mb-3" style="display: none;">
+                        <h6><i class="fas fa-bug me-2"></i>Debug Information</h6>
+                        <div id="debugContent"></div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card shadow-sm card-stats card-bookings">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <h5 class="card-title text-muted mb-0">Total Bookings</h5>
+                                            <p class="h3 fw-bold mb-0" id="totalBookings">0</p>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon-shape bg-danger text-white rounded-circle shadow p-2">
+                                                <i class="fas fa-calendar-check fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="mt-3 mb-0 text-muted text-sm">
+                                        <span class="text-success me-2"><i class="fa fa-arrow-up"></i> 3.48%</span>
+                                        <span class="text-nowrap">Since last month</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card shadow-sm card-stats card-revenue">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <h5 class="card-title text-muted mb-0">Total Revenue</h5>
+                                            <p class="h3 fw-bold mb-0" id="totalRevenue">$0</p>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon-shape bg-success text-white rounded-circle shadow p-2">
+                                                <i class="fas fa-euro-sign fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="mt-3 mb-0 text-muted text-sm">
+                                        <span class="text-success me-2"><i class="fa fa-arrow-up"></i> 5.4%</span>
+                                        <span class="text-nowrap">Since last month</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card shadow-sm card-stats card-cars">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <h5 class="card-title text-muted mb-0">Cars Booked Today</h5>
+                                            <p class="h3 fw-bold mb-0" id="carsBookedToday">0</p>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon-shape bg-warning text-white rounded-circle shadow p-2">
+                                                <i class="fas fa-car fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="mt-3 mb-0 text-muted text-sm">
+                                        <span class="text-success me-2"><i class="fa fa-arrow-up"></i> 1.10%</span>
+                                        <span class="text-nowrap">Since yesterday</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Filters</h5>
+                            <form id="filterForm" class="row g-3">
+                                <!-- Search Input -->
+                                <div class="col-md-12 mb-2">
+                                    <label for="textSearchFilter" class="form-label">Search Bookings</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="textSearchFilter" placeholder="Search by name, email, booking reference or car model...">
+                                        <button type="button" class="btn btn-outline-secondary" id="clearSearchBtn">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <small class="form-text text-muted">Results will update as you type</small>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label for="statusFilter" class="form-label">Status</label>
+                                    <select class="form-select" id="statusFilter">
+                                        <option value="">All Statuses</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="confirmed">Confirmed</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="dateFilter" class="form-label">Date Range</label>
+                                    <select class="form-select" id="dateFilter">
+                                        <option value="">All Time</option>
+                                        <option value="today">Today</option>
+                                        <option value="week">This Week</option>
+                                        <option value="month">This Month</option>
+                                        <option value="custom">Custom Range</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3" id="datePickerContainer">
+                                    <label for="submittedDateFilter" class="form-label">Filter by Booking Date</label>
+                                    <input type="date" class="form-control" id="submittedDateFilter">
+                                    <small class="form-text text-muted mt-1">Filter by exact date</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="carFilter" class="form-label">Car Model</label>
+                                    <select class="form-select" id="carFilter">
+                                        <option value="">All Cars</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary me-2 mb-3">
+                                        <i class="fas fa-filter me-1"></i> Apply Filters
+                                    </button>
+                                    <button type="reset" class="btn btn-secondary mb-3">
+                                        <i class="fas fa-undo me-1"></i> Reset
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Bookings Table -->
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">All Bookings</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm" id="bookingsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>ID/Reference</th>
+                                            <th>Customer</th>
+                                            <th>Car</th>
+                                            <th>Pickup Date</th>
+                                            <th>Return Date</th>
+                                            <th>Total Price</th>
+                                            <th>Status</th>
+                                            <th>Submitted</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bookingsTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="text-muted">
+                                    Showing <span id="bookingsCount">0</span> bookings
+                                </div>
+                                <nav aria-label="Bookings pagination">
+                                    <ul class="pagination mb-0">
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                        </li>
+                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="#">Next</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cars Content (hidden by default) -->
+                <div id="carsContent" class="content-section d-none">
+                    <!-- Price Editor Panel moved here -->
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                        <h2 class="text-xl font-semibold mb-4">Car Price Management</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white" id="priceEditorTable">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="px-4 py-2 text-left">Car</th>
+                                        <th class="px-4 py-2 text-left">Jan</th>
+                                        <th class="px-4 py-2 text-left">Feb</th>
+                                        <th class="px-4 py-2 text-left">Mar</th>
+                                        <th class="px-4 py-2 text-left">Apr</th>
+                                        <th class="px-4 py-2 text-left">May</th>
+                                        <th class="px-4 py-2 text-left">Jun</th>
+                                        <th class="px-4 py-2 text-left">Jul</th>
+                                        <th class="px-4 py-2 text-left">Aug</th>
+                                        <th class="px-4 py-2 text-left">Sep</th>
+                                        <th class="px-4 py-2 text-left">Oct</th>
+                                        <th class="px-4 py-2 text-left">Nov</th>
+                                        <th class="px-4 py-2 text-left">Dec</th>
+                                        <th class="px-4 py-2 text-left">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Car rows will be inserted here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cars Availability Content (to be rebuilt) -->
+                <div id="customersContent" class="content-section d-none">
+                    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+                        <h2 class="h4 mb-3"><i class="fas fa-car me-2"></i>Car Availability Management</h2>
+                        <div class="mb-3">
+                            <span class="badge bg-success me-2">Available</span>
+                            <span class="badge bg-danger me-2">Booked</span>
+                            <span class="badge bg-secondary me-2">Manually Unavailable</span>
+                            <span class="badge bg-primary">Automatic</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle" id="carAvailabilityTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Car</th>
+                                        <th>Status</th>
+                                        <th>Manual Status</th>
+                                        <th>Calendar</th>
+                                        <th>Manual Blocks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows will be rendered by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Edit Car Content Section (hidden by default) -->
+                <div id="editCarContent" class="content-section d-none">
+                    <div class="bg-white rounded-3xl shadow-lg p-8 mb-8 border border-blue-100" style="max-width: 700px; margin: 0 auto; background: linear-gradient(120deg, #f8faff 80%, #e3f0fa 100%);">
+                        <h2 class="text-2xl font-bold mb-6 text-blue-700 flex items-center gap-2"><i class="fas fa-edit"></i> Edit Car Details</h2>
+                        <div class="mb-6">
+                            <label for="editCarDropdown" class="form-label font-semibold text-blue-600">Select Car</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-blue-600"><i class="fas fa-car"></i></span>
+                                <select id="editCarDropdown" class="form-select border-blue-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-300 transition-all"></select>
+                            </div>
+                        </div>
+                        <form id="editCarForm">
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label for="editCarName" class="form-label font-semibold">Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white text-blue-600"><i class="fas fa-car-side"></i></span>
+                                        <input type="text" class="form-control rounded-lg border-blue-200 shadow-sm" id="editCarName" name="name">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="editCarCategory" class="form-label font-semibold">Category</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white text-blue-600"><i class="fas fa-layer-group"></i></span>
+                                        <input type="text" class="form-control rounded-lg border-blue-200 shadow-sm" id="editCarCategory" name="category">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="editCarDescription" class="form-label font-semibold">Description</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white text-blue-600"><i class="fas fa-align-left"></i></span>
+                                    <textarea class="form-control rounded-lg border-blue-200 shadow-sm" id="editCarDescription" name="description" rows="2"></textarea>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="editCarImage" class="form-label font-semibold">Image URL</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white text-blue-600"><i class="fas fa-image"></i></span>
+                                    <input type="text" class="form-control rounded-lg border-blue-200 shadow-sm" id="editCarImage" name="image">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="editCarFeatures" class="form-label font-semibold">Features <span class="text-gray-500">(comma separated)</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white text-blue-600"><i class="fas fa-list"></i></span>
+                                    <input type="text" class="form-control rounded-lg border-blue-200 shadow-sm" id="editCarFeatures" name="features">
+                                </div>
+                            </div>
+                            <hr class="my-5 border-blue-100">
+                            <div class="row mb-4">
+                                <div class="col-md-3 mb-3">
+                                    <label for="editCarEngine" class="form-label font-semibold">Engine</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white text-blue-600"><i class="fas fa-cogs"></i></span>
+                                        <input type="text" class="form-control rounded-lg border-blue-200 shadow-sm" id="editCarEngine" name="engine">
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label for="editCarDoors" class="form-label font-semibold">Doors</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white text-blue-600"><i class="fas fa-door-closed"></i></span>
+                                        <input type="number" class="form-control rounded-lg border-blue-200 shadow-sm" id="editCarDoors" name="doors">
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label for="editCarPassengers" class="form-label font-semibold">Passengers</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white text-blue-600"><i class="fas fa-user-friends"></i></span>
+                                        <input type="number" class="form-control rounded-lg border-blue-200 shadow-sm" id="editCarPassengers" name="passengers">
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label for="editCarGearbox" class="form-label font-semibold">Gearbox</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white text-blue-600"><i class="fas fa-cog"></i></span>
+                                        <select class="form-select rounded-lg border-blue-200 shadow-sm" id="editCarGearbox" name="gearbox">
+                                            <option value="">Select</option>
+                                            <option value="Automatic">Automatic</option>
+                                            <option value="Manual">Manual</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="editCarFuel" class="form-label font-semibold">Fuel</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white text-blue-600"><i class="fas fa-gas-pump"></i></span>
+                                        <select class="form-select rounded-lg border-blue-200 shadow-sm" id="editCarFuel" name="fuel">
+                                            <option value="">Select</option>
+                                            <option value="Petrol">Petrol</option>
+                                            <option value="Gasoline">Gasoline</option>
+                                            <option value="Diesel">Diesel</option>
+                                            <option value="Hybrid">Hybrid</option>
+                                            <option value="Electric">Electric</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-2 mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input accent-blue-500" type="checkbox" id="editCarAirCondition" name="airCondition">
+                                        <label class="form-check-label font-semibold text-blue-700" for="editCarAirCondition"><i class="fas fa-snowflake me-1"></i>Air Condition</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input accent-blue-500" type="checkbox" id="editCarABS" name="abs">
+                                        <label class="form-check-label font-semibold text-blue-700" for="editCarABS"><i class="fas fa-car-crash me-1"></i>ABS</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input accent-blue-500" type="checkbox" id="editCarAirbag" name="airbag">
+                                        <label class="form-check-label font-semibold text-blue-700" for="editCarAirbag"><i class="fas fa-shield-alt me-1"></i>Airbag</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="editCarEntertainment" class="form-label font-semibold">Entertainment</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white text-blue-600"><i class="fas fa-music"></i></span>
+                                        <input type="text" class="form-control rounded-lg border-blue-200 shadow-sm" id="editCarEntertainment" name="entertainment" placeholder="e.g. Bluetooth, Radio, USB">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mt-5">
+                                <button type="submit" class="btn btn-gradient-blue px-5 py-2 rounded-pill shadow-lg fw-bold" style="background: linear-gradient(90deg, #3498db 60%, #6dd5fa 100%); color: #fff; font-size: 1.15rem; letter-spacing: 0.03em; border: none;"><i class="fas fa-save me-2"></i>Save Changes</button>
+                            </div>
+                            <div id="editCarMsg" class="mt-4"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav fixed-bottom bg-white border-top d-md-none">
+        <div class="row g-0 text-center">
+            <div class="col">
+                <button onclick="showSection('dashboard')" class="btn btn-link w-100 py-2 text-muted">
+                    <i class="fas fa-chart-line d-block"></i>
+                    <small>Dashboard</small>
+                </button>
+            </div>
+            <div class="col">
+                <button onclick="showSection('cars')" class="btn btn-link w-100 py-2 text-muted">
+                    <i class="fas fa-car d-block"></i>
+                    <small>Cars</small>
+                </button>
+            </div>
+            <div class="col">
+                <button onclick="showSection('editCar')" class="btn btn-link w-100 py-2 text-muted">
+                    <i class="fas fa-edit d-block"></i>
+                    <small>Edit Car</small>
+                </button>
+            </div>
+            <div class="col">
+                <button onclick="logout()" class="btn btn-link w-100 py-2 text-muted">
+                    <i class="fas fa-sign-out-alt d-block"></i>
+                    <small>Logout</small>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Booking Details Modal -->
+    <div class="modal fade" id="bookingDetailsModal" tabindex="-1" aria-labelledby="bookingDetailsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="bookingDetailsModalLabel">Booking Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="bookingDetailsContent">
+            <!-- Booking details will be injected here by JS -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="updateStatusBtn">Update Status</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(el => el.classList.add('d-none'));
+            
+            // Show selected section
+            const target = document.getElementById(section + 'Content');
+            if (target) target.classList.remove('d-none');
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+            // --- Ensure car data loads when switching tabs ---
+            if (section === 'cars' && typeof loadCarsForPricing === 'function') {
+                loadCarsForPricing();
+            }
+            if (section === 'editCar' && typeof loadEditCarDropdown === 'function') {
+                loadEditCarDropdown();
+            }
+        }
+
+        function setActive(tab) {
+            document.querySelectorAll('.sidebar .nav-link').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Default to dashboard
+            showSection('dashboard');
+            setActive(document.getElementById('dashboardTab'));
+            // Sidebar tab click handlers
+            document.getElementById('dashboardTab').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('dashboard');
+                setActive(this);
+            });
+            document.getElementById('carsTab').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('cars');
+                setActive(this);
+            });
+            document.getElementById('editCarTab').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('editCar');
+                setActive(this);
+            });
+            // Add handler for Cars Availability
+            document.getElementById('customersTab').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('customers');
+                setActive(this);
+            });
+        });
+    </script>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Admin Dashboard JavaScript -->
+    <script src="assets/js/admin.js"></script>
+</body>
+</html> 
