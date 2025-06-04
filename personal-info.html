@@ -1696,8 +1696,9 @@
           let finalCarMake = carMake;
           let finalCarModel = carModel; 
           let finalDailyRate = carPrice;
+          let storedCarData = null;
           try {
-            const storedCarData = JSON.parse(localStorage.getItem('selectedCar'));
+            storedCarData = JSON.parse(localStorage.getItem('selectedCar'));
             if (storedCarData) {
               finalCarId = finalCarId || storedCarData.id;
               finalCarMake = finalCarMake || storedCarData.make;
@@ -1732,6 +1733,14 @@
           };
           fetchTotalPrice().then(async (basePrice) => {
             let totalPrice = basePrice;
+            if (!totalPrice || totalPrice <= 0) {
+              // Fallback to stored price if API didn't return a value
+              if (storedCarData && storedCarData.totalPrice) {
+                totalPrice = storedCarData.totalPrice;
+              } else {
+                totalPrice = finalDailyRate * durationDays;
+              }
+            }
             // Check additional options
             const childSeat = document.getElementById('childSeat').checked;
             const boosterSeat = document.getElementById('boosterSeat').checked;
@@ -1761,7 +1770,7 @@
               dropoff_location: urlParams.get('dropoff-location'),
               car_make: finalCarMake,
               car_model: finalCarModel,
-              daily_rate: Math.round(basePrice / durationDays),
+              daily_rate: Math.round(totalPrice / durationDays),
               total_price: totalPrice,
               child_seat: childSeat,
               booster_seat: boosterSeat,
