@@ -820,9 +820,86 @@
                         <a class="nav-link text-danger" href="#" id="logoutBtn">
                             <i class="fas fa-sign-out-alt me-2"></i>Logout
                         </a>
-                    </div>
-                </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Edit Booking Modal -->
+    <div class="modal fade" id="editBookingModal" tabindex="-1" aria-labelledby="editBookingModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <form id="editBookingForm">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editBookingModalLabel">Edit Booking</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="editFirstName" class="form-label">First Name</label>
+                  <input type="text" id="editFirstName" name="customer_first_name" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="editLastName" class="form-label">Last Name</label>
+                  <input type="text" id="editLastName" name="customer_last_name" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="editEmail" class="form-label">Email</label>
+                  <input type="email" id="editEmail" name="customer_email" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="editPhone" class="form-label">Phone</label>
+                  <input type="text" id="editPhone" name="customer_phone" class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label for="editPickupDate" class="form-label">Pickup Date</label>
+                  <input type="date" id="editPickupDate" name="pickup_date" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="editReturnDate" class="form-label">Return Date</label>
+                  <input type="date" id="editReturnDate" name="return_date" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="editCarMake" class="form-label">Car Make</label>
+                  <input type="text" id="editCarMake" name="car_make" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="editCarModel" class="form-label">Car Model</label>
+                  <input type="text" id="editCarModel" name="car_model" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="editStatus" class="form-label">Booking Status</label>
+                  <select id="editStatus" name="status" class="form-select">
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+                <div class="col-md-6 d-flex align-items-center">
+                  <div class="form-check me-3">
+                    <input class="form-check-input" type="checkbox" id="editChildSeat" name="child_seat">
+                    <label class="form-check-label" for="editChildSeat">Child Seat</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="editBoosterSeat" name="booster_seat">
+                    <label class="form-check-label" for="editBoosterSeat">Booster Seat</label>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label for="editSpecialRequests" class="form-label">Special Requests</label>
+                  <textarea id="editSpecialRequests" name="special_requests" class="form-control" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary" id="saveBookingBtn">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
             <!-- Main Content -->
             <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
