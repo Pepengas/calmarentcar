@@ -183,30 +183,19 @@
                 addonsContainer.innerHTML = '';
                 
                 const addons = booking.addons;
-                
-                // Create add-on tags with Tailwind classes
-                if (addons.additional_driver) {
-                    addAddonTag(addonsContainer, 'Additional Driver', 'fas fa-user-plus', true);
-                } else {
-                    addAddonTag(addonsContainer, 'Additional Driver', 'fas fa-user-plus', false);
-                }
-                
-                if (addons.full_insurance) {
-                    addAddonTag(addonsContainer, 'Full Insurance', 'fas fa-shield-alt', true);
-                } else {
-                    addAddonTag(addonsContainer, 'Full Insurance', 'fas fa-shield-alt', false);
-                }
-                
-                if (addons.gps_navigation) {
-                    addAddonTag(addonsContainer, 'GPS Navigation', 'fas fa-map-marked-alt', true);
-                } else {
-                    addAddonTag(addonsContainer, 'GPS Navigation', 'fas fa-map-marked-alt', false);
-                }
-                
+
+                // Show only selected add-ons
                 if (addons.child_seat) {
                     addAddonTag(addonsContainer, 'Child Seat', 'fas fa-baby', true);
-                } else {
-                    addAddonTag(addonsContainer, 'Child Seat', 'fas fa-baby', false);
+                }
+                if (addons.booster_seat) {
+                    addAddonTag(addonsContainer, 'Booster Seat', 'fas fa-child', true);
+                }
+                if (!addons.child_seat && !addons.booster_seat) {
+                    const tag = document.createElement('span');
+                    tag.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-600';
+                    tag.textContent = 'No add-ons selected';
+                    addonsContainer.appendChild(tag);
                 }
                 
                 // Special requests

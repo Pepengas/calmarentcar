@@ -103,6 +103,7 @@ async function createTables(client) {
         full_insurance BOOLEAN,
         gps_navigation BOOLEAN,
         child_seat BOOLEAN,
+        booster_seat BOOLEAN,
         special_requests TEXT,
         booking_data JSONB
       )
@@ -121,10 +122,10 @@ async function createTables(client) {
         customer_phone, customer_age, driver_license, license_expiration, country,
         pickup_date, return_date, pickup_location, dropoff_location, 
         car_make, car_model, daily_rate, total_price, status, 
-        payment_date, date_submitted, additional_driver, full_insurance, 
-        gps_navigation, child_seat, special_requests, booking_data
+        payment_date, date_submitted, additional_driver, full_insurance,
+        gps_navigation, child_seat, booster_seat, special_requests, booking_data
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27
       )
     `, [
       bookingRef, 
@@ -151,6 +152,7 @@ async function createTables(client) {
       true,
       false,
       false,
+      false,
       'Please have the car ready early in the morning.',
       JSON.stringify({
         booking_reference: bookingRef,
@@ -169,7 +171,8 @@ async function createTables(client) {
         additionalDriver: true,
         fullInsurance: true,
         gpsNavigation: false,
-        childSeat: false
+        childSeat: false,
+        boosterSeat: false
       })
     ]);
     

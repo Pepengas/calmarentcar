@@ -60,6 +60,7 @@ async function createTables() {
                 full_insurance BOOLEAN,
                 gps_navigation BOOLEAN,
                 child_seat BOOLEAN,
+                booster_seat BOOLEAN,
                 special_requests TEXT,
                 status TEXT DEFAULT 'pending',
                 date_submitted TIMESTAMP DEFAULT NOW()
@@ -110,10 +111,25 @@ async function migrateAddCarIdToBookings() {
     }
 }
 
+// Migration: Add booster_seat column
+async function migrateAddBoosterSeatToBookings() {
+    try {
+        if (!global.dbConnected) {
+            console.warn('⚠️ Cannot run migration: database not connected');
+            return;
+        }
+        await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booster_seat BOOLEAN DEFAULT false`);
+        console.log('✅ Migration: booster_seat column ensured in bookings table.');
+    } catch (err) {
+        console.error('❌ Migration error (add booster_seat to bookings):', err);
+    }
+}
+
 // Create tables when database is connected
 if (global.dbConnected) {
     createTables();
     migrateAddCarIdToBookings();
+    migrateAddBoosterSeatToBookings();
 }
 
 // Admin authentication middleware
@@ -302,10 +318,10 @@ app.post('/api/bookings', async (req, res) => {
                 customer_phone, customer_age, driver_license, license_expiration, country,
                 pickup_date, return_date, pickup_location, dropoff_location, 
                 car_make, car_model, daily_rate, total_price, status, 
-                additional_driver, full_insurance, gps_navigation, child_seat, 
-                special_requests
-            ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+                additional_driver, full_insurance, gps_navigation, child_seat,
+                booster_seat, special_requests
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
             RETURNING *
         `, [
             bookingRef,
@@ -330,6 +346,7 @@ app.post('/api/bookings', async (req, res) => {
             booking.full_insurance || false,
             booking.gps_navigation || false,
             booking.child_seat || false,
+            booking.booster_seat || false,
             booking.special_requests || null
         ]);
         
@@ -408,7 +425,8 @@ app.get('/api/bookings/:reference', async (req, res) => {
                 additional_driver: booking.additional_driver,
                 full_insurance: booking.full_insurance,
                 gps_navigation: booking.gps_navigation,
-                child_seat: booking.child_seat
+                child_seat: booking.child_seat,
+                booster_seat: booking.booster_seat
             },
             special_requests: booking.special_requests,
             created_at: booking.created_at
@@ -519,6 +537,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
                 full_insurance: booking.full_insurance,
                 gps_navigation: booking.gps_navigation,
                 child_seat: booking.child_seat,
+                booster_seat: booking.booster_seat,
                 special_requests: booking.special_requests
             };
         });
@@ -1361,6 +1380,7 @@ async function startServerWithMigrations() {
     if (global.dbConnected) {
         await createTables();
         await migrateAddCarIdToBookings();
+        await migrateAddBoosterSeatToBookings();
     }
 
     // Register all routes only after migrations are complete

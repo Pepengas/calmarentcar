@@ -84,6 +84,7 @@ async function createTables() {
                 full_insurance BOOLEAN,
                 gps_navigation BOOLEAN,
                 child_seat BOOLEAN,
+                booster_seat BOOLEAN,
                 special_requests TEXT,
                 status TEXT DEFAULT 'pending',
                 date_submitted TIMESTAMP DEFAULT NOW()
