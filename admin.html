@@ -587,6 +587,21 @@
         .mobile-nav .btn-link.active {
             color: var(--bs-primary);
         }
+        .mobile-nav .row.g-0 {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .mobile-nav .col {
+            flex: 0 0 auto;
+            padding: 0;
+        }
+        .mobile-nav i {
+            font-size: 1.2rem;
+        }
+        .mobile-nav small {
+            font-size: 0.75rem;
+        }
         .bookings-list {
             display: flex;
             flex-direction: column;
@@ -1034,9 +1049,27 @@
                 </button>
             </div>
             <div class="col">
+                <button class="btn btn-link w-100 py-2 text-muted" data-section="customers">
+                    <i class="fas fa-users d-block"></i>
+                    <small>Availability</small>
+                </button>
+            </div>
+            <div class="col">
                 <button class="btn btn-link w-100 py-2 text-muted" data-section="editCar">
                     <i class="fas fa-edit d-block"></i>
                     <small>Edit Car</small>
+                </button>
+            </div>
+            <div class="col">
+                <button class="btn btn-link w-100 py-2 text-muted" data-section="addons">
+                    <i class="fas fa-puzzle-piece d-block"></i>
+                    <small>Addons</small>
+                </button>
+            </div>
+            <div class="col">
+                <button class="btn btn-link w-100 py-2 text-muted" data-section="settings">
+                    <i class="fas fa-cog d-block"></i>
+                    <small>Settings</small>
                 </button>
             </div>
             <div class="col">
