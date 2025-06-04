@@ -914,6 +914,7 @@ async function saveBookingEdits(e) {
         if (data.success) {
             if (editBookingModal) editBookingModal.hide();
             loadBookings();
+            loadCarAvailability();
         } else {
             alert('Failed to update booking: ' + (data.error || 'Unknown error'));
         }
@@ -1111,9 +1112,10 @@ function updateBookingStatus() {
         if (data.success) {
             // Close modal
             bookingDetailsModal.hide();
-            
-            // Reload bookings to get fresh data
+
+            // Reload bookings and availability
             loadBookings();
+            loadCarAvailability();
             
             alert('Booking status updated successfully!');
         } else {

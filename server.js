@@ -67,6 +67,17 @@ async function createTables() {
             )
         `);
         console.log('✅ Bookings table created successfully.');
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS manual_blocks (
+                id SERIAL PRIMARY KEY,
+                car_id TEXT REFERENCES cars(car_id),
+                start_date DATE,
+                end_date DATE,
+                UNIQUE(car_id, start_date, end_date)
+            )
+        `);
+        console.log('✅ Manual blocks table created successfully.');
     } catch (error) {
         console.error('❌ Error creating tables:', error);
     }
@@ -130,6 +141,28 @@ if (global.dbConnected) {
     createTables();
     migrateAddCarIdToBookings();
     migrateAddBoosterSeatToBookings();
+}
+
+// Ensure a manual block exists for confirmed bookings and remove it otherwise
+async function syncManualBlockWithBooking(booking) {
+    if (!booking || !booking.car_id || !booking.pickup_date || !booking.return_date) return;
+    try {
+        if (booking.status === 'confirmed') {
+            await pool.query(
+                `INSERT INTO manual_blocks (car_id, start_date, end_date)
+                 VALUES ($1, $2, $3)
+                 ON CONFLICT (car_id, start_date, end_date) DO NOTHING`,
+                [booking.car_id, booking.pickup_date, booking.return_date]
+            );
+        } else {
+            await pool.query(
+                'DELETE FROM manual_blocks WHERE car_id = $1 AND start_date = $2 AND end_date = $3',
+                [booking.car_id, booking.pickup_date, booking.return_date]
+            );
+        }
+    } catch (err) {
+        console.error('[ManualBlock] sync error:', err.message);
+    }
 }
 
 // Admin authentication middleware
@@ -600,6 +633,10 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
             WHERE id = $2
             RETURNING *
         `, [status, id]);
+
+        if (result.rows.length > 0) {
+            await syncManualBlockWithBooking(result.rows[0]);
+        }
         
         if (result.rows.length === 0) {
             return res.status(404).json({
@@ -648,6 +685,9 @@ app.patch('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ success: false, error: 'Booking not found' });
         }
+
+        await syncManualBlockWithBooking(result.rows[0]);
+
         return res.json({ success: true, booking: result.rows[0] });
     } catch (error) {
         console.error('Error updating booking:', error);
@@ -668,8 +708,8 @@ app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
             });
         }
         
-        // Get booking reference before deletion (for logging purposes)
-        const bookingResult = await pool.query('SELECT booking_reference FROM bookings WHERE id = $1', [id]);
+        // Get booking data before deletion (for logging purposes)
+        const bookingResult = await pool.query('SELECT * FROM bookings WHERE id = $1', [id]);
         
         if (bookingResult.rows.length === 0) {
             return res.status(404).json({
@@ -678,10 +718,13 @@ app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
             });
         }
         
-        const bookingRef = bookingResult.rows[0].booking_reference;
+        const bookingRow = bookingResult.rows[0];
+        const bookingRef = bookingRow.booking_reference;
         
         // Delete the booking
         await pool.query('DELETE FROM bookings WHERE id = $1', [id]);
+
+        await syncManualBlockWithBooking({ ...bookingRow, status: 'deleted' });
         
         console.log(`🗑️ Admin deleted booking ID ${id}, reference ${bookingRef}`);
         
