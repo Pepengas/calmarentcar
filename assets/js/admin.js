@@ -886,10 +886,8 @@ function showBookingDetails(booking) {
     const formattedTotalPrice = isNaN(totalPrice) ? 'N/A' : formatCurrency(totalPrice);
     
     // Extra options
-    const additionalDriver = booking.additional_driver || false;
-    const fullInsurance = booking.full_insurance || false;
-    const gpsNavigation = booking.gps_navigation || false;
     const childSeat = booking.child_seat || false;
+    const boosterSeat = booking.booster_seat || false;
     const specialRequests = booking.special_requests || '';
     
     // Create modal content
@@ -972,20 +970,11 @@ function showBookingDetails(booking) {
             <div class="detail-section">
                 <h5 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add-ons</h5>
                 <div class="row">
-                    <div class="col-md-6 mb-2">
-                        <strong>Additional Driver:</strong> ${additionalDriver ? 'Yes' : 'No'}
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <strong>Full Insurance:</strong> ${fullInsurance ? 'Yes' : 'No'}
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <strong>GPS Navigation:</strong> ${gpsNavigation ? 'Yes' : 'No'}
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <strong>Child Seat:</strong> ${childSeat ? 'Yes' : 'No'}
-                    </div>
+                    ${childSeat ? `<div class='col-md-6 mb-2'><strong>Child Seat:</strong> Yes</div>` : ''}
+                    ${boosterSeat ? `<div class='col-md-6 mb-2'><strong>Booster Seat:</strong> Yes</div>` : ''}
+                    ${!childSeat && !boosterSeat ? `<div class='col-12 mb-2 text-muted'>No add-ons selected.</div>` : ''}
                 </div>
-                
+
                 <div class="mt-3">
                     <strong>Special Requests:</strong>
                     <p class="mb-0 mt-2">${specialRequests || 'None'}</p>
