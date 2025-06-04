@@ -163,13 +163,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (updateStatusBtn) {
         updateStatusBtn.addEventListener('click', updateBookingStatus);
     }
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            localStorage.removeItem('adminToken');
-            window.location.href = 'admin-login.html';
-        });
-    }
+    ['logoutBtn', 'logoutBtnMobile', 'mobileLogoutBtn'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('click', function () {
+                localStorage.removeItem('adminToken');
+                window.location.href = 'admin-login.html';
+            });
+        }
+    });
     
     // Add event listener for text search input
     if (textSearchFilter) {
@@ -626,6 +628,29 @@ function formatDate(dateString) {
 }
 
 /**
+ * Format a date string including time
+ * @param {string} dateString - The date string to format
+ * @returns {string} - Formatted date and time string
+ */
+function formatDateTime(dateString) {
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date)) return dateString;
+        return date.toLocaleString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+    } catch (e) {
+        return dateString;
+    }
+}
+
+/**
  * Format a number as currency
  * @param {number} amount - The amount to format
  * @returns {string} - Formatted currency string
@@ -740,7 +765,7 @@ function renderBookings(bookings) {
             <td data-label="Return Date" class="align-middle">${formatDate(booking.return_date)}</td>
             <td data-label="Total Price" class="align-middle">${formattedPrice}</td>
             <td data-label="Status" class="align-middle"><span class="booking-status ${getStatusClass(booking.status)}">${booking.status || 'N/A'}</span></td>
-            <td data-label="Submitted" class="align-middle">${formatDate(booking.date_submitted)}</td>
+            <td data-label="Submitted" class="align-middle">${formatDateTime(booking.date_submitted)}</td>
             <td data-label="Actions" class="align-middle">
                 <div class="d-flex gap-1 justify-content-start">
                     <button class="btn btn-sm btn-outline-primary view-details-btn" title="View Details" data-booking-id="${booking.id}">
@@ -863,10 +888,8 @@ function showBookingDetails(booking) {
     const formattedTotalPrice = isNaN(totalPrice) ? 'N/A' : formatCurrency(totalPrice);
     
     // Extra options
-    const additionalDriver = booking.additional_driver || false;
-    const fullInsurance = booking.full_insurance || false;
-    const gpsNavigation = booking.gps_navigation || false;
     const childSeat = booking.child_seat || false;
+    const boosterSeat = booking.booster_seat || false;
     const specialRequests = booking.special_requests || '';
     
     // Create modal content
@@ -878,7 +901,7 @@ function showBookingDetails(booking) {
                     ${booking.status || 'pending'}
                 </span>
             </div>
-            <div class="text-white-50">Created: ${formatDate(booking.date_submitted)}</div>
+            <div class="text-white-50">Created: ${formatDateTime(booking.date_submitted)}</div>
         </div>
         
         <div class="booking-details-body">
@@ -949,20 +972,11 @@ function showBookingDetails(booking) {
             <div class="detail-section">
                 <h5 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add-ons</h5>
                 <div class="row">
-                    <div class="col-md-6 mb-2">
-                        <strong>Additional Driver:</strong> ${additionalDriver ? 'Yes' : 'No'}
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <strong>Full Insurance:</strong> ${fullInsurance ? 'Yes' : 'No'}
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <strong>GPS Navigation:</strong> ${gpsNavigation ? 'Yes' : 'No'}
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <strong>Child Seat:</strong> ${childSeat ? 'Yes' : 'No'}
-                    </div>
+                    ${childSeat ? `<div class='col-md-6 mb-2'><strong>Child Seat:</strong> Yes</div>` : ''}
+                    ${boosterSeat ? `<div class='col-md-6 mb-2'><strong>Booster Seat:</strong> Yes</div>` : ''}
+                    ${!childSeat && !boosterSeat ? `<div class='col-12 mb-2 text-muted'>No add-ons selected.</div>` : ''}
                 </div>
-                
+
                 <div class="mt-3">
                     <strong>Special Requests:</strong>
                     <p class="mb-0 mt-2">${specialRequests || 'None'}</p>

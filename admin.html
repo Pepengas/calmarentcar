@@ -291,6 +291,15 @@
                 transition: transform 0.3s ease;
                 transform: translateX(-100%);
             }
+            .mobile-sidebar .close-sidebar {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                background: none;
+                border: none;
+                color: #fff;
+                font-size: 1.5rem;
+            }
             .mobile-sidebar.active {
                 display: block;
                 transform: translateX(0);
@@ -746,13 +755,14 @@
         <span class="navbar-title">Calma Car Rental Admin</span>
     </div>
     <div class="mobile-sidebar" id="mobileSidebar">
+        <button class="close-sidebar" id="mobileSidebarCloseBtn" aria-label="Close sidebar">&times;</button>
         <ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link" id="mobileDashboardTab" href="#"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileCarsTab" href="#"><i class="fas fa-car me-2"></i>Cars Pricing</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileCustomersTab" href="#"><i class="fas fa-users me-2"></i>Cars Availability</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileReportsTab" href="#"><i class="fas fa-chart-line me-2"></i>Reports</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileSettingsTab" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileEditCarTab" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileDashboardTab" data-section="dashboard" href="#"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileCarsTab" data-section="cars" href="#"><i class="fas fa-car me-2"></i>Cars Pricing</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileCustomersTab" data-section="customers" href="#"><i class="fas fa-users me-2"></i>Cars Availability</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileReportsTab" data-section="reports" href="#"><i class="fas fa-chart-line me-2"></i>Reports</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileSettingsTab" data-section="settings" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileEditCarTab" data-section="editCar" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a></li>
             <li class="nav-item mt-3"><a class="nav-link text-danger" id="mobileLogoutBtn" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
         </ul>
     </div>
@@ -1036,7 +1046,25 @@
                 </button>
             </div>
             <div class="col">
-                <button class="btn btn-link w-100 py-2 text-muted" id="logoutBtn">
+                <button class="btn btn-link w-100 py-2 text-muted" data-section="customers">
+                    <i class="fas fa-users d-block"></i>
+                    <small>Availability</small>
+                </button>
+            </div>
+            <div class="col">
+                <button class="btn btn-link w-100 py-2 text-muted" data-section="addons">
+                    <i class="fas fa-puzzle-piece d-block"></i>
+                    <small>Addons</small>
+                </button>
+            </div>
+            <div class="col">
+                <button class="btn btn-link w-100 py-2 text-muted" data-section="settings">
+                    <i class="fas fa-cog d-block"></i>
+                    <small>Settings</small>
+                </button>
+            </div>
+            <div class="col">
+                <button class="btn btn-link w-100 py-2 text-muted" id="logoutBtnMobile">
                     <i class="fas fa-sign-out-alt d-block"></i>
                     <small>Logout</small>
                 </button>
@@ -1108,6 +1136,10 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             // Setup click handlers for all navigation links
+            const mobileSidebar = document.getElementById('mobileSidebar');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileSidebarCloseBtn = document.getElementById('mobileSidebarCloseBtn');
+
             document.querySelectorAll('.nav-link, .mobile-nav .btn').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -1115,15 +1147,19 @@
                     if (section) {
                         showSection(section);
                     }
+                    if (mobileSidebar) mobileSidebar.classList.remove('active');
                 });
             });
 
-            // Setup mobile menu button
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const mobileSidebar = document.getElementById('mobileSidebar');
             if (mobileMenuBtn && mobileSidebar) {
                 mobileMenuBtn.addEventListener('click', function() {
                     mobileSidebar.classList.toggle('active');
+                });
+            }
+
+            if (mobileSidebarCloseBtn && mobileSidebar) {
+                mobileSidebarCloseBtn.addEventListener('click', function() {
+                    mobileSidebar.classList.remove('active');
                 });
             }
 

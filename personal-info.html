@@ -1254,7 +1254,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="addon-option p-4 border rounded-lg hover:border-blue-500 transition-colors">
                     <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" name="addons" value="child-seat" class="form-checkbox h-5 w-5 text-blue-600">
+                        <input type="checkbox" id="childSeat" name="addons" value="child-seat" class="form-checkbox h-5 w-5 text-blue-600">
                         <div>
                             <span class="font-medium">Child Seat</span>
                             <p class="text-sm text-gray-600">$7.50 per day</p>
@@ -1263,7 +1263,7 @@
                 </div>
                 <div class="addon-option p-4 border rounded-lg hover:border-blue-500 transition-colors">
                     <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" name="addons" value="booster-seat" class="form-checkbox h-5 w-5 text-blue-600">
+                        <input type="checkbox" id="boosterSeat" name="addons" value="booster-seat" class="form-checkbox h-5 w-5 text-blue-600">
                         <div>
                             <span class="font-medium">Booster Seat</span>
                             <p class="text-sm text-gray-600">$5.00 per day</p>
@@ -1696,8 +1696,9 @@
           let finalCarMake = carMake;
           let finalCarModel = carModel; 
           let finalDailyRate = carPrice;
+          let storedCarData = null;
           try {
-            const storedCarData = JSON.parse(localStorage.getItem('selectedCar'));
+            storedCarData = JSON.parse(localStorage.getItem('selectedCar'));
             if (storedCarData) {
               finalCarId = finalCarId || storedCarData.id;
               finalCarMake = finalCarMake || storedCarData.make;
@@ -1732,6 +1733,14 @@
           };
           fetchTotalPrice().then(async (basePrice) => {
             let totalPrice = basePrice;
+            if (!totalPrice || totalPrice <= 0) {
+              // Fallback to stored price if API didn't return a value
+              if (storedCarData && storedCarData.totalPrice) {
+                totalPrice = storedCarData.totalPrice;
+              } else {
+                totalPrice = finalDailyRate * durationDays;
+              }
+            }
             // Check additional options
             const childSeat = document.getElementById('childSeat').checked;
             const boosterSeat = document.getElementById('boosterSeat').checked;
@@ -1761,7 +1770,7 @@
               dropoff_location: urlParams.get('dropoff-location'),
               car_make: finalCarMake,
               car_model: finalCarModel,
-              daily_rate: Math.round(basePrice / durationDays),
+              daily_rate: Math.round(totalPrice / durationDays),
               total_price: totalPrice,
               child_seat: childSeat,
               booster_seat: boosterSeat,
