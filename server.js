@@ -37,8 +37,15 @@ const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:${port}`;
 // Stripe requires a minimum amount of 0.50 EUR
 const MIN_CHARGE_AMOUNT = 0.5;
 
+// CORS configuration
+const ALLOWED_ORIGIN = 'https://calmarental.com';
+const corsOptions = {
+    origin: ALLOWED_ORIGIN,
+    credentials: true,
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
