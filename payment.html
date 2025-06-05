@@ -296,7 +296,7 @@
           window.location.href = data.url;
         } catch (err) {
           console.error('Checkout error:', err);
-          showPaymentError('Unable to start the checkout process.');
+          showPaymentError(err.message || 'Unable to start the checkout process.');
         } finally {
           payButton.disabled = false;
           payButton.innerHTML = '<i class="fas fa-credit-card payment-icon"></i> Pay Now';

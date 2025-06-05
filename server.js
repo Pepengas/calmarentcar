@@ -34,6 +34,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 // Fallback frontend URL used if the environment variable is not provided
 const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:${port}`;
+// Stripe requires a minimum amount of 0.50 EUR
+const MIN_CHARGE_AMOUNT = 0.5;
 
 // Middleware
 app.use(cors());
@@ -1623,6 +1625,10 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 
     const { carName, totalAmount, startDate, endDate } = bookingDetails;
+
+    if (totalAmount < MIN_CHARGE_AMOUNT) {
+      return res.status(400).json({ error: `Amount must be at least €${MIN_CHARGE_AMOUNT.toFixed(2)}` });
+    }
     const description = startDate && endDate ? `Rental: ${startDate} to ${endDate}` : undefined;
 
     const origin = req.get('origin');
