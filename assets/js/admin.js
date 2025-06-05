@@ -1052,9 +1052,14 @@ function showBookingDetails(booking) {
     
     // Extract pricing - handle missing or zero data
     const dailyRate = parseFloat(booking.daily_rate);
-    const totalPrice = parseFloat(booking.total_price);
+    const totalPrice = parseFloat(booking.total_price || booking.totalPrice);
     const formattedDailyRate = isNaN(dailyRate) ? 'N/A' : formatCurrency(dailyRate);
     const formattedTotalPrice = isNaN(totalPrice) ? 'N/A' : formatCurrency(totalPrice);
+
+    const paidAmount = isNaN(totalPrice) ? null : (totalPrice * 0.45).toFixed(2);
+    const dueAmount = isNaN(totalPrice) ? null : (totalPrice * 0.55).toFixed(2);
+    const formattedPaid = paidAmount ? `€${paidAmount}` : 'N/A';
+    const formattedDue = dueAmount ? `€${dueAmount}` : 'N/A';
     
     // Extra options
     const childSeat = booking.child_seat || false;
@@ -1133,6 +1138,12 @@ function showBookingDetails(booking) {
                     </div>
                     <div class="col-md-6 mb-2">
                         <strong>Total Price:</strong> ${formattedTotalPrice}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong style="color: green;">Paid:</strong> ${formattedPaid}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong style="color: red;">Due:</strong> ${formattedDue}
                     </div>
                 </div>
             </div>
