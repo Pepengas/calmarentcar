@@ -1643,7 +1643,7 @@
           document.body.appendChild(successMessage);
         }
         
-        successMessage.innerHTML = '<i class="fas fa-check-circle"></i> Booking successful! Redirecting to confirmation page...';
+        successMessage.innerHTML = '<i class="fas fa-check-circle"></i> Booking successful! Redirecting to payment page...';
         successMessage.style.display = 'block';
       }
       
@@ -1831,7 +1831,35 @@
                 
               // Redirect after a short delay
               setTimeout(() => {
-                window.location.href = `booking-confirmation.html?reference=${data.booking_reference}`;
+                const bookingSummary = {
+                  bookingReference: data.booking_reference,
+                  pickupLocation: bookingData.pickup_location,
+                  pickupDate: bookingData.pickup_date,
+                  returnDate: bookingData.return_date,
+                  selectedCar: {
+                    id: finalCarId,
+                    make: finalCarMake,
+                    model: finalCarModel,
+                    price: finalDailyRate
+                  },
+                  durationDays: durationDays,
+                  totalPrice: totalPrice,
+                  customer: {
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email,
+                    phone: phone,
+                    age: age,
+                    driverLicense: driverLicense,
+                    nationality: nationality,
+                    additionalOptions: {
+                      childSeat: childSeat,
+                      boosterSeat: boosterSeat
+                    }
+                  }
+                };
+                localStorage.setItem('currentBooking', JSON.stringify(bookingSummary));
+                window.location.href = 'payment.html';
               }, 1000);
             })
             .catch((error) => {
