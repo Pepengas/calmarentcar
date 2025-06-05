@@ -276,6 +276,7 @@
           }
 
           const bookingDetails = {
+            bookingReference: bookingData.bookingReference,
             totalAmount: bookingData.totalPrice,
             carName: bookingData.selectedCar ? `${bookingData.selectedCar.make} ${bookingData.selectedCar.model}` : 'Car',
             startDate: bookingData.pickupDate,
