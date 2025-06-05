@@ -91,6 +91,16 @@ async function createTables() {
             )
         `);
         console.log('✅ Bookings table created successfully.');
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS admins (
+                id SERIAL PRIMARY KEY,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        console.log('✅ Admins table created successfully.');
     } catch (error) {
         console.error('❌ Error creating tables:', error);
     }
