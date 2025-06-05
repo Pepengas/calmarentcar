@@ -1625,6 +1625,9 @@ app.post('/api/create-checkout-session', async (req, res) => {
     const { carName, totalAmount, startDate, endDate } = bookingDetails;
     const description = startDate && endDate ? `Rental: ${startDate} to ${endDate}` : undefined;
 
+    const origin = req.get('origin');
+    const redirectBase = process.env.FRONTEND_URL || origin || `http://localhost:${port}`;
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -1641,8 +1644,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
           quantity: 1,
         },
       ],
-      success_url: `${FRONTEND_URL}/booking-confirmation.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}/payment.html?cancelled=true`,
+      success_url: `${redirectBase}/booking-confirmation.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${redirectBase}/payment.html?cancelled=true`,
     });
 
     res.json({ url: session.url });
