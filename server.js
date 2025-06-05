@@ -8,6 +8,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const session = require('express-session');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const { body, param, validationResult } = require('express-validator');
@@ -51,6 +52,16 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(session({
+  secret: process.env.SESSION_SECRET || "supersecret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 24 * 60 * 60 * 1000
+  }
+}));
 
 // Simple recursive sanitizer for all incoming values
 function sanitizeObject(obj) {
@@ -84,6 +95,7 @@ const validate = (validations) => async (req, res, next) => {
     }
     next();
 };
+app.get("/admin.html", requireAdminAuth, (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
 
 // Serve static files
 app.use(express.static(path.join(__dirname)));
@@ -258,31 +270,18 @@ async function syncManualBlockWithBooking(booking) {
 
 // Admin authentication middleware
 function requireAdminAuth(req, res, next) {
-    // For testing purposes, you can disable auth with an env variable
-    if (process.env.DISABLE_ADMIN_AUTH === 'true') {
+    if (process.env.DISABLE_ADMIN_AUTH === "true") {
         return next();
     }
-
-    // Get the token from request headers
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN format
-
-    // Check token in cookies as well
-    const cookieToken = req.cookies?.adminToken;
-
-    // Valid token (in production, use a more secure method like JWT)
-    const validToken = process.env.ADMIN_API_TOKEN || 'calma-admin-token-2023';
-    
-    if ((token && token === validToken) || (cookieToken && cookieToken === validToken)) {
+    if (req.session && req.session.adminAuthenticated) {
         return next();
     }
-
-    // Authentication failed
-    return res.status(401).json({
-        success: false,
-        error: 'Authentication required'
-    });
+    if (req.accepts("html")) {
+        return res.redirect("/admin-login.html");
+    }
+    return res.status(401).json({ success: false, error: "Authentication required" });
 }
+
 
 // --- Addons In-Memory Store and API ---
 let addons = [
@@ -940,29 +939,15 @@ app.post('/api/admin/login',
     async (req, res) => {
     try {
         const { username, password } = req.body;
-        
         // In a real app, check credentials against database
-        // For this demo, we use hardcoded values (replace with proper auth!)
-        if (username === 'admin' && password === 'admin123') {
-            const token = process.env.ADMIN_API_TOKEN || 'calma-admin-token-2023';
-            
-            // Set cookie with token (for server-side auth check)
-            res.cookie('adminToken', token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: 24 * 60 * 60 * 1000 // 1 day
-            });
-            
-            return res.json({
-                success: true,
-                token, // Client should store this in localStorage
-                message: 'Login successful',
-            });
+        if (username === "admin" && password === "admin123") {
+            req.session.adminAuthenticated = true;
+            return res.json({ success: true, message: "Login successful" });
         }
-        
+
         return res.status(401).json({
             success: false,
-            error: 'Invalid credentials'
+            error: "Invalid credentials"
         });
     } catch (error) {
         console.error('Error during login:', error);
@@ -971,6 +956,16 @@ app.post('/api/admin/login',
             error: error.message
         });
     }
+});
+app.get("/api/admin/session", (req, res) => {
+    res.json({ authenticated: !!req.session.adminAuthenticated });
+});
+
+app.post("/api/admin/logout", (req, res) => {
+    req.session.destroy(() => {
+        res.clearCookie("connect.sid");
+        res.json({ success: true });
+    });
 });
 
 // Get all admins (protected)
@@ -1397,7 +1392,7 @@ async function calculateTotalPrice(car_id, pickup_date, return_date) {
  */
 
 // Admin pages
-app.get('/admin', (req, res) => {
+app.get('/admin', requireAdminAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
