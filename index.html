@@ -259,6 +259,87 @@
             opacity: 1;
         }
 
+        /* Privacy Policy Modal Styles */
+        #privacy-modal.modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        #privacy-modal .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 2rem;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 12px;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #privacy-modal .close-modal {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s ease;
+        }
+
+        #privacy-modal .close-modal:hover {
+            color: #333;
+        }
+
+        #privacy-modal h2 {
+            color: #0066cc;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        #privacy-modal h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: #0066cc;
+            border-radius: 3px;
+        }
+
+        #privacy-modal h3 {
+            color: #444;
+            margin: 1.5rem 0 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        #privacy-modal p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            #privacy-modal .modal-content {
+                padding: 1.5rem;
+                margin: 15% auto;
+                width: 90%;
+            }
+        }
+        
         @media (max-width: 600px) {
             h1 {
                 padding-top: 2.5rem;
@@ -1083,7 +1164,7 @@
                     <ul>
                         <li><a href="#faq">FAQ</a></li>
                         <li><a href="#contact">Contact Us</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#" id="privacy-policy-link">Privacy Policy</a></li>
                     </ul>
                 </div>
                 
@@ -1102,6 +1183,76 @@
             </div>
         </div>
     </footer>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Privacy Policy</h2>
+            <div class="privacy-content">
+                <h3>1. Introduction</h3>
+                <p>At Calma Car Rental, we are committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your data when you use our services.</p>
+
+                <h3>2. Information We Collect</h3>
+                <p>We may collect the following types of personal data:</p>
+                <ul>
+                    <li>Full name</li>
+                    <li>Email address</li>
+                    <li>Phone number</li>
+                    <li>Home address</li>
+                    <li>Driver&rsquo;s license information</li>
+                    <li>Payment details (via third-party processors)</li>
+                    <li>Booking details (car, dates, pickup/dropoff)</li>
+                    <li>IP address and device/browser info</li>
+                </ul>
+
+                <h3>3. How We Use Your Information</h3>
+                <p>We use your data to:</p>
+                <ul>
+                    <li>Process and manage bookings</li>
+                    <li>Communicate with you (confirmations, changes, promotions)</li>
+                    <li>Ensure legal and regulatory compliance</li>
+                    <li>Improve user experience</li>
+                    <li>Prevent fraud</li>
+                </ul>
+
+                <h3>4. Data Sharing and Disclosure</h3>
+                <p>We may share your data with:</p>
+                <ul>
+                    <li>Payment processors</li>
+                    <li>Email services</li>
+                    <li>Legal authorities when required</li>
+                    <li>Hosting/IT providers</li>
+                </ul>
+
+                <h3>5. Cookies and Tracking</h3>
+                <p>We use cookies to enhance functionality and gather usage analytics.</p>
+
+                <h3>6. Data Protection</h3>
+                <p>Your data is stored securely using encryption, secure databases, and access controls.</p>
+
+                <h3>7. User Rights</h3>
+                <p>You have the right to:</p>
+                <ul>
+                    <li>Access, correct, or delete your data</li>
+                    <li>Withdraw consent</li>
+                    <li>File a complaint under GDPR or other regulations</li>
+                </ul>
+
+                <h3>8. Data Retention</h3>
+                <p>We retain data only as long as necessary for legal and business purposes.</p>
+
+                <h3>9. Third-Party Links</h3>
+                <p>We are not responsible for the privacy practices of external websites linked from our site.</p>
+
+                <h3>10. Changes to This Policy</h3>
+                <p>We may update this policy. Changes will be posted on this page.</p>
+
+                <h3>11. Contact</h3>
+                <p>For privacy inquiries, contact us at <strong>calmarental@gmail.com</strong>.</p>
+            </div>
+        </div>
+    </div>
 
     <!-- Schema.org Structured Data for Local Business -->
     <script type="application/ld+json">
@@ -1207,6 +1358,34 @@
             });
         });
     </script>
+
+    <!-- Privacy Policy Modal Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const privacyLink = document.getElementById('privacy-policy-link');
+            const privacyModal = document.getElementById('privacy-modal');
+            const closeModal = privacyModal.querySelector('.close-modal');
+
+            if (privacyLink) {
+                privacyLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    privacyModal.style.display = 'block';
+                });
+            }
+
+            if (closeModal) {
+                closeModal.addEventListener('click', function() {
+                    privacyModal.style.display = 'none';
+                });
+            }
+
+            window.addEventListener('click', function(event) {
+                if (event.target === privacyModal) {
+                    privacyModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </div>
 </body>
-</html> 
+</html>
