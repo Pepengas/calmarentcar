@@ -10,6 +10,12 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
+
+// Ensure the Stripe secret key is provided
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing STRIPE_SECRET_KEY environment variable');
+}
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Import database pool

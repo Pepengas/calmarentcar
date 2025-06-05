@@ -36,6 +36,7 @@ postgresql://postgres:password@containers-us-west-123.railway.app:7890/railway
    - `DATABASE_URL` = [your PostgreSQL connection string]
    - `NODE_ENV` = production
    - `PORT` = 3000
+   - `STRIPE_SECRET_KEY` = [your Stripe secret key]
 
 4. Deploy your application
 
@@ -47,6 +48,7 @@ postgresql://postgres:password@containers-us-west-123.railway.app:7890/railway
    DATABASE_URL=postgresql://postgres:password@containers-us-west-123.railway.app:7890/railway
    NODE_ENV=production
    PORT=3000
+   STRIPE_SECRET_KEY=your-stripe-secret-key
    ```
 3. Deploy your code to your hosting provider
 
