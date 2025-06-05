@@ -10,6 +10,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Import database pool
 const { pool, registerCreateTables } = require('./database');
@@ -1594,6 +1595,46 @@ app.delete('/api/admin/manual-block/:id', requireAdminAuth, async (req, res) => 
     } catch (error) {
         console.error('[ADMIN] Error deleting manual block:', error);
         return res.status(500).json({ success: false, error: 'Failed to delete manual block' });
+    }
+});
+
+// Create Stripe Checkout session
+app.post('/api/create-checkout-session', async (req, res) => {
+    const { bookingDetails } = req.body || {};
+
+    if (!bookingDetails || !bookingDetails.price || !bookingDetails.carName) {
+        return res.status(400).json({ error: 'Missing booking details' });
+    }
+
+    try {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            mode: 'payment',
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'eur',
+                        unit_amount: Math.round(bookingDetails.price * 100),
+                        product_data: {
+                            name: bookingDetails.carName
+                        }
+                    },
+                    quantity: 1
+                }
+            ],
+            metadata: {
+                start_date: bookingDetails.startDate || '',
+                end_date: bookingDetails.endDate || '',
+                reference: bookingDetails.reference || ''
+            },
+            success_url: `${req.protocol}://${req.get('host')}/booking-confirmation.html`,
+            cancel_url: `${req.protocol}://${req.get('host')}/payment.html`
+        });
+
+        return res.json({ url: session.url });
+    } catch (error) {
+        console.error('Error creating Stripe checkout session:', error);
+        return res.status(500).json({ error: 'Failed to create session' });
     }
 });
 

@@ -6,6 +6,7 @@
   <title>Payment - Calma Car Rental</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaA0YzFjI4uEzFepDSm3ri9kUibX39j7ytm0RE+5ZLshY9FVJqoGXK5tw5M" crossorigin="anonymous">
   <style>
     /* Reset and base styles */
     * {
@@ -248,10 +249,10 @@
           </div>
         </div>
         
-        <div class="payment-methods">
-          <p style="margin-bottom: 1.5rem;">Please select your preferred payment method:</p>
+        <div class="payment-methods text-center">
+          <p class="mb-3">100% secure payment powered by <i class="fab fa-cc-stripe"></i> Stripe</p>
           <button id="pay-button" class="btn btn-primary btn-lg">
-            <i class="fas fa-credit-card payment-icon"></i>Pay with Credit Card
+            <i class="fas fa-lock me-2"></i>Pay Now
           </button>
         </div>
       </div>
@@ -259,205 +260,94 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('Payment page loaded');
-      
-      // Add event listener to the payment button
+    document.addEventListener('DOMContentLoaded', () => {
       const payButton = document.getElementById('pay-button');
-      if (payButton) {
-        payButton.addEventListener('click', function() {
-          // Show processing state
-          payButton.disabled = true;
-          payButton.innerHTML = '<i class="fas fa-spinner fa-spin payment-icon"></i> Processing...';
-          
-          // Simulate payment processing
-          setTimeout(async function() {
-            try {
-              // Get current booking data
-              const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
-              
-              if (!bookingData || !bookingData.bookingReference) {
-                console.error('No valid booking data found!');
-                showPaymentError('No valid booking data found. Please try again.');
-                return;
-              }
-              
-              console.log('Processing payment for booking:', bookingData.bookingReference);
-              
-              // Update booking with payment info
-              bookingData.status = 'confirmed';
-              bookingData.paymentDate = new Date().toISOString();
-              bookingData.timestamp = new Date().toISOString();
-              bookingData.dateSubmitted = new Date().toISOString();
-              
-              // Save updated booking to localStorage (as a backup)
-              localStorage.setItem('currentBooking', JSON.stringify(bookingData));
-              
-              // Save booking to database using our API
-              try {
-                const apiUrl = window.location.hostname === 'localhost' 
-                  ? 'http://localhost:3000/api/bookings' 
-                  : '/api/bookings';
-                
-                console.log('Saving booking to database via API:', apiUrl);
-                
-                const response = await fetch(apiUrl, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(bookingData)
-                });
-                
-                if (!response.ok) {
-                  const errorData = await response.json();
-                  throw new Error(`API Error: ${errorData.error || response.statusText}`);
-                }
-                
-                const savedBooking = await response.json();
-                console.log('Booking successfully saved to database:', savedBooking);
-                
-                // Show success message
-                showPaymentSuccess();
-              } catch (apiError) {
-                console.error('Error saving booking to API:', apiError);
-                
-                // Fallback to localStorage only
-                console.log('Using localStorage fallback for booking storage');
-                
-                // Save to adminBookings as a backup
-                let adminBookings = [];
-                try {
-                  adminBookings = JSON.parse(localStorage.getItem('adminBookings') || '[]');
-                } catch (e) {
-                  console.error('Error parsing adminBookings:', e);
-                  adminBookings = [];
-                }
-                
-                // Add/update booking
-                const existingIndex = adminBookings.findIndex(b => b.bookingReference === bookingData.bookingReference);
-                if (existingIndex >= 0) {
-                  adminBookings[existingIndex] = bookingData;
-                } else {
-                  adminBookings.push(bookingData);
-                }
-                
-                // Save back to localStorage
-                localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
-                
-                // Show success message (even though we used fallback)
-                showPaymentSuccess();
-              }
-            } catch (error) {
-              console.error('Error processing payment:', error);
-              showPaymentError('An error occurred while processing your payment. Please try again.');
-            }
-          }, 1500);
-        });
-      }
-      
-      // Function to show payment success message
-      function showPaymentSuccess() {
-        const paymentContainer = document.querySelector('.payment-container');
-        if (paymentContainer) {
-          // Get booking reference
+
+      loadBookingSummary();
+
+      payButton?.addEventListener('click', async () => {
+        payButton.disabled = true;
+        payButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Processing payment...';
+
+        try {
           const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
-          const bookingRef = bookingData.bookingReference || 'UNKNOWN';
-          
-          // Replace content with success message
-          paymentContainer.innerHTML = `
-            <div class="payment-success" style="text-align: center; padding: 2rem;">
-              <div style="color: #27ae60; font-size: 4rem; margin-bottom: 1.5rem;">
-                <i class="fas fa-check-circle"></i>
-              </div>
-              <h2 style="color: #333; margin-bottom: 1rem;">Payment Successful!</h2>
-              <p style="color: #555; margin-bottom: 0.5rem;">Your booking reference: <strong>${bookingRef}</strong></p>
-              <p style="color: #555; margin-bottom: 1.5rem;">A confirmation email has been sent to your email address.</p>
-              <div style="margin-top: 2rem;">
-                <a href="index.html" class="btn btn-primary">Return to Home</a>
-              </div>
-            </div>
-          `;
-        }
-      }
-      
-      // Function to show payment error message
-      function showPaymentError(errorMessage) {
-        const payButton = document.getElementById('pay-button');
-        if (payButton) {
+          if (!bookingData || !bookingData.totalPrice) {
+            throw new Error('Missing booking data');
+          }
+
+          const bookingDetails = {
+            price: bookingData.totalPrice,
+            carName: bookingData.selectedCar ? `${bookingData.selectedCar.make} ${bookingData.selectedCar.model}` : 'Car',
+            startDate: bookingData.pickupDate,
+            endDate: bookingData.returnDate,
+            reference: bookingData.bookingReference
+          };
+
+          const response = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bookingDetails })
+          });
+
+          const data = await response.json();
+          if (!response.ok || !data.url) {
+            throw new Error(data.error || 'Failed to create session');
+          }
+
+          window.location.href = data.url;
+        } catch (err) {
+          console.error('Checkout error:', err);
+          showPaymentError('Unable to start the checkout process.');
+        } finally {
           payButton.disabled = false;
-          payButton.innerHTML = '<i class="fas fa-credit-card payment-icon"></i>Try Again';
+          payButton.innerHTML = '<i class="fas fa-credit-card payment-icon"></i> Pay Now';
         }
-        
-        alert('Payment Error: ' + errorMessage);
-      }
-      
-      // Try to load booking data from localStorage
-      try {
-        const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
-        console.log('Booking data loaded:', bookingData);
-        
-        if (bookingData && bookingData.bookingReference) {
-          // Populate booking summary
+      });
+
+      function loadBookingSummary() {
+        try {
+          const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+          if (!bookingData || !bookingData.bookingReference) return;
+
           document.getElementById('booking-reference').textContent = bookingData.bookingReference;
-          
           if (bookingData.selectedCar) {
-            document.getElementById('car-details').textContent = 
-              `${bookingData.selectedCar.make} ${bookingData.selectedCar.model}`;
+            document.getElementById('car-details').textContent = `${bookingData.selectedCar.make} ${bookingData.selectedCar.model}`;
           }
-          
           if (bookingData.pickupLocation && bookingData.pickupDate) {
-            document.getElementById('pickup-details').textContent = 
-              `${bookingData.pickupLocation} - ${new Date(bookingData.pickupDate).toLocaleDateString()}`;
+            document.getElementById('pickup-details').textContent = `${bookingData.pickupLocation} - ${new Date(bookingData.pickupDate).toLocaleDateString()}`;
           }
-          
           if (bookingData.returnDate) {
-            document.getElementById('return-details').textContent = 
-              `${bookingData.pickupLocation} - ${new Date(bookingData.returnDate).toLocaleDateString()}`;
+            document.getElementById('return-details').textContent = `${bookingData.pickupLocation} - ${new Date(bookingData.returnDate).toLocaleDateString()}`;
           }
-          
           if (bookingData.durationDays) {
-            document.getElementById('duration').textContent = 
-              `${bookingData.durationDays} day${bookingData.durationDays !== 1 ? 's' : ''}`;
+            document.getElementById('duration').textContent = `${bookingData.durationDays} day${bookingData.durationDays !== 1 ? 's' : ''}`;
           }
-          
-          // Display options if any
+
           let options = 'None';
           if (bookingData.customer && bookingData.customer.additionalOptions) {
-            const selectedOptions = [];
-            const { additionalOptions } = bookingData.customer;
-            
-            if (additionalOptions.additionalDriver) selectedOptions.push('Additional Driver');
-            if (additionalOptions.fullInsurance) selectedOptions.push('Full Insurance');
-            if (additionalOptions.gpsNavigation) selectedOptions.push('GPS Navigation');
-            if (additionalOptions.childSeat) selectedOptions.push('Child Seat');
-            
-            if (selectedOptions.length > 0) {
-              options = selectedOptions.join(', ');
-            }
+            const ao = bookingData.customer.additionalOptions;
+            const opts = [];
+            if (ao.additionalDriver) opts.push('Additional Driver');
+            if (ao.fullInsurance) opts.push('Full Insurance');
+            if (ao.gpsNavigation) opts.push('GPS Navigation');
+            if (ao.childSeat) opts.push('Child Seat');
+            if (opts.length) options = opts.join(', ');
           }
           document.getElementById('options').textContent = options;
-          
-          // Display total price
           if (bookingData.totalPrice) {
             document.getElementById('total-amount').textContent = `€${bookingData.totalPrice.toFixed(2)}`;
           }
-        } else {
-          console.error('No valid booking data found');
-          document.getElementById('booking-details').innerHTML = `
-            <div class="error-message" style="color: #e51c23; text-align: center; padding: 2rem;">
-              <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-              <p>Sorry, we couldn't find your booking information.</p>
-              <p>Please try booking again.</p>
-              <a href="index.html" class="btn btn-primary" style="margin-top: 1rem;">Return to Homepage</a>
-            </div>
-          `;
+        } catch (e) {
+          console.error('Failed to load booking summary', e);
         }
-      } catch (error) {
-        console.error('Error loading booking data:', error);
+      }
+
+      function showPaymentError(msg) {
+        alert(msg);
       }
     });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76ADevn1T8KDd90GmpAnLt6gztf1NUc2V8m8FyzbK3zYy1hZ+GyYce5e/jb9Ec" crossorigin="anonymous"></script>
   <script src="assets/js/mobile-menu.js"></script>
 </body>
 </html> 
