@@ -454,6 +454,96 @@ document.addEventListener('DOMContentLoaded', function() {
             setActive(this);
         });
     }
+
+    const changePasswordForm = document.getElementById('changePasswordForm');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentPassword = e.target.current.value;
+            const newPassword = e.target.new.value;
+            const confirm = e.target.confirm.value;
+            const msg = document.getElementById('changePasswordMsg');
+            if (newPassword !== confirm) {
+                msg.textContent = 'Passwords do not match.';
+                return;
+            }
+            try {
+                const res = await fetch('/api/admin/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                const data = await res.json();
+                msg.textContent = data.success ? 'Password updated.' : data.error;
+            } catch (err) {
+                msg.textContent = 'Server error';
+            }
+        });
+    }
+
+    const addAdminForm = document.getElementById('addAdminForm');
+    if (addAdminForm) {
+        addAdminForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = e.target.email.value;
+            const password = e.target.password.value;
+            const msg = document.getElementById('addAdminMsg');
+            try {
+                const res = await fetch('/api/admin/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                msg.textContent = data.success ? 'Admin added.' : data.error;
+                if (data.success) {
+                    addAdminForm.reset();
+                    loadAdmins();
+                }
+            } catch (err) {
+                msg.textContent = 'Server error';
+            }
+        });
+    }
+
+    async function loadAdmins() {
+        try {
+            const res = await fetch('/api/admin/admins', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+            });
+            const data = await res.json();
+            const list = document.getElementById('adminList');
+            if (!list) return;
+            list.innerHTML = '';
+            if (data.admins) {
+                data.admins.forEach(a => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.textContent = a.email;
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-sm btn-danger';
+                    btn.textContent = 'Delete';
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('Delete admin?')) return;
+                        await fetch(`/api/admin/${a.id}`, { method: 'DELETE', headers:{'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }});
+                        loadAdmins();
+                    });
+                    li.appendChild(btn);
+                    list.appendChild(li);
+                });
+            }
+        } catch (err) {
+            console.error('Error loading admins:', err);
+        }
+    }
+
+    loadAdmins();
 });
 
 /**

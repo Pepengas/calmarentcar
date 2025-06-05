@@ -9,6 +9,7 @@ const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcrypt');
 
 // Import database pool
 const { pool, registerCreateTables } = require('./database');
@@ -79,6 +80,16 @@ async function createTables() {
             )
         `);
         console.log('✅ Manual blocks table created successfully.');
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS admins (
+                id SERIAL PRIMARY KEY,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        console.log('✅ Admins table created successfully.');
     } catch (error) {
         console.error('❌ Error creating tables:', error);
     }
@@ -137,11 +148,29 @@ async function migrateAddBoosterSeatToBookings() {
     }
 }
 
+// Insert a default admin if none exist
+async function ensureDefaultAdmin() {
+    try {
+        if (!global.dbConnected) return;
+        const countRes = await pool.query('SELECT COUNT(*) FROM admins');
+        if (parseInt(countRes.rows[0].count, 10) === 0) {
+            const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
+            const pass = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123';
+            const hashed = await bcrypt.hash(pass, 10);
+            await pool.query('INSERT INTO admins (email, password) VALUES ($1, $2)', [email, hashed]);
+            console.log('✅ Default admin created');
+        }
+    } catch (err) {
+        console.error('❌ Error ensuring default admin:', err);
+    }
+}
+
 // Create tables when database is connected
 if (global.dbConnected) {
     createTables();
     migrateAddCarIdToBookings();
     migrateAddBoosterSeatToBookings();
+    ensureDefaultAdmin();
 }
 
 // Ensure a manual block exists for confirmed bookings and remove it otherwise
@@ -850,6 +879,72 @@ app.post('/api/admin/login', async (req, res) => {
             success: false,
             error: error.message
         });
+    }
+});
+
+// Get all admins (protected)
+app.get('/api/admin/admins', requireAdminAuth, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT id, email, created_at FROM admins ORDER BY id');
+        res.json({ success: true, admins: result.rows });
+    } catch (err) {
+        console.error('Error fetching admins:', err);
+        res.status(500).json({ success: false, error: 'Failed to fetch admins' });
+    }
+});
+
+// Change admin password
+app.post('/api/admin/change-password', requireAdminAuth, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ success: false, error: 'Missing fields' });
+        }
+        const adminRes = await pool.query('SELECT id, password FROM admins ORDER BY id LIMIT 1');
+        if (adminRes.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Admin not found' });
+        }
+        const admin = adminRes.rows[0];
+        const match = await bcrypt.compare(currentPassword, admin.password);
+        if (!match) {
+            return res.status(400).json({ success: false, error: 'Current password incorrect' });
+        }
+        const hashed = await bcrypt.hash(newPassword, 10);
+        await pool.query('UPDATE admins SET password=$1 WHERE id=$2', [hashed, admin.id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error changing password:', err);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Add new admin
+app.post('/api/admin/add', requireAdminAuth, async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ success: false, error: 'Missing fields' });
+        }
+        const hashed = await bcrypt.hash(password, 10);
+        await pool.query('INSERT INTO admins (email, password) VALUES ($1, $2)', [email, hashed]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error adding admin:', err);
+        let msg = 'Server error';
+        if (err.code === '23505') msg = 'Email already exists';
+        res.status(500).json({ success: false, error: msg });
+    }
+});
+
+// Delete admin
+app.delete('/api/admin/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM admins WHERE id=$1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting admin:', err);
+        res.status(500).json({ success: false, error: 'Server error' });
     }
 });
 
