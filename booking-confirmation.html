@@ -26,6 +26,7 @@
             <div class="text-green-500 text-6xl mb-2">✔️</div>
             <h1 class="text-2xl font-bold">Booking Confirmed!</h1>
             <p class="text-gray-600 mt-2">Thank you for booking with Calma Car Rental. A confirmation email has been sent.</p>
+            <p id="paymentThankYou" class="text-gray-700 mt-1">Thank you for your payment! Your booking is complete.</p>
             <div id="bookingReference" class="mt-4 text-sm text-gray-500">
                 Booking Reference: <span id="booking-ref" class="font-semibold text-black">Loading...</span>
             </div>
@@ -46,8 +47,9 @@
                 <h2 class="text-lg font-semibold mb-2">Payment Summary</h2>
                 <p><strong>Car:</strong> <span id="carInfo">Loading...</span></p>
                 <p><strong>Daily Rate:</strong> <span id="dailyRate">Loading...</span></p>
-                <p><strong>Total Amount:</strong> <span id="totalPrice" class="font-semibold">Loading...</span></p>
-                <p><strong>Payment Status:</strong> <span class="text-green-600 font-semibold">To be paid at pick-up</span></p>
+                <p><strong>Total Rental Price:</strong> <span id="totalPrice" class="font-semibold">Loading...</span></p>
+                <p><strong>You have paid:</strong> <span id="partialPaid">Loading...</span> via Stripe</p>
+                <p><strong>Remaining Balance:</strong> <span id="remainingBalance" class="font-semibold text-red-600">Loading...</span> to be paid at pickup</p>
             </div>
         </div>
         
@@ -160,6 +162,12 @@
                 document.getElementById('carInfo').textContent = `${rental.car_make} ${rental.car_model}`;
                 document.getElementById('dailyRate').textContent = formatCurrency(rental.daily_rate);
                 document.getElementById('totalPrice').textContent = formatCurrency(rental.total_price);
+                const stored = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+                const total = parseFloat(rental.total_price) || 0;
+                const partial = stored.partialAmount ? (stored.partialAmount).toFixed(2) : (total * 0.45).toFixed(2);
+                const remaining = (total - parseFloat(partial)).toFixed(2);
+                document.getElementById('partialPaid').textContent = `€${partial}`;
+                document.getElementById('remainingBalance').textContent = `€${remaining}`;
                 
                 // Calculate rental duration in days
                 if (rental.pickup_date && rental.return_date) {
