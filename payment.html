@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment - Calma Car Rental</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaA0YzFjI4uEzFepDSm3ri9kUibX39j7ytm0RE+5ZLshY9FVJqoGXK5tw5M" crossorigin="anonymous">
+  <style>
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      color: #333;
+      line-height: 1.5;
+      background-color: #f8f9fa;
+    }
+    
+    /* Header */
+    header {
+      border-bottom: 1px solid #eee;
+      padding: 1rem 0;
+      background-color: #fff;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-weight: 600;
+    }
+    
+    .logo a {
+      color: #333;
+      text-decoration: none;
+    }
+    
+    .nav-menu {
+      display: flex;
+      list-style: none;
+    }
+    
+    .nav-menu li {
+      margin-left: 1.5rem;
+    }
+    
+    .nav-menu a {
+      color: #333;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    
+    /* Main content */
+    .content {
+      padding: 3rem 0;
+    }
+    
+    .payment-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    .payment-header {
+      background-color: #0066cc;
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    
+    .payment-header h1 {
+      margin-bottom: 0.5rem;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+    
+    .payment-header p {
+      opacity: 0.9;
+      font-size: 1rem;
+    }
+    
+    .payment-content {
+      padding: 2rem;
+    }
+    
+    .booking-summary {
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .summary-title {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+    
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.75rem;
+    }
+    
+    .summary-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .summary-label {
+      font-weight: 500;
+    }
+    
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-top: 1rem;
+      border-top: 2px solid #ddd;
+      padding-top: 1rem;
+    }
+    
+    .payment-methods {
+      margin-top: 2rem;
+      text-align: center;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      font-size: 1rem;
+    }
+    
+    .btn-primary {
+      background-color: #0066cc;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0055aa;
+    }
+    
+    .btn-lg {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+    }
+    
+    .payment-icon {
+      font-size: 1.5rem;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <div class="header-content flex justify-between items-center w-full">
+        <div class="logo flex-shrink-0">
+          <a href="index.html" class="block">
+            <img src="images/CalmaLogoTrans.png" alt="Calma Car Rental Logo" width="160" height="50">
+          </a>
+        </div>
+        <nav class="hidden md:block">
+          <ul class="nav-menu flex space-x-6">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#cars">Our Cars</a></li>
+            <li><a href="index.html#about">About Us</a></li>
+            <li><a href="index.html#faq">FAQ</a></li>
+            <li><a href="index.html#contact">Contact</a></li>
+          </ul>
+        </nav>
+        <button class="mobile-menu md:hidden" aria-label="Open navigation menu">
+          <i class="fas fa-bars" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container content">
+    <div class="payment-container">
+      <div class="payment-header">
+        <h1>Payment</h1>
+        <p>Complete your booking securely</p>
+      </div>
+      
+      <div class="payment-content">
+        <div class="booking-summary">
+          <h2 class="summary-title">Booking Summary</h2>
+          <div id="booking-details">
+            <!-- Booking details will be populated by JavaScript -->
+            <div class="summary-row">
+              <span class="summary-label">Booking Reference:</span>
+              <span id="booking-reference">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Car:</span>
+              <span id="car-details">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Pick-up:</span>
+              <span id="pickup-details">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Return:</span>
+              <span id="return-details">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Duration:</span>
+              <span id="duration">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Additional Options:</span>
+              <span id="options">Loading...</span>
+            </div>
+            <div class="total-row">
+              <span>Total Amount:</span>
+              <span id="total-amount">Loading...</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="payment-methods text-center">
+          <p class="mb-3">100% secure payment powered by <i class="fab fa-cc-stripe"></i> Stripe</p>
+          <button id="pay-button" class="btn btn-primary btn-lg">
+            <i class="fas fa-lock me-2"></i>Pay Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const payButton = document.getElementById('pay-button');
+
+      loadBookingSummary();
+
+      payButton?.addEventListener('click', async () => {
+        payButton.disabled = true;
+        payButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Processing payment...';
+
+        try {
+          const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+          if (!bookingData || !bookingData.totalPrice) {
+            throw new Error('Missing booking data');
+          }
+
+          const bookingDetails = {
+            totalAmount: bookingData.totalPrice,
+            carName: bookingData.selectedCar ? `${bookingData.selectedCar.make} ${bookingData.selectedCar.model}` : 'Car',
+            startDate: bookingData.pickupDate,
+            endDate: bookingData.returnDate
+          };
+
+          const response = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bookingDetails })
+          });
+
+          const data = await response.json();
+          if (!response.ok || !data.url) {
+            throw new Error(data.error || 'Failed to create session');
+          }
+
+          window.location.href = data.url;
+        } catch (err) {
+          console.error('Checkout error:', err);
+          showPaymentError('Unable to start the checkout process.');
+        } finally {
+          payButton.disabled = false;
+          payButton.innerHTML = '<i class="fas fa-credit-card payment-icon"></i> Pay Now';
+        }
+      });
+
+      function loadBookingSummary() {
+        try {
+          const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+          if (!bookingData || !bookingData.bookingReference) return;
+
+          document.getElementById('booking-reference').textContent = bookingData.bookingReference;
+          if (bookingData.selectedCar) {
+            document.getElementById('car-details').textContent = `${bookingData.selectedCar.make} ${bookingData.selectedCar.model}`;
+          }
+          if (bookingData.pickupLocation && bookingData.pickupDate) {
+            document.getElementById('pickup-details').textContent = `${bookingData.pickupLocation} - ${new Date(bookingData.pickupDate).toLocaleDateString()}`;
+          }
+          if (bookingData.returnDate) {
+            document.getElementById('return-details').textContent = `${bookingData.pickupLocation} - ${new Date(bookingData.returnDate).toLocaleDateString()}`;
+          }
+          if (bookingData.durationDays) {
+            document.getElementById('duration').textContent = `${bookingData.durationDays} day${bookingData.durationDays !== 1 ? 's' : ''}`;
+          }
+
+          let options = 'None';
+          if (bookingData.customer && bookingData.customer.additionalOptions) {
+            const ao = bookingData.customer.additionalOptions;
+            const opts = [];
+            if (ao.additionalDriver) opts.push('Additional Driver');
+            if (ao.fullInsurance) opts.push('Full Insurance');
+            if (ao.gpsNavigation) opts.push('GPS Navigation');
+            if (ao.childSeat) opts.push('Child Seat');
+            if (opts.length) options = opts.join(', ');
+          }
+          document.getElementById('options').textContent = options;
+          if (bookingData.totalPrice) {
+            document.getElementById('total-amount').textContent = `€${bookingData.totalPrice.toFixed(2)}`;
+          }
+        } catch (e) {
+          console.error('Failed to load booking summary', e);
+        }
+      }
+
+      function showPaymentError(msg) {
+        alert(msg);
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76ADevn1T8KDd90GmpAnLt6gztf1NUc2V8m8FyzbK3zYy1hZ+GyYce5e/jb9Ec" crossorigin="anonymous"></script>
+  <script src="assets/js/mobile-menu.js"></script>
+</body>
+</html> 

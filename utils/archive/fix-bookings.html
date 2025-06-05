@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calma Car Rentals - Booking Storage Fix</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-top: 0;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #3498db;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+    .card {
+      background-color: #f9f9f9;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    .button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .button:hover {
+      background-color: #2980b9;
+    }
+    .button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    .success {
+      color: #27ae60;
+      font-weight: bold;
+    }
+    .error {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    #log {
+      background-color: #2c3e50;
+      color: #ecf0f1;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: monospace;
+      height: 250px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+    .log-entry {
+      margin-bottom: 5px;
+      border-bottom: 1px solid #34495e;
+      padding-bottom: 5px;
+    }
+    .count-badge {
+      display: inline-block;
+      background-color: #3498db;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 14px;
+      margin-left: 5px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #3498db;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Booking Storage Fix Utility</h1>
+    <p>This utility helps to fix booking storage issues by ensuring all bookings are properly stored in both storage formats. Run this tool if you're experiencing issues with bookings not showing on the admin dashboard.</p>
+    
+    <div class="card">
+      <h2>Current Storage Status</h2>
+      <div id="storage-stats">Loading...</div>
+    </div>
+    
+    <div class="card">
+      <h2>Fix Options</h2>
+      <button id="scan-btn" class="button">Scan Storage</button>
+      <button id="fix-btn" class="button" disabled>Fix Storage Issues</button>
+      <button id="clear-btn" class="button" style="background-color: #e74c3c;">Clear All Bookings (Danger!)</button>
+    </div>
+    
+    <div id="log">
+      <div class="log-entry">System initialized. Ready to begin.</div>
+    </div>
+    
+    <a href="admin.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Admin Dashboard</a>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const storageStats = document.getElementById('storage-stats');
+      const scanBtn = document.getElementById('scan-btn');
+      const fixBtn = document.getElementById('fix-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const logElement = document.getElementById('log');
+      
+      // Log function
+      function log(message, type = 'info') {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        
+        if (type === 'success') {
+          entry.innerHTML = `<span class="success"><i class="fas fa-check-circle"></i> ${message}</span>`;
+        } else if (type === 'error') {
+          entry.innerHTML = `<span class="error"><i class="fas fa-exclamation-circle"></i> ${message}</span>`;
+        } else {
+          entry.textContent = message;
+        }
+        
+        logElement.appendChild(entry);
+        logElement.scrollTop = logElement.scrollHeight;
+      }
+      
+      // Scan storage
+      function scanStorage() {
+        log('Scanning localStorage...');
+        
+        try {
+          // Get all localStorage keys
+          const keys = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            keys.push(localStorage.key(i));
+          }
+          
+          // Count different types of storage
+          const adminBookingsExists = keys.includes('adminBookings');
+          const individualBookings = keys.filter(key => key.startsWith('booking_'));
+          const currentBookingExists = keys.includes('currentBooking');
+          
+          let adminBookingsCount = 0;
+          let adminBookingsValid = false;
+          
+          if (adminBookingsExists) {
+            try {
+              const adminBookings = JSON.parse(localStorage.getItem('adminBookings'));
+              if (Array.isArray(adminBookings)) {
+                adminBookingsCount = adminBookings.length;
+                adminBookingsValid = true;
+              } else {
+                log('adminBookings exists but is not a valid array', 'error');
+              }
+            } catch (e) {
+              log('adminBookings exists but contains invalid JSON', 'error');
+            }
+          }
+          
+          // Update stats display
+          storageStats.innerHTML = `
+            <div><strong>Admin Bookings:</strong> ${adminBookingsExists ? (adminBookingsValid ? `<span class="success">Valid</span>` : `<span class="error">Invalid format</span>`) : `<span class="error">Not found</span>`} <span class="count-badge">${adminBookingsCount}</span></div>
+            <div><strong>Individual Bookings:</strong> <span class="count-badge">${individualBookings.length}</span></div>
+            <div><strong>Current Booking:</strong> ${currentBookingExists ? `<span class="success">Exists</span>` : `<span class="error">Not found</span>`}</div>
+            <div><strong>Total localStorage Keys:</strong> <span class="count-badge">${keys.length}</span></div>
+            <div><strong>Approximate Storage Used:</strong> ${calculateStorageUsed()} KB</div>
+          `;
+          
+          // Enable fix button if issues found
+          if (!adminBookingsExists || !adminBookingsValid || individualBookings.length > 0) {
+            fixBtn.disabled = false;
+            log('Issues found that can be fixed. Click "Fix Storage Issues" to proceed.', 'error');
+          } else if (adminBookingsCount === 0) {
+            log('No bookings found in any storage location.', 'error');
+          } else {
+            log('Storage scan completed. Everything appears to be in order.', 'success');
+          }
+        } catch (e) {
+          log(`Error scanning storage: ${e.message}`, 'error');
+        }
+      }
+      
+      // Calculate storage used
+      function calculateStorageUsed() {
+        let total = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          const value = localStorage.getItem(key);
+          total += key.length + value.length;
+        }
+        return (total / 1024).toFixed(2);
+      }
+      
+      // Fix storage issues
+      function fixStorage() {
+        log('Starting storage fix process...');
+        fixBtn.disabled = true;
+        
+        try {
+          // Step 1: Collect all bookings from all sources
+          log('Step 1: Collecting all bookings from all sources');
+          const allBookings = [];
+          const bookingRefs = new Set();
+          
+          // Get admin bookings if they exist
+          let adminBookingsExisted = false;
+          try {
+            const adminBookingsData = localStorage.getItem('adminBookings');
+            if (adminBookingsData) {
+              adminBookingsExisted = true;
+              const adminBookings = JSON.parse(adminBookingsData);
+              if (Array.isArray(adminBookings)) {
+                log(`Found ${adminBookings.length} bookings in adminBookings`);
+                adminBookings.forEach(booking => {
+                  if (booking && booking.bookingReference && !bookingRefs.has(booking.bookingReference)) {
+                    allBookings.push(booking);
+                    bookingRefs.add(booking.bookingReference);
+                  }
+                });
+              } else {
+                log('adminBookings exists but is not a valid array', 'error');
+              }
+            } else {
+              log('No adminBookings found in localStorage');
+            }
+          } catch (e) {
+            log(`Error processing adminBookings: ${e.message}`, 'error');
+          }
+          
+          // Get individual bookings
+          let individualCount = 0;
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('booking_')) {
+              try {
+                const booking = JSON.parse(localStorage.getItem(key));
+                if (booking && booking.bookingReference && !bookingRefs.has(booking.bookingReference)) {
+                  allBookings.push(booking);
+                  bookingRefs.add(booking.bookingReference);
+                  individualCount++;
+                }
+              } catch (e) {
+                log(`Error processing ${key}: ${e.message}`, 'error');
+              }
+            }
+          }
+          log(`Found ${individualCount} bookings in individual storage`);
+          
+          // Get current booking if it exists
+          try {
+            const currentBookingData = localStorage.getItem('currentBooking');
+            if (currentBookingData) {
+              const currentBooking = JSON.parse(currentBookingData);
+              if (currentBooking && currentBooking.bookingReference && !bookingRefs.has(currentBooking.bookingReference)) {
+                allBookings.push(currentBooking);
+                bookingRefs.add(currentBooking.bookingReference);
+                log('Added current booking to collection');
+              }
+            }
+          } catch (e) {
+            log(`Error processing currentBooking: ${e.message}`, 'error');
+          }
+          
+          log(`Step 1 complete. Found ${allBookings.length} unique bookings.`);
+          
+          // Step 2: Sort and save bookings
+          log('Step 2: Sorting and saving bookings');
+          if (allBookings.length > 0) {
+            // Sort bookings by date (newest first)
+            allBookings.sort((a, b) => {
+              const dateA = new Date(a.dateSubmitted || a.timestamp || 0);
+              const dateB = new Date(b.dateSubmitted || b.timestamp || 0);
+              return dateB - dateA;
+            });
+            
+            // Make sure all bookings have required fields
+            allBookings.forEach(booking => {
+              if (!booking.status) booking.status = 'confirmed';
+              if (!booking.dateSubmitted && booking.timestamp) booking.dateSubmitted = booking.timestamp;
+              if (!booking.timestamp && booking.dateSubmitted) booking.timestamp = booking.dateSubmitted;
+              if (!booking.dateSubmitted && !booking.timestamp) {
+                booking.dateSubmitted = new Date().toISOString();
+                booking.timestamp = new Date().toISOString();
+              }
+            });
+            
+            // Save to adminBookings
+            try {
+              localStorage.setItem('adminBookings', JSON.stringify(allBookings));
+              log(`Successfully saved ${allBookings.length} bookings to adminBookings`, 'success');
+            } catch (e) {
+              log(`Error saving to adminBookings: ${e.message}`, 'error');
+            }
+            
+            // Save individual bookings for redundancy
+            allBookings.forEach(booking => {
+              try {
+                localStorage.setItem(`booking_${booking.bookingReference}`, JSON.stringify(booking));
+              } catch (e) {
+                log(`Error saving individual booking ${booking.bookingReference}: ${e.message}`, 'error');
+              }
+            });
+            
+            // Add a success marker in localStorage
+            localStorage.setItem('booking_system_fixed', new Date().toISOString());
+          } else {
+            log('No bookings found to save', 'error');
+          }
+          
+          log('Storage fix process completed', 'success');
+          scanStorage();
+        } catch (e) {
+          log(`Error in fix process: ${e.message}`, 'error');
+        } finally {
+          fixBtn.disabled = false;
+        }
+      }
+      
+      // Clear all bookings
+      function clearAllBookings() {
+        if (confirm('WARNING: This will delete ALL booking data. This action cannot be undone. Continue?')) {
+          log('Starting storage clear process...');
+          
+          try {
+            // Get all localStorage keys
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              keys.push(localStorage.key(i));
+            }
+            
+            // Find and remove all booking-related keys
+            let removedCount = 0;
+            keys.forEach(key => {
+              if (key === 'adminBookings' || key.startsWith('booking_') || key === 'currentBooking') {
+                localStorage.removeItem(key);
+                removedCount++;
+              }
+            });
+            
+            log(`Removed ${removedCount} booking-related items from localStorage`, 'success');
+            scanStorage();
+          } catch (e) {
+            log(`Error clearing storage: ${e.message}`, 'error');
+          }
+        }
+      }
+      
+      // Add event listeners
+      scanBtn.addEventListener('click', scanStorage);
+      fixBtn.addEventListener('click', fixStorage);
+      clearBtn.addEventListener('click', clearAllBookings);
+      
+      // Initial scan
+      scanStorage();
+    });
+  </script>
+</body>
+</html> 

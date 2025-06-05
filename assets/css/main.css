@@ -1,0 +1,16 @@
+/**
+ * Main CSS file that imports all modular stylesheets
+ */
+
+/* Base styles */
+@import url('base.css');
+
+/* Component styles */
+@import url('header.css');
+@import url('hero.css');
+@import url('booking.css');
+
+/* Add more component styles as they're created */
+/* @import url('cars.css'); */
+/* @import url('footer.css'); */
+/* etc. */ 

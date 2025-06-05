@@ -1,0 +1,105 @@
+/**
+ * Country Selector Styles
+ */
+
+.country-selector-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.country-search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.country-search-input:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+}
+
+/* Completely new approach for the dropdown */
+.country-dropdown {
+  display: none;
+  position: fixed !important; /* Changed to fixed */
+  background-color: #fff !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2) !important;
+  max-height: 250px !important;
+  overflow-y: auto !important;
+  z-index: 999999 !important; /* Even higher z-index */
+  margin-top: 2px !important;
+}
+
+.country-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.country-option:hover {
+  background-color: #f0f7ff;
+}
+
+.no-results {
+  padding: 15px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
+/* Scrollbar styles */
+.country-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.country-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.country-dropdown::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.country-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Dark mode support */
+body.dark-mode .country-search-input {
+  background-color: #333;
+  border-color: #444;
+  color: #f0f0f0;
+}
+
+body.dark-mode .country-dropdown {
+  background-color: #333;
+  border-color: #444;
+}
+
+body.dark-mode .country-option {
+  color: #f0f0f0;
+}
+
+body.dark-mode .country-option:hover {
+  background-color: #444;
+}
+
+body.dark-mode .no-results {
+  color: #aaa;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .country-dropdown {
+    max-height: 200px;
+  }
+} 
