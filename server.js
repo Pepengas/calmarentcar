@@ -1624,7 +1624,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       return res.status(400).json({ error: 'Missing required booking details' });
     }
 
-    const { carName, totalAmount, startDate, endDate } = bookingDetails;
+    const { carName, totalAmount, startDate, endDate, bookingReference } = bookingDetails;
 
     if (totalAmount < MIN_CHARGE_AMOUNT) {
       return res.status(400).json({ error: `Amount must be at least €${MIN_CHARGE_AMOUNT.toFixed(2)}` });
@@ -1650,7 +1650,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
           quantity: 1,
         },
       ],
-      success_url: `${redirectBase}/booking-confirmation.html?session_id={CHECKOUT_SESSION_ID}`,
+      metadata: bookingReference ? { booking_reference: bookingReference } : undefined,
+      success_url: `${redirectBase}/booking-confirmation.html?reference=${bookingReference}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${redirectBase}/payment.html?cancelled=true`,
     });
 
