@@ -10,6 +10,8 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
+const { body, param, validationResult } = require('express-validator');
+const xss = require('xss');
 require('dotenv').config();
 
 // Ensure the Stripe secret key is provided
@@ -49,6 +51,39 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Simple recursive sanitizer for all incoming values
+function sanitizeObject(obj) {
+    if (!obj) return;
+    Object.keys(obj).forEach(key => {
+        const value = obj[key];
+        if (typeof value === 'string') {
+            obj[key] = xss(value.trim());
+        } else if (typeof value === 'object') {
+            sanitizeObject(value);
+        }
+    });
+}
+
+const sanitizeMiddleware = (req, res, next) => {
+    sanitizeObject(req.body);
+    sanitizeObject(req.params);
+    sanitizeObject(req.query);
+    next();
+};
+
+// Apply sanitizer to all incoming requests
+app.use(sanitizeMiddleware);
+
+// Helper to run express-validator checks
+const validate = (validations) => async (req, res, next) => {
+    await Promise.all(validations.map(v => v.run(req)));
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    next();
+};
 
 // Serve static files
 app.use(express.static(path.join(__dirname)));
@@ -281,7 +316,18 @@ app.patch('/api/admin/addons/:id', (req, res) => {
  */
 
 // Create a new booking (POST /api/bookings)
-app.post('/api/bookings', async (req, res) => {
+app.post('/api/bookings',
+    validate([
+        body('car_id').isString().notEmpty(),
+        body('customer_first_name').isString().notEmpty(),
+        body('customer_last_name').isString().notEmpty(),
+        body('customer_email').isEmail(),
+        body('pickup_date').isISO8601(),
+        body('return_date').isISO8601(),
+        body('total_price').optional().isFloat({ min: 0 }),
+        body('daily_rate').optional().isFloat({ min: 0 })
+    ]),
+    async (req, res) => {
     try {
         const booking = req.body;
         console.log('--- Incoming booking request ---');
@@ -467,7 +513,9 @@ app.post('/api/bookings', async (req, res) => {
 });
 
 // Get booking by reference (GET /api/bookings/:reference)
-app.get('/api/bookings/:reference', async (req, res) => {
+app.get('/api/bookings/:reference',
+    validate([param('reference').trim().notEmpty()]),
+    async (req, res) => {
     try {
         const { reference } = req.params;
         
@@ -659,7 +707,13 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
 });
 
 // Update booking status (admin only) (PUT /api/admin/bookings/:id/status)
-app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => {
+app.put('/api/admin/bookings/:id/status',
+    requireAdminAuth,
+    validate([
+        param('id').isInt(),
+        body('status').isString().notEmpty()
+    ]),
+    async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -721,7 +775,10 @@ app.put('/api/admin/bookings/:id/status', requireAdminAuth, async (req, res) => 
 });
 
 // Update booking details (admin only)
-app.patch('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
+app.patch('/api/admin/bookings/:id',
+    requireAdminAuth,
+    validate([param('id').isInt()]),
+    async (req, res) => {
     try {
         const { id } = req.params;
         const allowed = [
@@ -758,7 +815,10 @@ app.patch('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
 });
 
 // Delete booking (admin only) (DELETE /api/admin/bookings/:id)
-app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
+app.delete('/api/admin/bookings/:id',
+    requireAdminAuth,
+    validate([param('id').isInt()]),
+    async (req, res) => {
     try {
         const { id } = req.params;
         
@@ -872,7 +932,12 @@ app.get('/api/admin/statistics', requireAdminAuth, async (req, res) => {
 });
 
 // Admin login check
-app.post('/api/admin/login', async (req, res) => {
+app.post('/api/admin/login',
+    validate([
+        body('username').isString().notEmpty(),
+        body('password').isString().notEmpty()
+    ]),
+    async (req, res) => {
     try {
         const { username, password } = req.body;
         
@@ -920,7 +985,13 @@ app.get('/api/admin/admins', requireAdminAuth, async (req, res) => {
 });
 
 // Change admin password
-app.post('/api/admin/change-password', requireAdminAuth, async (req, res) => {
+app.post('/api/admin/change-password',
+    requireAdminAuth,
+    validate([
+        body('currentPassword').isString().notEmpty(),
+        body('newPassword').isString().notEmpty()
+    ]),
+    async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
         if (!currentPassword || !newPassword) {
@@ -945,7 +1016,13 @@ app.post('/api/admin/change-password', requireAdminAuth, async (req, res) => {
 });
 
 // Add new admin
-app.post('/api/admin/add', requireAdminAuth, async (req, res) => {
+app.post('/api/admin/add',
+    requireAdminAuth,
+    validate([
+        body('email').isEmail(),
+        body('password').isString().notEmpty()
+    ]),
+    async (req, res) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
@@ -963,7 +1040,10 @@ app.post('/api/admin/add', requireAdminAuth, async (req, res) => {
 });
 
 // Delete admin
-app.delete('/api/admin/:id', requireAdminAuth, async (req, res) => {
+app.delete('/api/admin/:id',
+    requireAdminAuth,
+    validate([param('id').isInt()]),
+    async (req, res) => {
     try {
         const { id } = req.params;
         await pool.query('DELETE FROM admins WHERE id=$1', [id]);
@@ -1047,7 +1127,13 @@ app.get('/api/cars', async (req, res) => {
 });
 
 // Car availability check (GET /api/cars/availability)
-app.get('/api/cars/availability', async (req, res) => {
+app.get('/api/cars/availability',
+    validate([
+        query('carId').isString().notEmpty(),
+        query('pickupDate').isISO8601(),
+        query('dropoffDate').isISO8601()
+    ]),
+    async (req, res) => {
     try {
         const { carId, pickupDate, dropoffDate } = req.query;
         
@@ -1330,7 +1416,10 @@ app.get('/booking-confirmation', (req, res) => {
 });
 
 // Admin: Get a single car by ID (with specs)
-app.get('/api/admin/car/:id', requireAdminAuth, async (req, res) => {
+app.get('/api/admin/car/:id',
+    requireAdminAuth,
+    validate([param('id').notEmpty()]),
+    async (req, res) => {
     const carId = req.params.id;
     try {
         const result = await pool.query('SELECT * FROM cars WHERE car_id = $1', [carId]);
@@ -1350,7 +1439,10 @@ app.get('/api/admin/car/:id', requireAdminAuth, async (req, res) => {
 });
 
 // Admin: Update a single car (specs and other fields)
-app.patch('/api/admin/car/:id', requireAdminAuth, async (req, res) => {
+app.patch('/api/admin/car/:id',
+    requireAdminAuth,
+    validate([param('id').notEmpty()]),
+    async (req, res) => {
     const carId = req.params.id;
     const { name, description, image, category, features, specs, available } = req.body;
     try {
@@ -1380,7 +1472,13 @@ app.patch('/api/admin/car/:id', requireAdminAuth, async (req, res) => {
 });
 
 // Admin: Set manual status for a car
-app.post('/api/admin/car/:id/manual-status', requireAdminAuth, async (req, res) => {
+app.post('/api/admin/car/:id/manual-status',
+    requireAdminAuth,
+    validate([
+        param('id').notEmpty(),
+        body('manual_status').isIn(['automatic','available','unavailable'])
+    ]),
+    async (req, res) => {
     const carId = req.params.id;
     const { manual_status, unavailable_dates } = req.body;
     const validStatuses = ['automatic', 'available', 'unavailable'];
@@ -1402,7 +1500,13 @@ app.post('/api/admin/car/:id/manual-status', requireAdminAuth, async (req, res) 
 });
 
 // Admin: Update car pricing (monthly_pricing JSONB)
-app.patch('/api/admin/car/:carId/pricing', requireAdminAuth, async (req, res) => {
+app.patch('/api/admin/car/:carId/pricing',
+    requireAdminAuth,
+    validate([
+        param('carId').notEmpty(),
+        body('monthly_pricing').isObject()
+    ]),
+    async (req, res) => {
     const { carId } = req.params;
     const { monthly_pricing } = req.body;
 
@@ -1552,7 +1656,14 @@ app.get('/api/cars/availability/all', async (req, res) => {
 });
 
 // Add manual block for a car (admin only)
-app.post('/api/admin/manual-block', requireAdminAuth, async (req, res) => {
+app.post('/api/admin/manual-block',
+    requireAdminAuth,
+    validate([
+        body('car_id').notEmpty(),
+        body('start_date').isISO8601(),
+        body('end_date').isISO8601()
+    ]),
+    async (req, res) => {
     const { car_id, start_date, end_date } = req.body;
     console.log('[DEBUG] /api/admin/manual-block received request');
     console.log('[DEBUG] Request body:', JSON.stringify(req.body, null, 2));
@@ -1609,22 +1720,30 @@ app.get('/api/manual-blocks', async (req, res) => {
 });
 
 // Delete a manual block by ID (admin only)
-app.delete('/api/admin/manual-block/:id', requireAdminAuth, async (req, res) => {
-    const { id } = req.params;
-    if (!id) {
-        return res.status(400).json({ success: false, error: 'Missing block ID' });
-    }
-    try {
-        await pool.query('DELETE FROM manual_blocks WHERE id = $1', [id]);
-        return res.json({ success: true });
-    } catch (error) {
-        console.error('[ADMIN] Error deleting manual block:', error);
-        return res.status(500).json({ success: false, error: 'Failed to delete manual block' });
-    }
-});
+app.delete('/api/admin/manual-block/:id',
+    requireAdminAuth,
+    validate([param('id').isInt()]),
+    async (req, res) => {
+        const { id } = req.params;
+        try {
+            await pool.query('DELETE FROM manual_blocks WHERE id = $1', [id]);
+            return res.json({ success: true });
+        } catch (error) {
+            console.error('[ADMIN] Error deleting manual block:', error);
+            return res.status(500).json({ success: false, error: 'Failed to delete manual block' });
+        }
+    });
 
 // Stripe Checkout session endpoint
-app.post('/api/create-checkout-session', async (req, res) => {
+app.post('/api/create-checkout-session',
+    validate([
+        body('bookingDetails.carName').notEmpty(),
+        body('bookingDetails.partialAmount').isFloat({ min: MIN_CHARGE_AMOUNT }),
+        body('bookingDetails.startDate').optional().isISO8601(),
+        body('bookingDetails.endDate').optional().isISO8601(),
+        body('bookingDetails.bookingReference').optional().isString()
+    ]),
+    async (req, res) => {
   try {
     const { bookingDetails } = req.body;
     if (!bookingDetails || !bookingDetails.carName || !bookingDetails.partialAmount) {
