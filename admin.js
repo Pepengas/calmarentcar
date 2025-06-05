@@ -495,11 +495,28 @@ async function loadBookings() {
         const tableBody = document.getElementById('bookingsTableBody');
         if (!tableBody) return;
         
-        tableBody.innerHTML = data.bookings.map(booking => `
+        // Store bookings globally for detail views
+        window.allBookings = data.bookings;
+
+        tableBody.innerHTML = data.bookings.map(booking => {
+            const total = parseFloat(booking.total_price) || 0;
+            const paid = total * 0.45;
+            const due = total * 0.55;
+
+            return `
             <tr>
                 <td data-label="Booking Ref">${booking.booking_reference}</td>
                 <td data-label="Customer">${booking.customer_first_name} ${booking.customer_last_name}</td>
                 <td data-label="Car">${booking.car_make} ${booking.car_model}</td>
+                <td data-label="Pickup Date">${new Date(booking.pickup_date).toLocaleDateString()}</td>
+                <td data-label="Return Date">${new Date(booking.return_date).toLocaleDateString()}</td>
+                <td data-label="Payment Info">
+                    <div class="d-flex flex-column">
+                        <span>Total: €${total.toFixed(2)}</span>
+                        <span style="color: green; font-weight: bold;">Paid: €${paid.toFixed(2)}</span>
+                        <span style="color: red; font-weight: bold;">Due: €${due.toFixed(2)}</span>
+                    </div>
+                </td>
                 <td data-label="Status">
                     <span class="badge ${getStatusClass(booking.status)}">${booking.status}</span>
                 </td>
@@ -510,7 +527,8 @@ async function loadBookings() {
                     </button>
                 </td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
         
         // Update stats
         updateDashboardStats(data);
@@ -533,7 +551,7 @@ function updateDashboardStats(data) {
     }
     
     if (totalRevenueElement) {
-        const totalRevenue = data.bookings.reduce((sum, booking) => sum + (booking.total_price || 0), 0);
+        const totalRevenue = data.bookings.reduce((sum, booking) => sum + (booking.total_price || 0) * 0.45, 0);
         totalRevenueElement.textContent = `€${totalRevenue.toFixed(2)}`;
     }
     
