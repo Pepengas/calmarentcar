@@ -32,6 +32,8 @@ const { pool, registerCreateTables } = require('./database');
 // Initialize Express app
 const app = express();
 const port = process.env.PORT || 3000;
+// Fallback frontend URL used if the environment variable is not provided
+const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:${port}`;
 
 // Middleware
 app.use(cors());
@@ -1639,8 +1641,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.FRONTEND_URL}/booking-confirmation.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/payment.html?cancelled=true`,
+      success_url: `${FRONTEND_URL}/booking-confirmation.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_URL}/payment.html?cancelled=true`,
     });
 
     res.json({ url: session.url });
