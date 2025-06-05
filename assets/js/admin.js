@@ -23,20 +23,6 @@ let clearSearchBtn;
 // Current booking being viewed/edited
 let currentBookingId = null;
 
-// Get admin API token from localStorage (set during login)
-API_TOKEN = localStorage.getItem('adminToken');
-
-// Log token presence on load (without revealing the actual token)
-console.log('[Admin] Token in localStorage:', API_TOKEN ? 'Present' : 'Missing');
-
-// Set token in cookie if missing from cookies but present in localStorage
-// This helps with authentication as the server checks both
-if (API_TOKEN && !document.cookie.includes('adminToken=')) {
-    console.log('[Admin] Setting adminToken cookie from localStorage');
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 1);
-    document.cookie = `adminToken=${API_TOKEN}; expires=${expiryDate.toUTCString()}; path=/`;
-}
 
 // DOM Elements
 const pageLoader = document.getElementById('pageLoader');
@@ -99,11 +85,16 @@ function getSortedMonthKeys(pricing) {
 }
 
 // Initialize the dashboard when the DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if the user is logged in
-    API_TOKEN = localStorage.getItem('adminToken');
-    if (!API_TOKEN) {
-        window.location.href = 'admin-login.html';
+document.addEventListener("DOMContentLoaded", async function() {
+    try {
+        const res = await fetch("/api/admin/session", { credentials: "include" });
+        const data = await res.json();
+        if (!data.authenticated) {
+            window.location.href = "admin-login.html";
+            return;
+        }
+    } catch (e) {
+        window.location.href = "admin-login.html";
         return;
     }
 
