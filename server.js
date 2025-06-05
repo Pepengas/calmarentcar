@@ -1620,13 +1620,13 @@ app.delete('/api/admin/manual-block/:id', requireAdminAuth, async (req, res) => 
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
     const { bookingDetails } = req.body;
-    if (!bookingDetails || !bookingDetails.carName || !bookingDetails.totalAmount) {
+    if (!bookingDetails || !bookingDetails.carName || !bookingDetails.partialAmount) {
       return res.status(400).json({ error: 'Missing required booking details' });
     }
 
-    const { carName, totalAmount, startDate, endDate, bookingReference } = bookingDetails;
+    const { carName, partialAmount, startDate, endDate, bookingReference } = bookingDetails;
 
-    if (totalAmount < MIN_CHARGE_AMOUNT) {
+    if (partialAmount < MIN_CHARGE_AMOUNT) {
       return res.status(400).json({ error: `Amount must be at least €${MIN_CHARGE_AMOUNT.toFixed(2)}` });
     }
     const description = startDate && endDate ? `Rental: ${startDate} to ${endDate}` : undefined;
@@ -1645,7 +1645,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
               name: carName,
               description: description || '',
             },
-            unit_amount: Math.round(totalAmount * 100),
+            unit_amount: Math.round(partialAmount * 100),
           },
           quantity: 1,
         },

@@ -243,17 +243,26 @@
               <span id="options">Loading...</span>
             </div>
             <div class="total-row">
-              <span>Total Amount:</span>
+              <span>Total Rental Price:</span>
               <span id="total-amount">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span><strong>You Pay Now (45%):</strong></span>
+              <span id="partial-amount">Loading...</span>
+            </div>
+            <div class="summary-row">
+              <span><strong>Remaining Balance:</strong></span>
+              <span id="remaining-amount">Loading...</span>
             </div>
           </div>
         </div>
-        
+
         <div class="payment-methods text-center">
           <p class="mb-3">100% secure payment powered by <i class="fab fa-cc-stripe"></i> Stripe</p>
           <button id="pay-button" class="btn btn-primary btn-lg">
             <i class="fas fa-lock me-2"></i>Pay Now
           </button>
+          <p style="margin-top:0.5rem;font-size:0.9rem;color:#555;">By continuing, you agree to pay the remaining balance in person when picking up the car.</p>
         </div>
       </div>
     </div>
@@ -275,9 +284,13 @@
             throw new Error('Missing booking data');
           }
 
+          const partialAmount = Math.round(bookingData.totalPrice * 0.45);
+          bookingData.partialAmount = partialAmount;
+          localStorage.setItem('currentBooking', JSON.stringify(bookingData));
+
           const bookingDetails = {
             bookingReference: bookingData.bookingReference,
-            totalAmount: bookingData.totalPrice,
+            totalPrice: bookingData.totalPrice,
             carName: bookingData.selectedCar ? `${bookingData.selectedCar.make} ${bookingData.selectedCar.model}` : 'Car',
             startDate: bookingData.pickupDate,
             endDate: bookingData.returnDate
@@ -286,7 +299,7 @@
           const response = await fetch('/api/create-checkout-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ bookingDetails })
+            body: JSON.stringify({ bookingDetails: { ...bookingDetails, partialAmount } })
           });
 
           const data = await response.json();
@@ -335,7 +348,12 @@
           }
           document.getElementById('options').textContent = options;
           if (bookingData.totalPrice) {
-            document.getElementById('total-amount').textContent = `€${bookingData.totalPrice.toFixed(2)}`;
+            const total = bookingData.totalPrice;
+            const partial = (total * 0.45).toFixed(2);
+            const remaining = (total - partial).toFixed(2);
+            document.getElementById('total-amount').textContent = `€${total.toFixed(2)}`;
+            document.getElementById('partial-amount').textContent = `€${partial}`;
+            document.getElementById('remaining-amount').textContent = `€${remaining} – to be paid at pickup`;
           }
         } catch (e) {
           console.error('Failed to load booking summary', e);
