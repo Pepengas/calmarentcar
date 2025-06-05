@@ -11,7 +11,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
-const { body, param, validationResult } = require('express-validator');
+const { body, param, query, validationResult } = require('express-validator');
 const xss = require('xss');
 require('dotenv').config();
 
