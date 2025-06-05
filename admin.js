@@ -600,10 +600,14 @@ function formatTimestamp(isoString) {
 
 function showBookingDetails(booking) {
     if (!bookingDetailsContent) return;
-    
+
     const statusClass = getStatusClass(booking.status);
     const formattedDate = formatTimestamp(booking.createdAt);
-    
+    const totalPrice = parseFloat(booking.total_price || booking.totalPrice);
+    const formattedTotalPrice = isNaN(totalPrice) ? 'N/A' : `€${totalPrice.toFixed(2)}`;
+    const paid = isNaN(totalPrice) ? 'N/A' : `€${(totalPrice * 0.45).toFixed(2)}`;
+    const due = isNaN(totalPrice) ? 'N/A' : `€${(totalPrice * 0.55).toFixed(2)}`;
+
     bookingDetailsContent.innerHTML = `
         <div class="booking-details-header">
             <h5 class="mb-0">Booking Details</h5>
@@ -620,7 +624,9 @@ function showBookingDetails(booking) {
                     <div class="col-md-6">
                         <p><strong>Pickup Date:</strong> ${new Date(booking.pickup_date).toLocaleDateString()}</p>
                         <p><strong>Return Date:</strong> ${new Date(booking.return_date).toLocaleDateString()}</p>
-                        <p><strong>Total Price:</strong> $${booking.total_price}</p>
+                        <p><strong>Total Price:</strong> ${formattedTotalPrice}</p>
+                        <p><strong style="color: green;">Paid:</strong> ${paid}</p>
+                        <p><strong style="color: red;">Due:</strong> ${due}</p>
                     </div>
                 </div>
             </div>
