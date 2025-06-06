@@ -936,13 +936,8 @@ app.get('/api/admin/statistics', requireAdminAuth, async (req, res) => {
     }
 });
 
-// Admin login check
-app.post('/api/admin/login',
-    validate([
-        body('email').isEmail(),
-        body('password').isString().notEmpty()
-    ]),
-    async (req, res) => {
+// Admin login handler used for both API and legacy routes
+async function handleAdminLogin(req, res) {
     try {
         const { email, password } = req.body;
         
@@ -985,7 +980,18 @@ app.post('/api/admin/login',
             message: 'Server error'
         });
     }
-});
+}
+
+// API login route
+app.post('/api/admin/login',
+    validate([
+        body('email').isEmail(),
+        body('password').isString().notEmpty()
+    ]),
+    handleAdminLogin);
+
+// Legacy login route used by older frontends
+app.post('/admin/login', handleAdminLogin);
 
 app.get("/api/admin/session", (req, res) => {
     res.json({ authenticated: !!req.session.adminAuthenticated });
