@@ -13,6 +13,8 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const { body, param, query, validationResult } = require('express-validator');
 const xss = require('xss');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 require('dotenv').config();
 
 // Ensure the Stripe secret key is provided
@@ -751,6 +753,9 @@ app.put('/api/admin/bookings/:id/status',
 
         if (result.rows.length > 0) {
             await syncManualBlockWithBooking(result.rows[0]);
+            if (status === 'completed') {
+                await sendBookingConfirmationEmail(result.rows[0]);
+            }
         }
         
         if (result.rows.length === 0) {
@@ -1385,6 +1390,39 @@ async function calculateTotalPrice(car_id, pickup_date, return_date) {
     // Log calculation for debugging
     console.log(`[calculateTotalPrice] car_id=${car_id}, pickup=${pickup_date}, return=${return_date}, total_price=${total_price}`);
     return total_price;
+}
+
+// Send booking confirmation email using Resend
+async function sendBookingConfirmationEmail(booking) {
+    if (!process.env.RESEND_API_KEY) {
+        console.warn('RESEND_API_KEY not configured; skipping email');
+        return;
+    }
+    if (!booking || !booking.customer_email) return;
+    try {
+        const total = parseFloat(booking.total_price || 0);
+        const paid = (total * 0.45).toFixed(2);
+        const due = (total * 0.55).toFixed(2);
+
+        await resend.emails.send({
+            from: 'Calma Car Rental <booking@onresend.com>',
+            to: booking.customer_email,
+            subject: 'Your Booking Confirmation – Calma Car Rental',
+            html: `
+                <h1>Booking Confirmation</h1>
+                <p>Reference: <strong>${booking.booking_reference}</strong></p>
+                <p>Car: <strong>${booking.car_make} ${booking.car_model}</strong></p>
+                <p>Pickup Date: ${booking.pickup_date}</p>
+                <p>Return Date: ${booking.return_date}</p>
+                <p>Total Price: €${total}</p>
+                <p>Paid Amount (45%): €${paid}</p>
+                <p>Due at Pickup (55%): €${due}</p>
+            `
+        });
+        console.log(`📧 Confirmation email sent to ${booking.customer_email}`);
+    } catch (err) {
+        console.error('❌ Failed to send confirmation email:', err);
+    }
 }
 
 /**
