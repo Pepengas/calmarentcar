@@ -939,30 +939,54 @@ app.get('/api/admin/statistics', requireAdminAuth, async (req, res) => {
 // Admin login check
 app.post('/api/admin/login',
     validate([
-        body('username').isString().notEmpty(),
+        body('email').isEmail(),
         body('password').isString().notEmpty()
     ]),
     async (req, res) => {
     try {
-        const { username, password } = req.body;
-        // In a real app, check credentials against database
-        if (username === "admin" && password === "admin123") {
-            req.session.adminAuthenticated = true;
-            return res.json({ success: true, message: "Login successful" });
+        const { email, password } = req.body;
+        
+        if (!global.dbConnected) {
+            return res.status(503).json({
+                success: false,
+                message: 'Database not connected'
+            });
         }
 
-        return res.status(401).json({
-            success: false,
-            error: "Invalid credentials"
+        const result = await pool.query('SELECT id, password FROM admins WHERE email = $1', [email]);
+        if (result.rows.length === 0) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password'
+            });
+        }
+
+        const admin = result.rows[0];
+        const match = await bcrypt.compare(password, admin.password);
+        
+        if (!match) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password'
+            });
+        }
+
+        req.session.adminAuthenticated = true;
+        req.session.adminId = admin.id;
+        
+        return res.json({ 
+            success: true, 
+            message: "Login successful" 
         });
     } catch (error) {
         console.error('Error during login:', error);
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: 'Server error'
         });
     }
 });
+
 app.get("/api/admin/session", (req, res) => {
     res.json({ authenticated: !!req.session.adminAuthenticated });
 });

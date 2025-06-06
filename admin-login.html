@@ -55,8 +55,8 @@
             <div class="card-body p-4">
                 <form id="loginForm">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" required>
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" required>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
@@ -92,18 +92,19 @@
 
             loginForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
-                const username = document.getElementById("username").value;
+                const email = document.getElementById("email").value;
                 const password = document.getElementById("password").value;
                 const res = await fetch("/api/admin/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ email, password })
                 });
-                if (res.ok) {
+                const data = await res.json();
+                if (res.ok && data.success) {
                     window.location.href = "admin.html";
                 } else {
-                    errorMessage.textContent = "Invalid username or password";
+                    errorMessage.textContent = data.message || "Invalid email or password";
                     errorMessage.style.display = "block";
                 }
             });
