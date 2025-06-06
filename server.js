@@ -497,6 +497,7 @@ app.post('/api/bookings',
 
         if (insertResult.rows && insertResult.rows.length > 0) {
             await syncManualBlockWithBooking(insertResult.rows[0]);
+            await sendBookingConfirmationEmail(insertResult.rows[0]);
         }
 
         return res.status(200).json({
@@ -1404,9 +1405,14 @@ async function sendBookingConfirmationEmail(booking) {
         const paid = (total * 0.45).toFixed(2);
         const due = (total * 0.55).toFixed(2);
 
+        const recipients = [booking.customer_email];
+        if (process.env.ADMIN_NOTIFICATION_EMAIL) {
+            recipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
+        }
+
         await resend.emails.send({
             from: 'Calma Car Rental <booking@onresend.com>',
-            to: booking.customer_email,
+            to: recipients,
             subject: 'Your Booking Confirmation – Calma Car Rental',
             html: `
                 <h1>Booking Confirmation</h1>
@@ -1419,7 +1425,7 @@ async function sendBookingConfirmationEmail(booking) {
                 <p>Due at Pickup (55%): €${due}</p>
             `
         });
-        console.log(`📧 Confirmation email sent to ${booking.customer_email}`);
+        console.log(`📧 Confirmation email sent to ${recipients.join(', ')}`);
     } catch (err) {
         console.error('❌ Failed to send confirmation email:', err);
     }
