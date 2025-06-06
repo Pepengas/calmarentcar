@@ -275,7 +275,7 @@ function requireAdminAuth(req, res, next) {
     if (process.env.DISABLE_ADMIN_AUTH === "true") {
         return next();
     }
-    if (req.session && req.session.adminAuthenticated) {
+    if (req.session && (req.session.adminAuthenticated || req.session.token)) {
         return next();
     }
     if (req.accepts("html")) {
@@ -963,8 +963,32 @@ app.post('/api/admin/login',
         });
     }
 });
+
+// Simple admin login route for session-based auth
+app.post('/admin/login', async (req, res) => {
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password required' });
+    }
+
+    if (!global.dbConnected) {
+        return res.status(503).json({ message: 'Database not connected' });
+    }
+
+    try {
+        const result = await pool.query('SELECT id, password FROM admins WHERE email = $1', [email]);
+        if (result.rows.length > 0 && result.rows[0].password === password) {
+            req.session.token = result.rows[0].id;
+            return res.json({ success: true });
+        }
+        return res.status(401).json({ message: 'Invalid email or password' });
+    } catch (err) {
+        console.error('Admin login error:', err);
+        return res.status(500).json({ message: 'Server error' });
+    }
+});
 app.get("/api/admin/session", (req, res) => {
-    res.json({ authenticated: !!req.session.adminAuthenticated });
+    res.json({ authenticated: !!(req.session.adminAuthenticated || req.session.token) });
 });
 
 app.post("/api/admin/logout", (req, res) => {
