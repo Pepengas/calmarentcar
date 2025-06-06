@@ -1441,7 +1441,7 @@ async function sendBookingConfirmationEmail(booking) {
         }
 
         await resend.emails.send({
-            from: 'Calma Car Rental <booking@onresend.com>',
+            from: 'Calma Car Rental <booking@calmarental.com>',
             to: recipients,
             subject: 'Your Booking Confirmation – Calma Car Rental',
             html: `
