@@ -91,4 +91,12 @@ CREATE TABLE IF NOT EXISTS cars (
 )
 ```
 
-The `monthly_pricing` field stores a JSON object with prices for each month of the year. 
+The `monthly_pricing` field stores a JSON object with prices for each month of the year.
+
+## Email Notifications
+
+The server sends booking confirmation emails using [Resend](https://resend.com/).
+Set the following environment variables to enable emails:
+
+- `RESEND_API_KEY` – your Resend API key
+- `ADMIN_NOTIFICATION_EMAIL` – optional address that receives a copy of every booking confirmation
