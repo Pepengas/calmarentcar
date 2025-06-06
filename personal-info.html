@@ -1425,6 +1425,22 @@
       }
     }
 
+    // Convert a date string like MM/DD/YYYY to ISO YYYY-MM-DD
+    function convertToIso(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        const [month, day, year] = parts;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      }
+      // Fallback: attempt to parse natively
+      try {
+        return new Date(dateStr).toISOString().split('T')[0];
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       loadAddonPrices();
       // Set the correct progress step indicators
@@ -1738,9 +1754,11 @@
           // Fetch total price from backend before submitting
           const fetchTotalPrice = async () => {
             const carId = finalCarId;
-            const pickupDate = urlParams.get('pickup-date');
-            const returnDate = urlParams.get('dropoff-date');
-            if (!carId || !pickupDate || !returnDate) return 0;
+            const pickupDateRaw = urlParams.get('pickup-date');
+            const returnDateRaw = urlParams.get('dropoff-date');
+            if (!carId || !pickupDateRaw || !returnDateRaw) return 0;
+            const pickupDate = convertToIso(pickupDateRaw);
+            const returnDate = convertToIso(returnDateRaw);
             // Calculate month and days
             const pickupMonth = new Date(pickupDate).toISOString().slice(0, 7);
             const pickup = new Date(pickupDate);
@@ -1788,8 +1806,8 @@
               license_expiration: licenseExpiry,
               customer_age: age,
               country: nationality,
-              pickup_date: urlParams.get('pickup-date'),
-              return_date: urlParams.get('dropoff-date'),
+                pickup_date: convertToIso(urlParams.get('pickup-date')),
+                return_date: convertToIso(urlParams.get('dropoff-date')),
               pickup_location: urlParams.get('pickup-location'),
               dropoff_location: urlParams.get('dropoff-location'),
               car_make: finalCarMake,
