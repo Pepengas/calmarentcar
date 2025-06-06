@@ -94,7 +94,7 @@
                 e.preventDefault();
                 const email = document.getElementById("email").value;
                 const password = document.getElementById("password").value;
-                const res = await fetch("/admin/login", {
+                const res = await fetch("/api/admin/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
@@ -104,7 +104,8 @@
                 if (res.ok && data.success) {
                     window.location.href = "admin.html";
                 } else {
-                    alert(data.message);
+                    errorMessage.textContent = data.message || "Invalid email or password";
+                    errorMessage.style.display = "block";
                 }
             });
         });

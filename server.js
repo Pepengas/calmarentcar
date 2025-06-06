@@ -275,7 +275,7 @@ function requireAdminAuth(req, res, next) {
     if (process.env.DISABLE_ADMIN_AUTH === "true") {
         return next();
     }
-    if (req.session && (req.session.adminAuthenticated || req.session.token)) {
+    if (req.session && req.session.adminAuthenticated) {
         return next();
     }
     if (req.accepts("html")) {
@@ -939,56 +939,56 @@ app.get('/api/admin/statistics', requireAdminAuth, async (req, res) => {
 // Admin login check
 app.post('/api/admin/login',
     validate([
-        body('username').isString().notEmpty(),
+        body('email').isEmail(),
         body('password').isString().notEmpty()
     ]),
     async (req, res) => {
     try {
-        const { username, password } = req.body;
-        // In a real app, check credentials against database
-        if (username === "admin" && password === "admin123") {
-            req.session.adminAuthenticated = true;
-            return res.json({ success: true, message: "Login successful" });
+        const { email, password } = req.body;
+        
+        if (!global.dbConnected) {
+            return res.status(503).json({
+                success: false,
+                message: 'Database not connected'
+            });
         }
 
-        return res.status(401).json({
-            success: false,
-            error: "Invalid credentials"
+        const result = await pool.query('SELECT id, password FROM admins WHERE email = $1', [email]);
+        if (result.rows.length === 0) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password'
+            });
+        }
+
+        const admin = result.rows[0];
+        const match = await bcrypt.compare(password, admin.password);
+        
+        if (!match) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password'
+            });
+        }
+
+        req.session.adminAuthenticated = true;
+        req.session.adminId = admin.id;
+        
+        return res.json({ 
+            success: true, 
+            message: "Login successful" 
         });
     } catch (error) {
         console.error('Error during login:', error);
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: 'Server error'
         });
     }
 });
 
-// Simple admin login route for session-based auth
-app.post('/admin/login', async (req, res) => {
-    const { email, password } = req.body || {};
-    if (!email || !password) {
-        return res.status(400).json({ message: 'Email and password required' });
-    }
-
-    if (!global.dbConnected) {
-        return res.status(503).json({ message: 'Database not connected' });
-    }
-
-    try {
-        const result = await pool.query('SELECT id, password FROM admins WHERE email = $1', [email]);
-        if (result.rows.length > 0 && result.rows[0].password === password) {
-            req.session.token = result.rows[0].id;
-            return res.json({ success: true });
-        }
-        return res.status(401).json({ message: 'Invalid email or password' });
-    } catch (err) {
-        console.error('Admin login error:', err);
-        return res.status(500).json({ message: 'Server error' });
-    }
-});
 app.get("/api/admin/session", (req, res) => {
-    res.json({ authenticated: !!(req.session.adminAuthenticated || req.session.token) });
+    res.json({ authenticated: !!req.session.adminAuthenticated });
 });
 
 app.post("/api/admin/logout", (req, res) => {
