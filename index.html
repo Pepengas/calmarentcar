@@ -1,0 +1,1556 @@
+﻿<!-- Version: 1.0.3 - Both banners visible, force redeploy -->
+<!DOCTYPE html>
+<!-- Updated navbar: Removed Locations and Book Now items -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Calma Car Rental - Premium Car Rental Services in Chania, Crete</title>
+    <meta name="description" content="Premium car rental in Chania, Crete. Explore the island with comfort and style. Wide range of well-maintained vehicles, free airport pickup, and 24/7 support.">
+    
+    <!-- Open Graph Tags for Social Media Sharing -->
+    <meta property="og:title" content="Calma Car Rental - Premium Car Rental in Chania, Crete">
+    <meta property="og:description" content="Experience reliable, affordable car rentals in Chania, Crete with Calma. Free delivery, unlimited kilometers, and 24/7 support.">
+    <meta property="og:image" content="images/CalmaBackground.jpg">
+    <meta property="og:url" content="https://calmarental.com">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Calma Car Rental">
+    <meta name="twitter:description" content="Discover affordable car rental options in Chania. Explore Crete with our well-maintained fleet and excellent service.">
+    <meta name="twitter:image" content="images/CalmaBackground.jpg">
+    
+    <!-- Canonical URL -->
+    <meta rel="canonical" href="https://calmarental.com">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" fetchpriority="high" as="image" href="images/CalmaLogoTrans.png" type="image/png">
+    <link rel="preload" as="image" href="images/CalmaBackground.jpg" type="image/jpeg">
+    
+    <!-- Use original CSS file directly -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <!-- Progress Steps CSS -->
+    <link rel="stylesheet" href="assets/css/progress-tracker.css">
+    
+    <!-- Additional responsive styles -->
+    <style>
+        /* Disable default CSS hero background, use hero-bg div instead */
+        .hero {
+            background: none !important;
+        }
+        
+        /* Fix for hero-bg positioning */
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        /* Force car cards to be visible without animations */
+        .car-card {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            visibility: visible !important;
+        }
+        
+        /* Enhanced Partner Logos */
+        .partners-section {
+            padding: 50px 0;
+            background-color: #f8f9fa;
+        }
+        
+        .partners-header h3 {
+            margin-bottom: 40px;
+            text-align: center;
+            font-size: 2rem;
+            color: #343a40;
+            position: relative;
+        }
+        
+        .partners-header h3:after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 3px;
+            background-color: #0066cc;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .partners-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 60px;
+            padding: 0 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .partner-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s, filter 0.3s;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: 140px;
+            height: 140px;
+            justify-content: center;
+        }
+        
+        .partner-logo i {
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .partner-logo .fa-cc-visa {
+            color: #1a1f71;
+        }
+        
+        .partner-logo .fa-cc-mastercard {
+            color: #eb001b;
+        }
+        
+        .partner-logo .fa-cc-paypal {
+            color: #003087;
+        }
+        
+        .partner-logo .fa-google {
+            color: #4285F4;
+        }
+        
+        .partner-logo .fa-tripadvisor {
+            color: #00af87;
+        }
+        
+        .partner-name {
+            font-weight: 500;
+            margin-top: 8px;
+            font-size: 1rem;
+            color: #333;
+        }
+        
+        .partner-logo:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .partners-logos {
+                gap: 30px;
+                max-width: 500px;
+            }
+            
+            .partner-logo {
+                width: 120px;
+                height: 120px;
+                padding: 15px;
+            }
+            
+            .partner-logo i {
+                font-size: 2.5rem !important;
+            }
+            
+            .partner-name {
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero {
+                padding-top: 60px !important;
+                padding-bottom: 170px !important;
+            }
+            .hero-content {
+                padding-top: 0 !important;
+            }
+            .booking-form {
+                margin-top: 5px !important;
+                padding: 12px 15px !important;
+            }
+            .form-row {
+                margin-bottom: 6px !important;
+            }
+            .form-nav {
+                margin-top: 8px !important;
+            }
+        }
+        /* Offset sections for fixed header when using in-page anchor links */
+        section[id] {
+            scroll-margin-top: 90px;
+        }
+        
+        /* Logo link styles */
+        .logo a {
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        
+        .logo a:hover {
+            transform: scale(1.05);
+        }
+        
+        .logo a:active {
+            transform: scale(0.98);
+        }
+        
+        .logo img {
+            display: block;
+        }
+
+        /* Hide original step titles */
+        .step-titles {
+            display: none;
+        }
+
+        /* FAQ Accordion styles */
+        .faq-item {
+            overflow: hidden;
+        }
+        
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .faq-toggle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 24px;
+            height: 24px;
+            margin-left: 1rem;
+        }
+        
+        .faq-toggle .fa-minus {
+            display: none;
+        }
+        
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            opacity: 0;
+        }
+        
+        .faq-answer.active {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        /* Privacy Policy Modal Styles */
+        #privacy-modal.modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        #privacy-modal .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 2rem;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 12px;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #privacy-modal .close-modal {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s ease;
+        }
+
+        #privacy-modal .close-modal:hover {
+            color: #333;
+        }
+
+        #privacy-modal h2 {
+            color: #0066cc;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        #privacy-modal h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: #0066cc;
+            border-radius: 3px;
+        }
+
+        #privacy-modal h3 {
+            color: #444;
+            margin: 1.5rem 0 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        #privacy-modal p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            #privacy-modal .modal-content {
+                padding: 1.5rem;
+                margin: 15% auto;
+                width: 90%;
+            }
+        }
+
+        /* Terms & Conditions Modal Styles */
+        #terms-modal.modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        #terms-modal .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 2rem;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 12px;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        #terms-modal .close-modal {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s ease;
+        }
+
+        #terms-modal .close-modal:hover {
+            color: #333;
+        }
+
+        #terms-modal h2 {
+            color: #0066cc;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        #terms-modal h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: #0066cc;
+            border-radius: 3px;
+        }
+
+        #terms-modal h3 {
+            color: #444;
+            margin: 1.5rem 0 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        #terms-modal p,
+        #terms-modal li {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            #terms-modal .modal-content {
+                padding: 1.5rem;
+                margin: 15% auto;
+                width: 90%;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                padding-top: 2.5rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="assets/css/booking-widget.css">
+    <link rel="stylesheet" href="assets/css/time-picker.css">
+    <!-- Load date and time picker scripts in head -->
+    <script src="assets/js/centered-calendar.js"></script>
+    <script src="assets/js/simple-time-picker.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Add Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Add Choices.js for searchable dropdowns -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+</head>
+<body>
+    <!-- Development Notice Banner -->
+    <div id="dev-notice" class="dev-notice" role="alert">
+        <div class="dev-notice-content">
+            <div class="dev-notice-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+            <div class="dev-notice-text">
+                <p>This website is currently under development. Please do not make any bookings at this time.</p>
+                <p class="dev-notice-contact">To book, contact us at <a href="tel:+306942515267">+30 6942 515267</a> or <a href="mailto:calmarental@gmail.com">calmarental@gmail.com</a></p>
+            </div>
+            <button class="dev-notice-close" aria-label="Close notice" onclick="closeDevNotice()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Add padding to body to account for fixed banner -->
+    <div style="padding-top: 100px;">
+    <!-- Initialize date and time pickers immediately after body -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Initializing time pickers with time limits');
+      
+      // Create pickup time picker (24-hour time with 15-min intervals)
+      var pickupPicker = new SimpleTimePicker({
+        inputId: 'pickup-time',
+        minHour: 0,  // 12am (midnight)
+        maxHour: 23, // 11pm
+        interval: 15, // 15-minute intervals
+        initialValue: '09:00',
+        onSelect: function(data) {
+          console.log('Pickup time selected:', data.timeString);
+        }
+      });
+      
+      // Create dropoff time picker (24-hour time with 15-min intervals)
+      var dropoffPicker = new SimpleTimePicker({
+        inputId: 'dropoff-time',
+        minHour: 0,  // 12am (midnight)
+        maxHour: 23, // 11pm
+        interval: 15, // 15-minute intervals
+        initialValue: '17:00',
+        onSelect: function(data) {
+          console.log('Dropoff time selected:', data.timeString);
+          // Check for late surcharge (after 8pm)
+          if (data.hour >= 20) {
+            var surchargeElement = document.querySelector('.late-surcharge');
+            if (surchargeElement) {
+              surchargeElement.style.display = 'block';
+            }
+          } else {
+            var surchargeElement = document.querySelector('.late-surcharge');
+            if (surchargeElement) {
+              surchargeElement.style.display = 'none';
+            }
+          }
+        }
+      });
+      
+      // Initialize date pickers with CenteredCalendar
+      console.log('Initializing centered calendars for date fields');
+      
+      // Get today's date and format it
+      const today = new Date();
+      const nextYear = new Date();
+      nextYear.setFullYear(today.getFullYear() + 1);
+      
+      // Initialize dropoff date picker FIRST so it's in scope for pickupCalendar
+      var dropoffCalendar = new CenteredCalendar({
+        inputId: 'dropoff-date',
+        minDate: today,
+        maxDate: nextYear,
+        onSelect: function(data) {
+          console.log('Dropoff date selected:', data.formattedDate);
+        }
+      });
+
+      // Initialize pickup date picker
+      var pickupCalendar = new CenteredCalendar({
+        inputId: 'pickup-date',
+        minDate: today,
+        maxDate: nextYear,
+        onSelect: function(data) {
+          console.log('Pickup date selected:', data.formattedDate);
+          // Set minimum date for dropoff calendar
+          let nextDay = new Date(data.date);
+          nextDay.setDate(nextDay.getDate() + 1);
+          // Update dropoff calendar if it exists and setCurrentMonth is a function
+          if (dropoffCalendar) {
+            dropoffCalendar.minDate = nextDay;
+            if (typeof dropoffCalendar.setCurrentMonth === 'function') {
+              dropoffCalendar.setCurrentMonth(data.date);
+            }
+            // Always set dropoff date to nextDay if not set or before nextDay
+            if (!dropoffCalendar.selectedDate || dropoffCalendar.selectedDate < nextDay) {
+              document.getElementById('dropoff-date').value = dropoffCalendar.formatDate(nextDay);
+              dropoffCalendar.selectedDate = new Date(nextDay);
+            }
+          }
+        }
+      });
+
+      // Ensure dropoff calendar opens to the pickup month if pickup date is set
+      document.getElementById('dropoff-date').addEventListener('click', function() {
+        var pickupDateStr = document.getElementById('pickup-date').value;
+        if (pickupDateStr) {
+          var pickupDate = new Date(pickupDateStr);
+          dropoffCalendar.setCurrentMonth(pickupDate);
+        }
+      });
+
+      new Choices('#pickup-location', { searchEnabled: false, itemSelectText: '' });
+      new Choices('#dropoff-location', { searchEnabled: false, itemSelectText: '' });
+    });
+    </script>
+
+    <!-- Accessibility skip link -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <nav class="navbar flex justify-between items-center w-full">
+                <div class="logo flex-shrink-0">
+                    <a href="index.html" title="Go to homepage" class="block">
+                    <img src="images/CalmaLogoTrans.png" alt="Calma Car Rental Logo" width="160" height="50">
+                    </a>
+                </div>
+                
+                <div class="nav-container hidden md:block">
+                    <ul class="nav-links flex space-x-6" id="nav-menu" aria-label="Main navigation">
+                        <li><a href="index.html" class="active">Home</a></li>
+                        <li><a href="index.html#cars">Our Cars</a></li>
+                        <li><a href="index.html#about">About Us</a></li>
+                        <li><a href="index.html#faq">FAQ</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <button class="mobile-menu md:hidden" aria-label="Open navigation menu" aria-controls="nav-container" aria-expanded="false">
+                    <i class="fas fa-bars" aria-hidden="true"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" id="main-content" style="padding-top: 80px; padding-bottom: 220px;">
+            <div class="hero-bg" style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('images/CalmaBackground.jpg');"></div>
+            <div class="container">
+                <div class="hero-content" style="padding-top: 0;">
+                    <h1 style="margin-bottom: 10px;">Car Rental in Chania</h1>
+                    <p class="tagline" style="margin-bottom: 15px;">"Calma.. and let your holidays begin"</p>
+                    
+                    <!-- Booking Form -->
+                    <div class="booking-form" style="margin-top: 5px; padding: 15px 20px;">
+                        <h2 style="margin-bottom: 8px; font-size: 1.4rem;">Book Your Car Now</h2>
+                        
+                        <!-- Form Progress Indicator -->
+                        <div class="form-progress" style="margin-bottom: 20px;">
+                            <div class="w-full max-w-2xl mx-auto mt-6 px-4">
+                              <div class="flex justify-between items-center text-sm md:text-base">
+                                <!-- Step 1 -->
+                                <div class="flex flex-col items-center flex-1">
+                                  <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+                                    1
+                                  </div>
+                                  <span class="mt-1 text-blue-600 font-semibold">Trip Details</span>
+                                </div>
+
+                                <div class="h-1 bg-gray-300 flex-1 mx-2"></div>
+
+                                <!-- Step 2 -->
+                                <div class="flex flex-col items-center flex-1">
+                                  <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">
+                                    2
+                                  </div>
+                                  <span class="mt-1 text-gray-600">Vehicle Selection</span>
+                                </div>
+
+                                <div class="h-1 bg-gray-300 flex-1 mx-2"></div>
+
+                                <!-- Step 3 -->
+                                <div class="flex flex-col items-center flex-1">
+                                  <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">
+                                    3
+                                  </div>
+                                  <span class="mt-1 text-gray-600">Personal Info</span>
+                                </div>
+                              </div>
+                            </div>
+                        </div>
+                        
+                        <form id="booking-form" novalidate aria-label="Car booking form" autocomplete="off" autocapitalize="off" autocorrect="off">
+                            <!-- Form Steps -->
+                            <div class="form-step active" id="step-1">
+                                <!-- Pick-up Location -->
+                                <div class="form-group">
+                                    <label for="pickup-location">Pick-up Location <span class="required">*</span></label>
+                                    <select id="pickup-location" name="pickup-location" required aria-required="true">
+                                        <option value="airport">Chania Airport</option>
+                                        <option value="port">Chania Port</option>
+                                        <option value="hotel">Your Hotel/Villa</option>
+                                        <option value="platanias">Platanias</option>
+                                        <option value="agia-marina">Agia Marina</option>
+                                        <option value="stalos">Stalos</option>
+                                        <option value="agioi-apostoloi">Agioi Apostoloi</option>
+                                        <option value="souda-bay">Souda Bay</option>
+                                        <option value="gerani-chania">Gerani Chania</option>
+                                        <option value="maleme">Maleme</option>
+                                        <option value="chania-center">Chania Center</option>
+                                    </select>
+                                    <div class="validation-message" id="pickup-location-error"></div>
+                                </div>
+                                
+                                <!-- Drop-off Location -->
+                                <div class="form-group">
+                                    <label for="dropoff-location">Drop-off Location <span class="required">*</span></label>
+                                    <select id="dropoff-location" name="dropoff-location" required aria-required="true">
+                                        <option value="airport">Chania Airport</option>
+                                        <option value="port">Chania Port</option>
+                                        <option value="hotel">Your Hotel/Villa</option>
+                                        <option value="platanias">Platanias</option>
+                                        <option value="agia-marina">Agia Marina</option>
+                                        <option value="stalos">Stalos</option>
+                                        <option value="agioi-apostoloi">Agioi Apostoloi</option>
+                                        <option value="souda-bay">Souda Bay</option>
+                                        <option value="gerani-chania">Gerani Chania</option>
+                                        <option value="maleme">Maleme</option>
+                                        <option value="chania-center">Chania Center</option>
+                                    </select>
+                                    <div class="validation-message" id="dropoff-location-error"></div>
+                                </div>
+                                
+                                <!-- Pick-up Date -->
+                                <div class="form-group">
+                                    <label for="pickup-date">Pick-up Date <span class="required">*</span></label>
+                                    <input type="text" id="pickup-date" name="pickup-date" required aria-required="true" 
+                                           placeholder="mm/dd/yyyy" readonly
+                                           style="cursor: pointer; background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23555555%22%3E%3Cpath d=%22M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; padding-right: 35px;">
+                                    <div class="validation-message" id="pickup-date-error"></div>
+                                </div>
+                                
+                                <!-- Pick-up Time -->
+                                <div class="form-group">
+                                    <label for="pickup-time">Pick-up Time <span class="required">*</span></label>
+                                    <input type="text" id="pickup-time" name="pickup-time" 
+                                           required aria-required="true" 
+                                           value="09:00" readonly
+                                           style="cursor: pointer; background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23555555%22%3E%3Cpath d=%22M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; padding-right: 35px;">
+                                    <div class="validation-message" id="pickup-time-error"></div>
+                                </div>
+                                
+                                <!-- Drop-off Date -->
+                                <div class="form-group">
+                                    <label for="dropoff-date">Drop-off Date <span class="required">*</span></label>
+                                    <input type="text" id="dropoff-date" name="dropoff-date" required aria-required="true" 
+                                           placeholder="mm/dd/yyyy" readonly
+                                           style="cursor: pointer; background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23555555%22%3E%3Cpath d=%22M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; padding-right: 35px;">
+                                    <div class="validation-message" id="dropoff-date-error"></div>
+                                </div>
+                                
+                                <!-- Drop-off Time -->
+                                <div class="form-group">
+                                    <label for="dropoff-time">Drop-off Time <span class="required">*</span></label>
+                                    <input type="text" id="dropoff-time" name="dropoff-time" 
+                                           required aria-required="true" 
+                                           value="17:00" readonly
+                                           style="cursor: pointer; background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23555555%22%3E%3Cpath d=%22M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; padding-right: 35px;">
+                                    <div class="validation-message" id="dropoff-time-error"></div>
+                                </div>
+                                
+                                <!-- Late surcharge message - updated for 8PM -->
+                                <div class="late-surcharge" style="display: none; margin-top: 5px; font-size: 0.85rem; color: #dc3545; background-color: #f8d7da; padding: 5px 10px; border-radius: 4px;">
+                                    <i class="fas fa-exclamation-circle"></i> A late return surcharge of €10 applies for drop-offs after 8:00 PM.
+                                </div>
+                                
+                                <!-- Form Navigation -->
+                                <div class="form-nav">
+                                    <button type="button" id="search-cars-btn" class="btn btn-primary next-step">
+                                        Search Available Cars
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 2: Personal Information -->
+                            <div class="form-step" id="step-2" style="margin-bottom: 0;">
+                                <div class="form-row" style="margin-bottom: 8px;">
+                                    <div class="form-group">
+                                        <label for="customer-name">Full Name <span class="required">*</span></label>
+                                        <input type="text" id="customer-name" name="customer-name" placeholder="Enter your full name" required aria-required="true">
+                                        <div class="validation-message" id="customer-name-error"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row" style="margin-bottom: 8px;">
+                                    <div class="form-group">
+                                        <label for="customer-email">Email <span class="required">*</span></label>
+                                        <input type="email" id="customer-email" name="customer-email" placeholder="your@email.com" required aria-required="true">
+                                        <div class="validation-message" id="customer-email-error"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row" style="margin-bottom: 8px;">
+                                    <div class="form-group">
+                                        <label for="customer-phone">Phone Number <span class="required">*</span></label>
+                                        <input type="tel" id="customer-phone" name="customer-phone" placeholder="+30 69XXXXXXXX" required aria-required="true">
+                                        <div class="validation-message" id="customer-phone-error"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row" style="margin-bottom: 8px;">
+                                    <div class="form-group">
+                                        <label for="age">Your Age <span class="required">*</span></label>
+                                        <input type="number" id="age" name="age" min="25" placeholder="Minimum age: 25" required aria-required="true">
+                                        <div class="validation-message" id="age-error"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-nav" style="margin-top: 10px; display: flex; justify-content: space-between;">
+                                    <button type="button" class="btn btn-outline prev-step" id="to-step-1">Back</button>
+                                    <button type="submit" class="btn btn-primary" aria-label="Submit booking request">Complete Booking</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cars Showcase Section -->
+        <section id="cars" class="cars-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Our Fleet</h2>
+                    <p>Choose from our selection of well-maintained vehicles to suit your needs</p>
+                </div>
+                
+                <div class="cars-grid">
+                    <!-- Car 1 -->
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                        <div class="car-image">
+                            <img src="images/CalmaAygo.jpg" alt="Toyota Aygo" loading="lazy" width="300" height="200">
+                        </div>
+                        <div class="car-details">
+                            <h3>Toyota Aygo</h3>
+                            <p>Compact and fuel-efficient, perfect for city driving.</p>
+                            <div class="car-pricing">
+                                <span class="car-feature">Available</span>
+                                <span class="price-note">· Free cancellation</span>
+                            </div>
+                            <a href="#" class="btn btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Car 2 -->
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                        <div class="car-image">
+                            <img src="images/CalmaTiguan.jpg" alt="Volkswagen Tiguan R line" loading="lazy" width="300" height="200">
+                        </div>
+                        <div class="car-details">
+                            <h3>Volkswagen Tiguan R line</h3>
+                            <p>Spacious SUV with advanced features for comfort.</p>
+                            <div class="car-pricing">
+                                <span class="car-feature">Available</span>
+                                <span class="price-note">· Free cancellation</span>
+                            </div>
+                            <a href="#" class="btn btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Car 3 -->
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                        <div class="car-image">
+                            <img src="images/CalmaGolf.jpg" alt="Volkswagen Golf" loading="lazy" width="300" height="200">
+                        </div>
+                        <div class="car-details">
+                            <h3>Volkswagen Golf</h3>
+                            <p>Versatile hatchback with excellent handling.</p>
+                            <div class="car-pricing">
+                                <span class="car-feature">Available</span>
+                                <span class="price-note">· Free cancellation</span>
+                            </div>
+                            <a href="#" class="btn btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Car 4 -->
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                        <div class="car-image">
+                            <img src="images/Calmai10.jpg" alt="Hyundai i10" loading="lazy" width="300" height="200">
+                        </div>
+                        <div class="car-details">
+                            <h3>Hyundai i10</h3>
+                            <p>Economical and easy to drive mini car.</p>
+                            <div class="car-pricing">
+                                <span class="car-feature">Available</span>
+                                <span class="price-note">· Free cancellation</span>
+                            </div>
+                            <a href="#" class="btn btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Car 5 -->
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                        <div class="car-image">
+                            <img src="images/CalmaCitroen.jpg" alt="Citroen C3" loading="lazy" width="300" height="200">
+                        </div>
+                        <div class="car-details">
+                            <h3>Citroen C3</h3>
+                            <p>Stylish compact car with excellent comfort.</p>
+                            <div class="car-pricing">
+                                <span class="car-feature">Available</span>
+                                <span class="price-note">· Free cancellation</span>
+                            </div>
+                            <a href="#" class="btn btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Car 6 -->
+                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                        <div class="car-image">
+                            <img src="images/CalmaSuzuki.jpg" alt="Suzuki Swift" loading="lazy" width="300" height="200">
+                        </div>
+                        <div class="car-details">
+                            <h3>Suzuki Swift</h3>
+                            <p>Sporty and nimble, ideal for exploring Crete.</p>
+                            <div class="car-pricing">
+                                <span class="car-feature">Available</span>
+                                <span class="price-note">· Free cancellation</span>
+                            </div>
+                            <a href="#" class="btn btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section id="about" class="about-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>About Calma</h2>
+                    <p>Your reliable partner for exploring Crete</p>
+                </div>
+                
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>Calma is a locally owned and operated car rental business based in Chania, Crete. We offer a curated selection of reliable vehicles, perfect for exploring the beauty of Crete with comfort and peace of mind. With a strong focus on simplicity, service, and local expertise, Calma ensures every rental is easy, affordable, and stress-free.</p>
+                        
+                        <div class="about-features">
+                            <div class="feature">
+                                <div class="feature-icon">
+                                    <i class="fas fa-car"></i>
+                                </div>
+                                <div class="feature-text">
+                                    <h3>Well-Maintained Fleet</h3>
+                                    <p>Our vehicles are regularly serviced and maintained to ensure reliability and safety.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature">
+                                <div class="feature-icon">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                                <div class="feature-text">
+                                    <h3>Local Expertise</h3>
+                                    <p>Our team offers personalized recommendations to help you discover the best of Crete.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature">
+                                <div class="feature-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="feature-text">
+                                    <h3>Customer Satisfaction</h3>
+                                    <p>We're committed to providing exceptional service and creating happy customers.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Additional Info Section -->
+        <section id="additional" class="additional-info">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Additional Information</h2>
+                    <p>Important details about our rental services</p>
+                </div>
+                
+                <div class="info-content">
+                    <div class="info-highlight">
+                        <p>All rentals include unlimited kilometers, 24/7 road assistance, and free delivery/pick-up at Chania Airport, Port, or City Center. Calma also offers flexible payment methods and multilingual support.</p>
+                    </div>
+                    
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <div class="info-card-icon">
+                                <i class="fas fa-road"></i>
+                            </div>
+                            <h3>Unlimited Kilometers</h3>
+                            <p>Drive as much as you need without worrying about extra charges.</p>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-card-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <h3>24/7 Support</h3>
+                            <p>Our team is always available to assist you with any issues or questions.</p>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-card-icon">
+                                <i class="fas fa-plane-arrival"></i>
+                            </div>
+                            <h3>Free Delivery</h3>
+                            <p>Complimentary car delivery and pick-up at key locations around Chania.</p>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-card-icon">
+                                <i class="fas fa-language"></i>
+                            </div>
+                            <h3>Multilingual Support</h3>
+                            <p>Our team speaks multiple languages to better assist all our customers.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why Rent with Calma Section -->
+        <section id="why-rent" class="why-rent-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Why Rent with Calma?</h2>
+                    <p>We make car rental simple, transparent, and stress-free</p>
+                </div>
+                
+                <div class="why-rent-content">
+                    <div class="benefits-grid">
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-euro-sign"></i>
+                            </div>
+                            <div class="benefit-text">
+                                <h3>Transparent Pricing</h3>
+                                <p>No hidden fees or unexpected charges. The price you see is the price you pay.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="benefit-text">
+                                <h3>Full Insurance Options</h3>
+                                <p>Choose the protection level that fits your needs and travel with peace of mind.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-map-marked-alt"></i>
+                            </div>
+                            <div class="benefit-text">
+                                <h3>Local Expertise</h3>
+                                <p>Get personalized travel tips and recommendations from our knowledgeable local team.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="benefit-text">
+                                <h3>Free Cancellation</h3>
+                                <p>Plans change? No problem. Free cancellation up to 48 hours before pickup.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="cta-container">
+                        <a href="#" class="btn btn-outline">View Rental Terms</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="faq-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Frequently Asked Questions</h2>
+                    <p>Find answers to common questions about our rental services</p>
+                </div>
+                
+                <div class="faq-content">
+                    <div class="faq-container">
+                        <div class="faq-item mb-5 rounded-xl overflow-hidden shadow-md bg-white">
+                            <div class="faq-question p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-300 ease-in-out">
+                                <h3 class="text-lg font-medium text-gray-800">What's the minimum age to rent a car?</h3>
+                                <div class="faq-toggle text-blue-600">
+                                    <i class="fas fa-plus"></i>
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                            </div>
+                            <div class="faq-answer bg-white">
+                                <div class="answer-content p-5 text-gray-700 leading-relaxed border-t border-gray-100">
+                                    <p>The minimum age to rent a car with Calma is 25 years old. Drivers must have held a valid driving license for at least 12 months.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item mb-5 rounded-xl overflow-hidden shadow-md bg-white">
+                            <div class="faq-question p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-300 ease-in-out">
+                                <h3 class="text-lg font-medium text-gray-800">Can I pick up the car from my hotel?</h3>
+                                <div class="faq-toggle text-blue-600">
+                                    <i class="fas fa-plus"></i>
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                            </div>
+                            <div class="faq-answer bg-white">
+                                <div class="answer-content p-5 text-gray-700 leading-relaxed border-t border-gray-100">
+                                    <p>Yes, we offer free delivery and pick-up service to hotels and villas in the Chania area. Please provide your accommodation details when booking, and our team will arrange a convenient time to meet you.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item mb-5 rounded-xl overflow-hidden shadow-md bg-white">
+                            <div class="faq-question p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-300 ease-in-out">
+                                <h3 class="text-lg font-medium text-gray-800">What payment methods do you accept?</h3>
+                                <div class="faq-toggle text-blue-600">
+                                    <i class="fas fa-plus"></i>
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                            </div>
+                            <div class="faq-answer bg-white">
+                                <div class="answer-content p-5 text-gray-700 leading-relaxed border-t border-gray-100">
+                                    <p>We accept all major credit cards (Visa, MasterCard, American Express) and cash payments in Euro. For certain booking types, prepayment may be required to confirm your reservation.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item mb-5 rounded-xl overflow-hidden shadow-md bg-white">
+                            <div class="faq-question p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-300 ease-in-out">
+                                <h3 class="text-lg font-medium text-gray-800">Is there a mileage limit?</h3>
+                                <div class="faq-toggle text-blue-600">
+                                    <i class="fas fa-plus"></i>
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                            </div>
+                            <div class="faq-answer bg-white">
+                                <div class="answer-content p-5 text-gray-700 leading-relaxed border-t border-gray-100">
+                                    <p>No, all our rentals come with unlimited kilometers, allowing you to explore Crete without worrying about additional charges for distance traveled.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item mb-5 rounded-xl overflow-hidden shadow-md bg-white">
+                            <div class="faq-question p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-300 ease-in-out">
+                                <h3 class="text-lg font-medium text-gray-800">What happens in case of a breakdown?</h3>
+                                <div class="faq-toggle text-blue-600">
+                                    <i class="fas fa-plus"></i>
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                            </div>
+                            <div class="faq-answer bg-white">
+                                <div class="answer-content p-5 text-gray-700 leading-relaxed border-t border-gray-100">
+                                    <p>All our vehicles include 24/7 roadside assistance. In the unlikely event of a breakdown, simply call our emergency number (provided with your rental documents), and we'll arrange immediate assistance or a replacement vehicle at no extra cost.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="contact-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Contact Us</h2>
+                    <p>Get in touch with our team</p>
+                </div>
+                
+                <div class="contact-content">
+                    <div class="contact-info-map">
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="contact-text">
+                                    <h3>Location</h3>
+                                    <p>Chania, Crete</p>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="contact-text">
+                                    <h3>Mobile</h3>
+                                    <p><a href="tel:+306942515267">+30 6942 515267</a></p>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="contact-text">
+                                    <h3>Email</h3>
+                                    <p><a href="mailto:calmarental@gmail.com">calmarental@gmail.com</a></p>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-social">
+                                <h3>Connect With Us</h3>
+                                <div class="social-icons">
+                                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                                    <a href="https://www.instagram.com/calmarental/" class="social-icon" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-map">
+                            <div class="map-container">
+                                <iframe 
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3254.230333436072!2d23.95956761204698!3d35.50279022376307!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzXCsDMwJzEwLjAiTiAyM8KwNTcnNDIuMyJF!5e0!3m2!1sen!2sus!4v1623345678901!5m2!1sen!2sus" 
+                                    width="100%" 
+                                    height="450" 
+                                    style="border:0;" 
+                                    allowfullscreen="" 
+                                    loading="lazy">
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Partners Section -->
+        <section id="partners" class="partners-section">
+            <div class="container">
+                <div class="partners-header">
+                    <h3>Trusted Payment Methods & Partners</h3>
+                </div>
+                <div class="partners-logos">
+                    <div class="partner-logo">
+                        <i class="fab fa-cc-visa fa-3x"></i>
+                        <span class="partner-name">Visa</span>
+                    </div>
+                    <div class="partner-logo">
+                        <i class="fab fa-cc-mastercard fa-3x"></i>
+                        <span class="partner-name">Mastercard</span>
+                    </div>
+                    <div class="partner-logo">
+                        <i class="fab fa-cc-paypal fa-3x"></i>
+                        <span class="partner-name">PayPal</span>
+                    </div>
+                    <div class="partner-logo">
+                        <i class="fab fa-google fa-3x"></i>
+                        <span class="partner-name">Google</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>Calma Car Rental</h3>
+                    <ul>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#cars">Our Fleet</a></li>
+                        <li><a href="#" id="terms-link">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#faq">FAQ</a></li>
+                        <li><a href="#contact">Contact Us</a></li>
+                        <li><a href="#" id="privacy-policy-link">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Connect with Us</h3>
+                    <ul>
+                        <li><a href="#"><i class="fab fa-facebook"></i> Facebook</a></li>
+                        <li><a href="https://www.instagram.com/calmarental/" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i> Instagram</a></li>
+                        <li><a href="#"><i class="fab fa-twitter"></i> Twitter</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2023 Calma Car Rental. All rights reserved.</p>
+                <p class="developer-credit">Website developed by Petros Manelidis</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Privacy Policy</h2>
+            <div class="privacy-content">
+                <h3>1. Introduction</h3>
+                <p>At Calma Car Rental, we are committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your data when you use our services.</p>
+
+                <h3>2. Information We Collect</h3>
+                <p>We may collect the following types of personal data:</p>
+                <ul>
+                    <li>Full name</li>
+                    <li>Email address</li>
+                    <li>Phone number</li>
+                    <li>Home address</li>
+                    <li>Driver&rsquo;s license information</li>
+                    <li>Payment details (via third-party processors)</li>
+                    <li>Booking details (car, dates, pickup/dropoff)</li>
+                    <li>IP address and device/browser info</li>
+                </ul>
+
+                <h3>3. How We Use Your Information</h3>
+                <p>We use your data to:</p>
+                <ul>
+                    <li>Process and manage bookings</li>
+                    <li>Communicate with you (confirmations, changes, promotions)</li>
+                    <li>Ensure legal and regulatory compliance</li>
+                    <li>Improve user experience</li>
+                    <li>Prevent fraud</li>
+                </ul>
+
+                <h3>4. Data Sharing and Disclosure</h3>
+                <p>We may share your data with:</p>
+                <ul>
+                    <li>Payment processors</li>
+                    <li>Email services</li>
+                    <li>Legal authorities when required</li>
+                    <li>Hosting/IT providers</li>
+                </ul>
+
+                <h3>5. Cookies and Tracking</h3>
+                <p>We use cookies to enhance functionality and gather usage analytics.</p>
+
+                <h3>6. Data Protection</h3>
+                <p>Your data is stored securely using encryption, secure databases, and access controls.</p>
+
+                <h3>7. User Rights</h3>
+                <p>You have the right to:</p>
+                <ul>
+                    <li>Access, correct, or delete your data</li>
+                    <li>Withdraw consent</li>
+                    <li>File a complaint under GDPR or other regulations</li>
+                </ul>
+
+                <h3>8. Data Retention</h3>
+                <p>We retain data only as long as necessary for legal and business purposes.</p>
+
+                <h3>9. Third-Party Links</h3>
+                <p>We are not responsible for the privacy practices of external websites linked from our site.</p>
+
+                <h3>10. Changes to This Policy</h3>
+                <p>We may update this policy. Changes will be posted on this page.</p>
+
+                <h3>11. Contact</h3>
+                <p>For privacy inquiries, contact us at <strong>calmarental@gmail.com</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms & Conditions Modal -->
+    <div id="terms-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Terms & Conditions</h2>
+            <div class="terms-content">
+                <h3>1. Introduction</h3>
+                <p>These Terms &amp; Conditions govern the rental agreement between Calma Car Rental ("we," "us," or "our") and the customer ("you" or "your"). By booking a vehicle with us, you agree to comply with these terms.</p>
+
+                <h3>2. Rental Requirements</h3>
+                <ul>
+                    <li>Minimum age: Renters must be at least 25 years old.</li>
+                    <li>Driver's license: A valid driver's license held for at least 12 months is required.</li>
+                    <li>Additional drivers: Only drivers listed in the rental agreement may operate the vehicle.</li>
+                </ul>
+
+                <h3>3. Booking &amp; Payment</h3>
+                <ul>
+                    <li>We accept major credit cards and cash in Euro.</li>
+                    <li>Prepayment may be required for some bookings.</li>
+                    <li>Free cancellation is allowed up to 48 hours before pickup.</li>
+                </ul>
+
+                <h3>4. Pickup and Return</h3>
+                <ul>
+                    <li>Free delivery/pickup at Chania Airport, Port, City Center, and nearby hotels/villas.</li>
+                    <li>Late drop-offs after 8:00 PM incur a &euro;10 surcharge.</li>
+                    <li>Vehicles must be returned in the same condition with a full tank.</li>
+                </ul>
+
+                <h3>5. Use of the Vehicle</h3>
+                <ul>
+                    <li>Not allowed for off-road driving, towing, or illegal activities.</li>
+                    <li>Use is restricted to Crete unless approved in writing.</li>
+                </ul>
+
+                <h3>6. Insurance and Liability</h3>
+                <ul>
+                    <li>Basic insurance is included.</li>
+                    <li>Additional coverage is available.</li>
+                    <li>Accidents must be reported immediately with a police report.</li>
+                </ul>
+
+                <h3>7. Customer Responsibilities</h3>
+                <ul>
+                    <li>You are responsible for all traffic fines and penalties.</li>
+                    <li>Take care of the vehicle and lock it when unattended.</li>
+                </ul>
+
+                <h3>8. Company Rights</h3>
+                <ul>
+                    <li>We may substitute your vehicle with a similar or better model.</li>
+                    <li>We reserve the right to terminate the rental if terms are violated.</li>
+                </ul>
+
+                <h3>9. Privacy and Data Use</h3>
+                <p>Your data is handled in accordance with our Privacy Policy.</p>
+
+                <h3>10. Governing Law and Jurisdiction</h3>
+                <p>These terms are governed by Greek law. Any disputes will be handled by the courts of Chania.</p>
+
+                <h3>11. Contact</h3>
+                <p>If you have questions, contact us at:<br><strong>Email</strong>: calmarental@gmail.com<br><strong>Phone</strong>: +30 6942 515267</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schema.org Structured Data for Local Business -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "Calma Car Rental",
+        "image": "images/CalmaLogoTrans.png",
+        "url": "https://calmarental.com",
+        "telephone": "+306942515267",
+        "email": "calmarental@gmail.com",
+        "description": "Premium car rental service in Chania, Crete offering a wide range of well-maintained vehicles with free delivery and pickup.",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Chania",
+            "addressRegion": "Crete",
+            "addressCountry": "Greece"
+        },
+        "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": "35.5027902",
+            "longitude": "23.9595676"
+        },
+        "openingHoursSpecification": {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+            ],
+            "opens": "08:00",
+            "closes": "20:00"
+        },
+        "sameAs": [
+            "https://www.facebook.com/calmarental",
+            "https://www.instagram.com/calmarental",
+            "https://twitter.com/calmarental"
+        ]
+    }
+    </script>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notification-container"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="assets/js/main.js"></script>
+    <script src="assets/js/fix-cars.js"></script>
+    <script src="assets/js/mobile-menu.js"></script>
+    
+    <!-- FAQ Accordion Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                const answer = item.querySelector('.faq-answer');
+                const toggle = item.querySelector('.faq-toggle');
+                
+                // Initially ensure all answers are hidden
+                answer.classList.remove('active');
+                
+                // Set initial toggle state
+                toggle.querySelector('.fa-minus').style.display = 'none';
+                toggle.querySelector('.fa-plus').style.display = 'block';
+                
+                question.addEventListener('click', function() {
+                    // Toggle current answer
+                    const isOpen = answer.classList.contains('active');
+                    
+                    if (isOpen) {
+                        // Close the answer
+                        answer.classList.remove('active');
+                        
+                        // Show plus, hide minus with transition
+                        toggle.querySelector('.fa-minus').style.display = 'none';
+                        toggle.querySelector('.fa-plus').style.display = 'block';
+                    } else {
+                        // Close all other answers first
+                        faqItems.forEach(otherItem => {
+                            if (otherItem !== item) {
+                                const otherAnswer = otherItem.querySelector('.faq-answer');
+                                const otherToggle = otherItem.querySelector('.faq-toggle');
+                                
+                                otherAnswer.classList.remove('active');
+                                otherToggle.querySelector('.fa-minus').style.display = 'none';
+                                otherToggle.querySelector('.fa-plus').style.display = 'block';
+                            }
+                        });
+                        
+                        // Open the answer
+                        answer.classList.add('active');
+                        
+                        // Show minus, hide plus with transition
+                        toggle.querySelector('.fa-minus').style.display = 'block';
+                        toggle.querySelector('.fa-plus').style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- Privacy Policy Modal Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const privacyLink = document.getElementById('privacy-policy-link');
+            const privacyModal = document.getElementById('privacy-modal');
+            const privacyClose = privacyModal.querySelector('.close-modal');
+
+            const termsLink = document.getElementById('terms-link');
+            const termsModal = document.getElementById('terms-modal');
+            const termsClose = termsModal.querySelector('.close-modal');
+
+            if (privacyLink) {
+                privacyLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    privacyModal.style.display = 'block';
+                });
+            }
+
+            if (privacyClose) {
+                privacyClose.addEventListener('click', function() {
+                    privacyModal.style.display = 'none';
+                });
+            }
+
+            if (termsLink) {
+                termsLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    termsModal.style.display = 'block';
+                });
+            }
+
+            if (termsClose) {
+                termsClose.addEventListener('click', function() {
+                    termsModal.style.display = 'none';
+                });
+            }
+
+            window.addEventListener('click', function(event) {
+                if (event.target === privacyModal) {
+                    privacyModal.style.display = 'none';
+                }
+                if (event.target === termsModal) {
+                    termsModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

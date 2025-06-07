@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Details - Calma Car Rental</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1, h2, h3 {
+      color: #0066cc;
+    }
+    
+    .page-header {
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 20px 0;
+      margin-bottom: 30px;
+    }
+    
+    .booking-form {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .booking-summary {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-left: 4px solid #0066cc;
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    
+    .error-message {
+      color: #dc3545;
+      font-size: 14px;
+      margin-top: 5px;
+      display: none;
+    }
+    
+    .checkbox-group {
+      margin-bottom: 15px;
+    }
+    
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+      margin-right: 10px;
+    }
+    
+    .btn {
+      display: inline-block;
+      background-color: #0066cc;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    
+    .btn:hover {
+      background-color: #0055aa;
+    }
+    
+    .btn-secondary {
+      background-color: #6c757d;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+    
+    .summary-item {
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .summary-label {
+      font-weight: bold;
+    }
+    
+    .total-price {
+      font-size: 20px;
+      font-weight: bold;
+      color: #0066cc;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #ddd;
+    }
+    
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #0066cc;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .success-message {
+      display: none;
+      text-align: center;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 40px;
+      margin-top: 30px;
+    }
+    
+    .success-icon {
+      color: #28a745;
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+    
+    .booking-reference {
+      font-size: 24px;
+      font-weight: bold;
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .success-message, .success-message * {
+        visibility: visible;
+      }
+      .success-message {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <div class="container">
+      <h1>Booking Details</h1>
+      <p>Please provide your personal details to complete the booking</p>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="booking-summary">
+      <h2>Booking Summary</h2>
+      <div class="summary-item">
+        <span class="summary-label">Car:</span>
+        <span id="summary-car">Loading...</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Pick-up Location:</span>
+        <span id="summary-pickup-location">Loading...</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Pick-up Date:</span>
+        <span id="summary-pickup-date">Loading...</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Drop-off Location:</span>
+        <span id="summary-dropoff-location">Loading...</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Drop-off Date:</span>
+        <span id="summary-dropoff-date">Loading...</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Rental Duration:</span>
+        <span id="summary-duration">Loading...</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Daily Rate:</span>
+        <span id="summary-daily-rate">Loading...</span>
+      </div>
+      <div class="total-price">
+        <span class="summary-label">Total Price:</span>
+        <span id="summary-total-price">Loading...</span>
+      </div>
+    </div>
+    
+    <div class="booking-form">
+      <h2>Personal Information</h2>
+      <form id="booking-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="firstName">First Name *</label>
+            <input type="text" id="firstName" name="firstName" required>
+            <div class="error-message" id="firstName-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="lastName">Last Name *</label>
+            <input type="text" id="lastName" name="lastName" required>
+            <div class="error-message" id="lastName-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email Address *</label>
+            <input type="email" id="email" name="email" required>
+            <div class="error-message" id="email-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="phone">Phone Number *</label>
+            <input type="tel" id="phone" name="phone" required>
+            <div class="error-message" id="phone-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="driverLicense">Driver's License Number *</label>
+            <input type="text" id="driverLicense" name="driverLicense" required>
+            <div class="error-message" id="driverLicense-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="licenseExpiry">License Expiry Date *</label>
+            <input type="date" id="licenseExpiry" name="licenseExpiry" required>
+            <div class="error-message" id="licenseExpiry-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="age">Age *</label>
+            <select id="age" name="age" required>
+              <option value="">Select age range</option>
+              <option value="25-34">25-34</option>
+              <option value="35-44">35-44</option>
+              <option value="45-54">45-54</option>
+              <option value="55-64">55-64</option>
+              <option value="65+">65+</option>
+            </select>
+            <div class="error-message" id="age-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="nationality">Nationality *</label>
+            <input type="text" id="nationality" name="nationality" required>
+            <div class="error-message" id="nationality-error"></div>
+          </div>
+        </div>
+        
+        <h2>Additional Options</h2>
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" id="additionalDriver" name="additionalDriver">
+            Additional Driver (+€15/day)
+          </label>
+        </div>
+        
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" id="fullInsurance" name="fullInsurance">
+            Full Insurance Coverage (+€25/day)
+          </label>
+        </div>
+        
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" id="gpsNavigation" name="gpsNavigation">
+            GPS Navigation System (+€8/day)
+          </label>
+        </div>
+        
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" id="childSeat" name="childSeat">
+            Child Safety Seat (+€5/day)
+          </label>
+        </div>
+        
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" id="termsAccepted" name="termsAccepted" required>
+            I accept the <a href="#" id="terms-link">Terms and Conditions</a> *
+          </label>
+          <div class="error-message" id="termsAccepted-error"></div>
+        </div>
+        
+        <div style="margin-top: 30px; display: flex; gap: 15px;">
+          <a href="car-selection.html" class="btn btn-secondary">Back to Car Selection</a>
+          <button type="submit" id="submit-booking" class="btn">Complete Booking</button>
+        </div>
+      </form>
+    </div>
+    
+    <div class="success-message" id="success-message">
+      <i class="fas fa-check-circle success-icon"></i>
+      <h2>Booking Confirmed!</h2>
+      <p>Thank you for choosing Calma Car Rental. Your booking has been successfully confirmed.</p>
+      <p>We have sent a confirmation email with all details to your email address.</p>
+      
+      <div class="booking-reference">
+        Booking Reference: <span id="booking-reference">Loading...</span>
+      </div>
+      
+      <div id="confirmation-details">
+        <h3>Booking Details</h3>
+        <div class="summary-item">
+          <span class="summary-label">Customer:</span>
+          <span id="conf-customer">Loading...</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Email:</span>
+          <span id="conf-email">Loading...</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Car:</span>
+          <span id="conf-car">Loading...</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Pick-up:</span>
+          <span id="conf-pickup">Loading...</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Drop-off:</span>
+          <span id="conf-dropoff">Loading...</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Additional Options:</span>
+          <span id="conf-options">Loading...</span>
+        </div>
+        <div class="total-price">
+          <span class="summary-label">Total Amount:</span>
+          <span id="conf-total">Loading...</span>
+        </div>
+      </div>
+      
+      <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center;" class="no-print">
+        <button id="print-btn" class="btn">Print Confirmation</button>
+        <a href="index.html" class="btn btn-secondary">Return to Home</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get form and elements
+      const bookingForm = document.getElementById('booking-form');
+      const submitButton = document.getElementById('submit-booking');
+      const loadingOverlay = document.getElementById('loading-overlay');
+      const successMessage = document.getElementById('success-message');
+      const printBtn = document.getElementById('print-btn');
+      
+      // Populate booking summary from sessionStorage
+      function populateBookingSummary() {
+        try {
+          // Get booking data from sessionStorage
+          const bookingData = JSON.parse(sessionStorage.getItem('bookingData') || '{}');
+          
+          if (bookingData && bookingData.selectedCar) {
+            // Format dates
+            const pickupDate = new Date(bookingData.pickupDate);
+            const dropoffDate = new Date(bookingData.returnDate);
+            
+            // Calculate duration
+            const durationMs = dropoffDate - pickupDate;
+            const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24));
+            
+            // Set values in summary
+            document.getElementById('summary-car').textContent = `${bookingData.selectedCar.make} ${bookingData.selectedCar.model}`;
+            document.getElementById('summary-pickup-location').textContent = formatLocation(bookingData.pickupLocation);
+            document.getElementById('summary-pickup-date').textContent = formatDate(pickupDate);
+            document.getElementById('summary-dropoff-location').textContent = formatLocation(bookingData.dropoffLocation);
+            document.getElementById('summary-dropoff-date').textContent = formatDate(dropoffDate);
+            document.getElementById('summary-duration').textContent = `${durationDays} day${durationDays !== 1 ? 's' : ''}`;
+            document.getElementById('summary-daily-rate').textContent = `€${bookingData.selectedCar.price.toFixed(2)}`;
+            document.getElementById('summary-total-price').textContent = `€${(bookingData.selectedCar.price * durationDays).toFixed(2)}`;
+            
+            // Store duration for later use
+            window.durationDays = durationDays;
+            window.carPrice = bookingData.selectedCar.price;
+          } else {
+            // Redirect to booking page if no data
+            window.location.href = 'index.html';
+          }
+        } catch (error) {
+          console.error('Error loading booking data:', error);
+          window.location.href = 'index.html';
+        }
+      }
+      
+      // Update total price when additional options are selected
+      function updateTotalPrice() {
+        const additionalDriver = document.getElementById('additionalDriver').checked;
+        const fullInsurance = document.getElementById('fullInsurance').checked;
+        const gpsNavigation = document.getElementById('gpsNavigation').checked;
+        const childSeat = document.getElementById('childSeat').checked;
+        
+        const durationDays = window.durationDays || 1;
+        const carPrice = window.carPrice || 0;
+        
+        // Option prices
+        const optionPrices = {
+          additionalDriver: 15,
+          fullInsurance: 25,
+          gpsNavigation: 8,
+          childSeat: 5
+        };
+        
+        // Calculate total
+        let totalPrice = carPrice * durationDays;
+        
+        if (additionalDriver) totalPrice += optionPrices.additionalDriver * durationDays;
+        if (fullInsurance) totalPrice += optionPrices.fullInsurance * durationDays;
+        if (gpsNavigation) totalPrice += optionPrices.gpsNavigation * durationDays;
+        if (childSeat) totalPrice += optionPrices.childSeat * durationDays;
+        
+        // Update display
+        document.getElementById('summary-total-price').textContent = `€${totalPrice.toFixed(2)}`;
+      }
+      
+      // Form submission handler
+      function handleSubmit(e) {
+        e.preventDefault();
+        
+        // Basic validation
+        if (!validateForm()) {
+          return;
+        }
+        
+        // Show loading overlay
+        loadingOverlay.style.display = 'flex';
+        
+        // Disable submit button
+        submitButton.disabled = true;
+        
+        // Collect form data
+        const formData = {
+          firstName: document.getElementById('firstName').value,
+          lastName: document.getElementById('lastName').value,
+          email: document.getElementById('email').value,
+          phone: document.getElementById('phone').value,
+          driverLicense: document.getElementById('driverLicense').value,
+          licenseExpiry: document.getElementById('licenseExpiry').value,
+          age: document.getElementById('age').value,
+          nationality: document.getElementById('nationality').value,
+          additionalOptions: {
+            additionalDriver: document.getElementById('additionalDriver').checked,
+            fullInsurance: document.getElementById('fullInsurance').checked,
+            gpsNavigation: document.getElementById('gpsNavigation').checked,
+            childSeat: document.getElementById('childSeat').checked
+          }
+        };
+        
+        // Get booking data and calculate total price
+        const bookingData = JSON.parse(sessionStorage.getItem('bookingData') || '{}');
+        const durationDays = window.durationDays || 1;
+        const carPrice = window.carPrice || 0;
+        
+        let totalPrice = carPrice * durationDays;
+        
+        // Add optional extras
+        if (formData.additionalOptions.additionalDriver) totalPrice += 15 * durationDays;
+        if (formData.additionalOptions.fullInsurance) totalPrice += 25 * durationDays;
+        if (formData.additionalOptions.gpsNavigation) totalPrice += 8 * durationDays;
+        if (formData.additionalOptions.childSeat) totalPrice += 5 * durationDays;
+        
+        // Generate booking reference
+        const bookingReference = generateReference();
+        
+        // Create complete booking object
+        const completeBooking = {
+          ...bookingData,
+          customer: formData,
+          bookingReference: bookingReference,
+          totalPrice: totalPrice,
+          dateSubmitted: new Date().toISOString(),
+          status: 'new'
+        };
+        
+        // Store booking in localStorage for both user and admin access
+        storeBooking(completeBooking);
+        
+        // Display confirmation after a short delay
+        setTimeout(function() {
+          // Hide loading overlay
+          loadingOverlay.style.display = 'none';
+          
+          // Hide form
+          document.querySelector('.booking-form').style.display = 'none';
+          document.querySelector('.booking-summary').style.display = 'none';
+          
+          // Populate confirmation details
+          document.getElementById('booking-reference').textContent = bookingReference;
+          document.getElementById('conf-customer').textContent = `${formData.firstName} ${formData.lastName}`;
+          document.getElementById('conf-email').textContent = formData.email;
+          document.getElementById('conf-car').textContent = `${bookingData.selectedCar.make} ${bookingData.selectedCar.model}`;
+          document.getElementById('conf-pickup').textContent = `${formatLocation(bookingData.pickupLocation)} - ${formatDate(new Date(bookingData.pickupDate))}`;
+          document.getElementById('conf-dropoff').textContent = `${formatLocation(bookingData.dropoffLocation)} - ${formatDate(new Date(bookingData.returnDate))}`;
+          
+          // Format options
+          let options = [];
+          if (formData.additionalOptions.childSeat) options.push('Child Seat');
+          document.getElementById('conf-options').textContent = options.length > 0 ? options.join(', ') : 'None';
+          document.getElementById('conf-total').textContent = `€${totalPrice.toFixed(2)}`;
+          
+          // Add booking creation time
+          const createdDateTime = completeBooking.dateSubmitted ? new Date(completeBooking.dateSubmitted).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+          const createdElem = document.createElement('div');
+          createdElem.className = 'summary-item';
+          createdElem.innerHTML = `<span class="summary-label">Booking Made:</span><span>${createdDateTime}</span>`;
+          document.getElementById('confirmation-details').prepend(createdElem);
+          
+          // Show success message
+          successMessage.style.display = 'block';
+        }, 1500);
+      }
+      
+      // Validate the form
+      function validateForm() {
+        let isValid = true;
+        
+        // Check required fields
+        const requiredFields = [
+          { id: 'firstName', errorId: 'firstName-error', message: 'Please enter your first name' },
+          { id: 'lastName', errorId: 'lastName-error', message: 'Please enter your last name' },
+          { id: 'email', errorId: 'email-error', message: 'Please enter a valid email address' },
+          { id: 'phone', errorId: 'phone-error', message: 'Please enter your phone number' },
+          { id: 'driverLicense', errorId: 'driverLicense-error', message: 'Please enter your driver\'s license number' },
+          { id: 'licenseExpiry', errorId: 'licenseExpiry-error', message: 'Please enter the license expiry date' },
+          { id: 'age', errorId: 'age-error', message: 'Please select your age range' },
+          { id: 'nationality', errorId: 'nationality-error', message: 'Please enter your nationality' }
+        ];
+        
+        // Reset all error messages
+        document.querySelectorAll('.error-message').forEach(el => {
+          el.style.display = 'none';
+          el.textContent = '';
+        });
+        
+        // Validate each field
+        requiredFields.forEach(field => {
+          const element = document.getElementById(field.id);
+          const errorElement = document.getElementById(field.errorId);
+          
+          if (!element.value.trim()) {
+            isValid = false;
+            errorElement.textContent = field.message;
+            errorElement.style.display = 'block';
+          }
+        });
+        
+        // Validate email format
+        const emailInput = document.getElementById('email');
+        const emailError = document.getElementById('email-error');
+        
+        if (emailInput.value.trim() && !isValidEmail(emailInput.value)) {
+          isValid = false;
+          emailError.textContent = 'Please enter a valid email address';
+          emailError.style.display = 'block';
+        }
+        
+        // Validate terms acceptance
+        const termsCheckbox = document.getElementById('termsAccepted');
+        const termsError = document.getElementById('termsAccepted-error');
+        
+        if (!termsCheckbox.checked) {
+          isValid = false;
+          termsError.textContent = 'You must accept the terms and conditions';
+          termsError.style.display = 'block';
+        }
+        
+        return isValid;
+      }
+      
+      // Check if email is valid
+      function isValidEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+      }
+      
+      // Generate a random booking reference
+      function generateReference() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let reference = 'CR-';
+        
+        for (let i = 0; i < 8; i++) {
+          const randomIndex = Math.floor(Math.random() * chars.length);
+          reference += chars[randomIndex];
+        }
+        
+        return reference;
+      }
+      
+      // Store booking data in localStorage
+      function storeBooking(booking) {
+        try {
+          // For user bookings
+          let userBookings = JSON.parse(localStorage.getItem('userBookings') || '[]');
+          userBookings.push(booking);
+          localStorage.setItem('userBookings', JSON.stringify(userBookings));
+          
+          // For admin dashboard
+          let adminBookings = JSON.parse(localStorage.getItem('adminBookings') || '[]');
+          adminBookings.push(booking);
+          localStorage.setItem('adminBookings', JSON.stringify(adminBookings));
+          
+          // Clear session storage
+          // sessionStorage.removeItem('bookingData');
+          
+          return true;
+        } catch (error) {
+          console.error('Error storing booking:', error);
+          return false;
+        }
+      }
+      
+      // Format location
+      function formatLocation(locationCode) {
+        const locations = {
+          'airport': 'Chania Airport',
+          'port': 'Chania Port',
+          'city': 'Chania City Center',
+          'hotel': 'Your Hotel/Villa'
+        };
+        
+        return locations[locationCode] || locationCode;
+      }
+      
+      // Format date
+      function formatDate(date) {
+        return date.toLocaleDateString('en-US', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      
+      // Print confirmation
+      function printConfirmation() {
+        window.print();
+      }
+      
+      // Initialize the page
+      populateBookingSummary();
+      
+      // Add event listeners for additional options
+      document.getElementById('additionalDriver').addEventListener('change', updateTotalPrice);
+      document.getElementById('fullInsurance').addEventListener('change', updateTotalPrice);
+      document.getElementById('gpsNavigation').addEventListener('change', updateTotalPrice);
+      document.getElementById('childSeat').addEventListener('change', updateTotalPrice);
+      
+      // Add event listener for form submission
+      bookingForm.addEventListener('submit', handleSubmit);
+      
+      // Print button
+      printBtn.addEventListener('click', printConfirmation);
+    });
+  </script>
+</body>
+</html> 
