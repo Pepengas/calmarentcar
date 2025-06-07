@@ -17,6 +17,14 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 require('dotenv').config();
 
+// Register JSX support for React email templates
+const { register } = require('esbuild-register/dist/node');
+register({ extensions: ['.jsx'] });
+
+const React = require('react');
+const { render } = require('@react-email/render');
+const BookingConfirmationEmail = require('./emails/BookingConfirmation.jsx').default;
+
 // Ensure the Stripe secret key is provided
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing STRIPE_SECRET_KEY environment variable');
@@ -1483,20 +1491,25 @@ async function sendBookingConfirmationEmail(booking) {
             recipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
         }
 
+        const html = await render(
+            React.createElement(BookingConfirmationEmail, {
+                data: {
+                    reference: booking.booking_reference,
+                    car: `${booking.car_make} ${booking.car_model}`,
+                    pickup: booking.pickup_date,
+                    return: booking.return_date,
+                    total,
+                    paid,
+                    due
+                }
+            })
+        );
+
         await resend.emails.send({
             from: 'Calma Car Rental <booking@calmarental.com>',
             to: recipients,
             subject: 'Your Booking Confirmation – Calma Car Rental',
-            html: `
-                <h1>Booking Confirmation</h1>
-                <p>Reference: <strong>${booking.booking_reference}</strong></p>
-                <p>Car: <strong>${booking.car_make} ${booking.car_model}</strong></p>
-                <p>Pickup Date: ${booking.pickup_date}</p>
-                <p>Return Date: ${booking.return_date}</p>
-                <p>Total Price: €${total}</p>
-                <p>Paid Amount (45%): €${paid}</p>
-                <p>Due at Pickup (55%): €${due}</p>
-            `
+            html
         });
         console.log(`📧 Confirmation email sent to ${recipients.join(', ')}`);
     } catch (err) {

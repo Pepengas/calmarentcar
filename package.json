@@ -29,7 +29,15 @@
     "resend": "^4.5.2",
     "stripe": "^18.2.1",
     "uuid": "^11.1.0",
-    "xss": "^1.0.15"
+    "xss": "^1.0.15",
+    "@react-email/html": "^0.0.11",
+    "@react-email/head": "^0.0.12",
+    "@react-email/preview": "^0.0.13",
+    "@react-email/render": "^1.1.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "esbuild": "^0.25.5",
+    "esbuild-register": "^3.6.0"
   },
   "engines": {
     "node": ">=16.0.0"
