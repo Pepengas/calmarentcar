@@ -16,7 +16,8 @@ const xss = require('xss');
 require('dotenv').config();
 
 const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 // Register JSX support for React email templates
 const { register: esbuildRegister } = require('esbuild-register/dist/node');
@@ -1477,10 +1478,11 @@ async function calculateTotalPrice(car_id, pickup_date, return_date) {
 
 // Send booking confirmation email using Resend
 async function sendBookingConfirmationEmail(booking) {
-    if (!process.env.RESEND_API_KEY) {
+    if (!resend) {
         console.warn('RESEND_API_KEY not configured; skipping email');
         return;
     }
+    console.log(`Sending confirmation email for booking ${booking.booking_reference}`);
     if (!booking || !booking.customer_email) return;
     try {
         const total = parseFloat(booking.total_price || 0);
