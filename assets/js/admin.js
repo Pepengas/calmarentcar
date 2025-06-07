@@ -558,25 +558,10 @@ async function loadBookings() {
     `;
     
     try {
-        // Ensure we have the most up-to-date token
-        const currentToken = localStorage.getItem('adminToken');
-        
-        // Create headers object
+        // Always include credentials so the session cookie is sent
         const headers = {
             'Accept': 'application/json'
         };
-        
-        // Add Authorization header if token exists
-        if (currentToken) {
-            console.log('[Admin] loadBookings: Using token from localStorage');
-            // Properly format with Bearer prefix
-            headers['Authorization'] = `Bearer ${currentToken}`;
-        } else {
-            console.warn('[Admin] loadBookings: No API_TOKEN found in localStorage. Authentication might fail.');
-            // Try redirect to login preemptively
-            window.location.href = 'admin-login.html';
-            return;
-        }
 
         console.log('[Admin] loadBookings: Fetching from /api/admin/bookings with headers:', 
                     {Authorization: headers.Authorization ? 'Bearer [TOKEN HIDDEN]' : 'Missing'});
