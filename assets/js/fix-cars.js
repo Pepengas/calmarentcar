@@ -274,9 +274,12 @@ document.addEventListener('DOMContentLoaded', function() {
           if (card) {
             const priceElement = card.querySelector('.car-price');
             if (priceElement && priceElement.textContent.includes('€')) {
-              const match = priceElement.textContent.match(/€([\d\.]+)/);
-              if (match) {
-                totalPrice = parseFloat(match[1]);
+              const matches = priceElement.textContent.match(/€([\d\.]+)/g);
+              if (matches && matches.length) {
+                const lastMatch = matches[matches.length - 1].match(/€([\d\.]+)/);
+                if (lastMatch) {
+                  totalPrice = parseFloat(lastMatch[1]);
+                }
               }
             }
           }
@@ -327,8 +330,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!data.success) {
               throw new Error(data.error || 'Failed to get price');
             }
-            priceElement.textContent = `Total: €${data.total_price}`;
-            console.log(`[fix-cars] Set price for carId=${carId}: Total: €${data.total_price}`);
+            const discountedPrice = parseFloat(data.total_price);
+            const originalPrice = (discountedPrice + 20).toFixed(2);
+            priceElement.innerHTML = `Total: <span class="original-price">€${originalPrice}</span> <span class="discounted-price">€${discountedPrice.toFixed(2)}</span>`;
+            console.log(`[fix-cars] Set price for carId=${carId}: Total: €${discountedPrice}`);
           } catch (error) {
             console.error('Error calculating price:', error);
             if (priceElement) priceElement.textContent = 'Price unavailable';
@@ -558,6 +563,24 @@ document.addEventListener('DOMContentLoaded', function() {
         pointer-events: none !important;
         border: none !important;
         opacity: 0.7;
+      }
+    `;
+    document.head.appendChild(style);
+  })();
+
+  // Style for showing fake discount prices
+  (function addDiscountPriceStyle() {
+    if (!window.location.pathname.includes('car-selection.html')) return;
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .original-price {
+        text-decoration: line-through;
+        color: #888;
+        margin-right: 0.25rem;
+      }
+      .discounted-price {
+        color: #0066cc;
+        font-weight: 600;
       }
     `;
     document.head.appendChild(style);
