@@ -102,14 +102,30 @@
             // Get the booking reference from URL
             const urlParams = new URLSearchParams(window.location.search);
             const bookingReference = urlParams.get('reference');
-            
+            const sessionId = urlParams.get('session_id');
+
             if (!bookingReference) {
                 showError('No booking reference found. Please check your confirmation email or contact customer support.');
                 return;
             }
-            
+
+            if (sessionId) {
+                confirmPayment();
+            }
+
             // Fetch booking details
             fetchBookingDetails(bookingReference);
+
+            async function confirmPayment() {
+                try {
+                    const res = await fetch(`/api/bookings/${bookingReference}/confirm-payment`, { method: 'POST' });
+                    if (!res.ok) {
+                        console.error('Payment confirmation failed');
+                    }
+                } catch (err) {
+                    console.error('Error confirming payment:', err);
+                }
+            }
             
             // Function to fetch booking details from API
             async function fetchBookingDetails(reference) {
