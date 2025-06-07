@@ -499,7 +499,8 @@ app.post('/api/bookings',
 
         if (insertResult.rows && insertResult.rows.length > 0) {
             await syncManualBlockWithBooking(insertResult.rows[0]);
-            await sendBookingConfirmationEmail(insertResult.rows[0]);
+            // Confirmation email is now sent only after successful payment
+            // during the /confirm-payment flow.
         }
 
         return res.status(200).json({
@@ -609,19 +610,28 @@ app.post('/api/bookings/:reference/confirm-payment',
             return res.status(503).json({ success: false, error: 'Database not connected' });
         }
 
-        const result = await pool.query(
-            `UPDATE bookings SET status = 'confirmed' WHERE booking_reference = $1 RETURNING *`,
-            [reference]
-        );
+        // Fetch booking to check current status
+        const fetchResult = await pool.query('SELECT * FROM bookings WHERE booking_reference = $1', [reference]);
 
-        if (result.rows.length === 0) {
+        if (fetchResult.rows.length === 0) {
             return res.status(404).json({ success: false, error: 'Booking not found' });
         }
 
-        await syncManualBlockWithBooking(result.rows[0]);
-        await sendBookingConfirmationEmail(result.rows[0]);
+        let booking = fetchResult.rows[0];
 
-        return res.json({ success: true, booking: result.rows[0] });
+        if (booking.status !== 'confirmed') {
+            // Update status to confirmed and send confirmation email only once
+            const updateResult = await pool.query(
+                `UPDATE bookings SET status = 'confirmed' WHERE booking_reference = $1 RETURNING *`,
+                [reference]
+            );
+            booking = updateResult.rows[0];
+
+            await syncManualBlockWithBooking(booking);
+            await sendBookingConfirmationEmail(booking);
+        }
+
+        return res.json({ success: true, booking });
     } catch (error) {
         console.error('Error confirming booking payment:', error);
         return res.status(500).json({ success: false, error: error.message });
