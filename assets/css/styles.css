@@ -743,6 +743,13 @@ footer {
     font-size: 0.9rem;
 }
 
+.developer-credit {
+    text-align: center;
+    color: #adb5bd;
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
 /* Notification System */
 .notification {
     position: fixed;
