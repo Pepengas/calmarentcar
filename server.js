@@ -507,8 +507,8 @@ app.post('/api/bookings',
 
         if (insertResult.rows && insertResult.rows.length > 0) {
             await syncManualBlockWithBooking(insertResult.rows[0]);
-            // Confirmation email is now sent only after successful payment
-            // during the /confirm-payment flow.
+            // Immediately notify the customer of the pending booking
+            await sendBookingConfirmationEmail(insertResult.rows[0]);
         }
 
         return res.status(200).json({
