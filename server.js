@@ -13,9 +13,18 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const { body, param, query, validationResult } = require('express-validator');
 const xss = require('xss');
+require('dotenv').config();
+
 const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
-require('dotenv').config();
+
+// Register JSX support for React email templates
+const { register } = require('esbuild-register/dist/node');
+register({ extensions: ['.jsx'] });
+
+const React = require('react');
+const { render } = require('@react-email/render');
+const BookingConfirmationEmail = require('./emails/BookingConfirmation.jsx').default;
 
 // Register JSX support for React email templates
 const { register } = require('esbuild-register/dist/node');
