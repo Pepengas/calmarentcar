@@ -499,7 +499,6 @@ app.post('/api/bookings',
 
         if (insertResult.rows && insertResult.rows.length > 0) {
             await syncManualBlockWithBooking(insertResult.rows[0]);
-            await sendBookingConfirmationEmail(insertResult.rows[0]);
         }
 
         return res.status(200).json({
