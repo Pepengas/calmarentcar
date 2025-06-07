@@ -16,7 +16,8 @@ const xss = require('xss');
 require('dotenv').config();
 
 const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 // Register JSX support for React email templates
 const { register: esbuildRegister } = require('esbuild-register/dist/node');
@@ -1477,10 +1478,11 @@ async function calculateTotalPrice(car_id, pickup_date, return_date) {
 
 // Send booking confirmation email using Resend
 async function sendBookingConfirmationEmail(booking) {
-    if (!process.env.RESEND_API_KEY) {
+    if (!resend) {
         console.warn('RESEND_API_KEY not configured; skipping email');
         return;
     }
+    console.log(`Sending confirmation email for booking ${booking.booking_reference}`);
     if (!booking || !booking.customer_email) return;
     try {
         const total = parseFloat(booking.total_price || 0);
@@ -1492,13 +1494,21 @@ async function sendBookingConfirmationEmail(booking) {
             recipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
         }
 
+        // Convert date objects to ISO strings for email template
+        const pickupDate = booking.pickup_date instanceof Date
+            ? booking.pickup_date.toISOString().split('T')[0]
+            : booking.pickup_date;
+        const returnDate = booking.return_date instanceof Date
+            ? booking.return_date.toISOString().split('T')[0]
+            : booking.return_date;
+
         const html = await render(
             React.createElement(BookingConfirmationEmail, {
                 data: {
                     reference: booking.booking_reference,
                     car: `${booking.car_make} ${booking.car_model}`,
-                    pickup: booking.pickup_date,
-                    return: booking.return_date,
+                    pickup: pickupDate,
+                    return: returnDate,
                     total,
                     paid,
                     due
