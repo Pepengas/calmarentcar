@@ -70,6 +70,10 @@ Setting up the database will:
 - **Bookings not appearing**: Check your server logs on Railway for any errors
 - **Database connection issues**: Verify your `DATABASE_URL` environment variable is correct
 - **Server errors**: Check that all required dependencies are installed
+- **Admin session cookie not set**: When hosting behind a reverse proxy
+  (e.g. Railway's HTTPS layer or Cloudflare), make sure the server trusts the
+  proxy so secure cookies can be issued. The code now calls
+  `app.set('trust proxy', 1)`; redeploy if you updated from an earlier version.
 
 If you encounter issues, look at the browser's developer console and your Railway logs for error messages.
 
