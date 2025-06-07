@@ -51,6 +51,8 @@ const corsOptions = {
 
 // Middleware
 app.use(cors(corsOptions));
+// Trust the first proxy when behind load balancers or reverse proxies
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
