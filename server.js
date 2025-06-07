@@ -499,7 +499,6 @@ app.post('/api/bookings',
 
         if (insertResult.rows && insertResult.rows.length > 0) {
             await syncManualBlockWithBooking(insertResult.rows[0]);
-            await sendBookingConfirmationEmail(insertResult.rows[0]);
         }
 
         return res.status(200).json({
@@ -594,6 +593,37 @@ app.get('/api/bookings/:reference',
             success: false,
             error: error.message
         });
+    }
+});
+
+// Confirm payment and send booking email
+app.post('/api/bookings/:reference/confirm-payment',
+    validate([param('reference').trim().notEmpty()]),
+    async (req, res) => {
+    try {
+        const { reference } = req.params;
+
+        if (!global.dbConnected) {
+            console.warn('🚨 Skipping DB call: no connection');
+            return res.status(503).json({ success: false, error: 'Database not connected' });
+        }
+
+        const result = await pool.query(
+            `UPDATE bookings SET status = 'confirmed' WHERE booking_reference = $1 RETURNING *`,
+            [reference]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Booking not found' });
+        }
+
+        await syncManualBlockWithBooking(result.rows[0]);
+        await sendBookingConfirmationEmail(result.rows[0]);
+
+        return res.json({ success: true, booking: result.rows[0] });
+    } catch (error) {
+        console.error('Error confirming booking payment:', error);
+        return res.status(500).json({ success: false, error: error.message });
     }
 });
 
