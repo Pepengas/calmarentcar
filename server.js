@@ -1494,13 +1494,21 @@ async function sendBookingConfirmationEmail(booking) {
             recipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
         }
 
+        // Convert date objects to ISO strings for email template
+        const pickupDate = booking.pickup_date instanceof Date
+            ? booking.pickup_date.toISOString().split('T')[0]
+            : booking.pickup_date;
+        const returnDate = booking.return_date instanceof Date
+            ? booking.return_date.toISOString().split('T')[0]
+            : booking.return_date;
+
         const html = await render(
             React.createElement(BookingConfirmationEmail, {
                 data: {
                     reference: booking.booking_reference,
                     car: `${booking.car_make} ${booking.car_model}`,
-                    pickup: booking.pickup_date,
-                    return: booking.return_date,
+                    pickup: pickupDate,
+                    return: returnDate,
                     total,
                     paid,
                     due
