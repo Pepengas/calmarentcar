@@ -58,9 +58,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add logout functionality
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('adminToken');
-            window.location.href = 'admin-login.html';
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await fetch('/api/admin/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (e) {
+                console.error('Logout request failed', e);
+            } finally {
+                localStorage.removeItem('adminToken');
+                window.location.href = 'admin-login.html';
+            }
         });
     }
 
