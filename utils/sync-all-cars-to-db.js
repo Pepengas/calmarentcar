@@ -257,11 +257,11 @@ function standardizeCar(car) {
   };
 }
 
-// Function to check if a car already exists in the database
-async function carExistsInDatabase(carName) {
+// Function to check if a car already exists in the database by car_id
+async function carExistsInDatabase(carId) {
   const result = await pool.query(
-    'SELECT * FROM cars WHERE LOWER(name) = LOWER($1)', 
-    [carName]
+    'SELECT * FROM cars WHERE car_id = $1',
+    [carId]
   );
   return result.rows.length > 0 ? result.rows[0] : null;
 }
@@ -313,8 +313,6 @@ async function syncAllCarsToDatabase() {
     const existingCars = existingCarsResult.rows;
     console.log(`✅ Found ${existingCars.length} cars already in database`);
     
-    // Create set of existing cars for quick lookup
-    const existingCarNames = new Set(existingCars.map(car => car.name.toLowerCase()));
     
     // Combine all sources into a master list, standardizing as we go
     let masterCarList = carsFromJson.map(car => standardizeCar(car)).filter(car => car !== null);
@@ -345,17 +343,17 @@ async function syncAllCarsToDatabase() {
       }
     }
     
-    // Deduplicate cars by name (case insensitive)
-    const carsByName = {};
+    // Deduplicate cars by car_id to avoid duplicate entries
+    const carsById = {};
     for (const car of masterCarList) {
-      const lowerName = car.name.toLowerCase();
-      if (!carsByName[lowerName] || car.available) {
-        carsByName[lowerName] = car;
+      const id = car.car_id;
+      if (!carsById[id] || car.available) {
+        carsById[id] = car;
       }
     }
-    
+
     // Convert back to array
-    masterCarList = Object.values(carsByName);
+    masterCarList = Object.values(carsById);
     
     console.log(`✅ Master car list created with ${masterCarList.length} unique cars`);
     
@@ -367,7 +365,7 @@ async function syncAllCarsToDatabase() {
     
     for (const car of masterCarList) {
       try {
-        const existingCar = await carExistsInDatabase(car.name);
+        const existingCar = await carExistsInDatabase(car.car_id);
         
         if (existingCar) {
           // Update existing car
