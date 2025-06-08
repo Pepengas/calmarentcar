@@ -39,6 +39,50 @@ body {
     padding: 0 15px;
 }
 
+@media (max-width: 768px) {
+    html {
+        font-size: 14px;
+    }
+
+    section {
+        padding: 35px 0;
+    }
+
+    .section-header {
+        margin-bottom: 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        font-size: 12px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
+
+    h3 {
+        font-size: 1.1rem;
+    }
+
+    section {
+        padding: 20px 0;
+    }
+
+    .container {
+        padding: 0 5px;
+    }
+
+    .section-header {
+        margin-bottom: 20px;
+    }
+}
+
 /* Header & Navigation */
 header {
     background-color: rgba(255, 255, 255, 0.95);
@@ -105,6 +149,24 @@ header {
     display: none;
     font-size: 24px;
     cursor: pointer;
+}
+
+@media (max-width: 480px) {
+    header {
+        padding: 8px 0;
+    }
+
+    .logo img {
+        height: 32px;
+    }
+
+    .nav-links li {
+        margin: 10px 0;
+    }
+
+    .nav-links a {
+        font-size: 1rem;
+    }
 }
 
 /* Hero Section */
@@ -904,11 +966,18 @@ footer {
 
 @media (max-width: 768px) {
     .hero {
-        padding-top: 100px !important;
-        padding-bottom: 120px !important;
-        min-height: auto !important;
+        padding: 100px 0 50px;
+        min-height: 420px;
     }
-    
+
+    .hero h1 {
+        font-size: 2.2rem;
+    }
+
+    .hero p {
+        font-size: 1rem;
+    }
+
     .hero-content {
         padding-top: 20px !important;
         width: 100% !important;
@@ -1015,6 +1084,50 @@ footer {
     
     .booking-form {
         margin-top: 60px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        padding: 80px 0 40px;
+        min-height: 360px;
+    }
+
+    .hero h1 {
+        font-size: 1.6rem;
+    }
+
+    .hero p {
+        font-size: 0.9rem;
+    }
+
+    .booking-form {
+        padding: 10px 8px;
+    }
+
+    .form-row {
+        margin: 0 -5px 10px;
+    }
+
+    .form-group {
+        padding: 0 5px;
+        margin-bottom: 8px;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .step {
+        width: 26px;
+        height: 26px;
+        margin: 0 15px;
+    }
+
+    .step-title {
+        width: 55px;
+        font-size: 0.7rem;
     }
 }
 
