@@ -556,6 +556,24 @@
 
       new Choices('#pickup-location', { searchEnabled: false, itemSelectText: '' });
       new Choices('#dropoff-location', { searchEnabled: false, itemSelectText: '' });
+
+      // Show location fee notice when Airport or Chania Center is selected
+      var locationFeeEl = document.querySelector('.location-fee');
+      var pickupSelect = document.getElementById('pickup-location');
+      var dropoffSelect = document.getElementById('dropoff-location');
+
+      function updateLocationFee() {
+        if ((pickupSelect.value === 'airport' || pickupSelect.value === 'chania-center') ||
+            (dropoffSelect.value === 'airport' || dropoffSelect.value === 'chania-center')) {
+          if (locationFeeEl) locationFeeEl.style.display = 'block';
+        } else {
+          if (locationFeeEl) locationFeeEl.style.display = 'none';
+        }
+      }
+
+      pickupSelect.addEventListener('change', updateLocationFee);
+      dropoffSelect.addEventListener('change', updateLocationFee);
+      updateLocationFee();
     });
     </script>
 
@@ -718,7 +736,10 @@
                                 
                                 <!-- Late surcharge message - updated for 8PM -->
                                 <div class="late-surcharge" style="display: none; margin-top: 5px; font-size: 0.85rem; color: #dc3545; background-color: #f8d7da; padding: 5px 10px; border-radius: 4px;">
-                                    <i class="fas fa-exclamation-circle"></i> A late return surcharge of €10 applies for drop-offs after 8:00 PM.
+                                    <i class="fas fa-exclamation-circle"></i> A late return surcharge of €5 per hour applies for drop-offs after 8:00 PM.
+                                </div>
+                                <div class="location-fee" style="display: none; margin-top: 5px; font-size: 0.85rem; color: #dc3545; background-color: #f8d7da; padding: 5px 10px; border-radius: 4px;">
+                                    <i class="fas fa-exclamation-circle"></i> Pick-up or drop-off at Chania Airport or Chania Center includes an additional location fee.
                                 </div>
                                 
                                 <!-- Form Navigation -->
@@ -1351,7 +1372,7 @@
                 <h3>4. Pickup and Return</h3>
                 <ul>
                     <li>Free delivery/pickup at Chania Airport, Port, City Center, and nearby hotels/villas.</li>
-                    <li>Late drop-offs after 8:00 PM incur a &euro;10 surcharge.</li>
+                    <li>Late drop-offs after 8:00 PM incur a &euro;5 per hour surcharge.</li>
                     <li>Vehicles must be returned in the same condition with a full tank.</li>
                 </ul>
 
