@@ -172,9 +172,18 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     [logoutBtn, logoutBtnMobile, mobileLogoutBtn].forEach(btn => {
         if (btn) {
-            btn.addEventListener('click', function() {
-                localStorage.removeItem('adminToken');
-                window.location.href = 'admin-login.html';
+            btn.addEventListener('click', async function() {
+                try {
+                    await fetch('/api/admin/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                } catch (e) {
+                    console.error('Logout request failed', e);
+                } finally {
+                    localStorage.removeItem('adminToken');
+                    window.location.href = 'admin-login.html';
+                }
             });
         }
     });
