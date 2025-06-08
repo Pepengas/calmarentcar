@@ -200,38 +200,42 @@ body.dark-mode a:hover {
     html {
         font-size: 14px;
     }
-    
+
     section {
-        padding: 40px 0;
+        padding: 35px 0;
     }
-    
+
     .section-header {
-        margin-bottom: 30px;
+        margin-bottom: 25px;
     }
 }
 
 @media (max-width: 480px) {
     html {
-        font-size: 13px;
+        font-size: 12px;
     }
-    
+
     h1 {
-        font-size: 2rem;
+        font-size: 1.6rem;
     }
-    
+
     h2 {
-        font-size: 1.75rem;
+        font-size: 1.4rem;
     }
-    
+
     h3 {
-        font-size: 1.3rem;
+        font-size: 1.1rem;
     }
-    
+
     section {
-        padding: 30px 0;
+        padding: 20px 0;
     }
-    
+
     .container {
-        padding: 0 10px;
+        padding: 0 5px;
     }
-} 
+
+    .section-header {
+        margin-bottom: 20px;
+    }
+}
