@@ -1224,7 +1224,7 @@
           
           <div class="form-group">
             <label class="required">Driver's License Number</label>
-            <input type="text" id="driverLicense" name="driverLicense" required>
+            <input type="text" id="driverLicense" name="driverLicense">
             <div id="driverLicense-error" class="validation-message"></div>
           </div>
           
@@ -1691,7 +1691,7 @@
           const nationality = document.getElementById('nationality').value;
           
           // Basic validation
-          if (!firstName || !lastName || !email || !phone || !driverLicense || !licenseExpiry || !age || !nationality) {
+          if (!firstName || !lastName || !email || !phone || !licenseExpiry || !age || !nationality) {
             alert('Please fill in all required fields');
             return;
           }
