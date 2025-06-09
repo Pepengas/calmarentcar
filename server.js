@@ -18,7 +18,8 @@ require('dotenv').config();
 const { Resend } = require('resend');
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+// Default to a Gmail address to avoid Resend test-mode restrictions
+const FROM_EMAIL = process.env.FROM_EMAIL || 'calmarental@gmail.com';
 
 // Register JSX support for React email templates
 const { register: esbuildRegister } = require('esbuild-register/dist/node');
@@ -634,6 +635,7 @@ app.post('/api/bookings/:reference/confirm-payment',
     async (req, res) => {
     try {
         const { reference } = req.params;
+        console.log(`[confirm-payment] Received request for ${reference}`);
 
         if (!global.dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
@@ -648,21 +650,39 @@ app.post('/api/bookings/:reference/confirm-payment',
         }
 
         let booking = fetchResult.rows[0];
-          if (booking.status !== 'confirmed' || !booking.payment_date) {
-            // Mark as confirmed and set payment date if not already set
-            const updateResult = await pool.query(
-           `UPDATE bookings
-                 SET status = 'confirmed',
-                     payment_date = COALESCE(payment_date, NOW())
-                 WHERE booking_reference = $1
-                 RETURNING *`,
-                [reference]
-            );
-            booking = updateResult.rows[0];
+        if (booking.status !== 'confirmed' || !booking.payment_date) {
+            try {
+                const updateResult = await pool.query(
+                    `UPDATE bookings
+                     SET status = 'confirmed',
+                         payment_date = COALESCE(payment_date, NOW())
+                     WHERE booking_reference = $1
+                     RETURNING *`,
+                    [reference]
+                );
+                booking = updateResult.rows[0];
+            } catch (updateErr) {
+                if (updateErr.message.includes('payment_date')) {
+                    await pool.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_date TIMESTAMP');
+                    const retry = await pool.query(
+                        `UPDATE bookings
+                         SET status = 'confirmed',
+                             payment_date = COALESCE(payment_date, NOW())
+                         WHERE booking_reference = $1
+                         RETURNING *`,
+                        [reference]
+                    );
+                    booking = retry.rows[0];
+                } else {
+                    throw updateErr;
+                }
+            }
 
             await syncManualBlockWithBooking(booking);
-            await sendBookingConfirmationEmail(booking);
         }
+
+        // Always attempt to send the confirmation email
+        await sendBookingConfirmationEmail(booking);
 
         return res.json({ success: true, booking });
     } catch (error) {
@@ -701,20 +721,36 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
             `);
             
             const carsTableExists = tablesResult.rows[0].exists;
-            
+
             if (carsTableExists) {
-// Join with cars table using car_id and ensure unique bookings
-                result = await pool.query(`
-                 SELECT DISTINCT ON (b.booking_reference)
-                        b.*, c.make AS car_make_db, c.model AS car_model_db
-                    FROM bookings b
-                    LEFT JOIN cars c ON b.car_id = c.car_id
-                    ORDER BY b.booking_reference, b.date_submitted DESC
+                // Determine if make/model columns exist
+                const columnsResult = await pool.query(`
+                    SELECT column_name FROM information_schema.columns
+                    WHERE table_name = 'cars' AND column_name IN ('make', 'model')
                 `);
+                const hasMakeModel = columnsResult.rows.length === 2;
+
+                if (hasMakeModel) {
+                    result = await pool.query(`
+                        SELECT DISTINCT ON (b.booking_reference)
+                            b.*, c.make AS car_make_db, c.model AS car_model_db
+                        FROM bookings b
+                        LEFT JOIN cars c ON b.car_id = c.car_id
+                        ORDER BY b.booking_reference, b.date_submitted DESC
+                    `);
+                } else {
+                    result = await pool.query(`
+                        SELECT DISTINCT ON (b.booking_reference)
+                            b.*, c.name AS car_name_lookup
+                        FROM bookings b
+                        LEFT JOIN cars c ON LOWER(CONCAT(b.car_make, ' ', b.car_model)) = LOWER(c.name)
+                        ORDER BY b.booking_reference, b.date_submitted DESC
+                    `);
+                }
             } else {
                 // If cars table doesn't exist, just fetch from bookings
                 result = await pool.query(`
-                    SELECT * FROM bookings 
+                    SELECT * FROM bookings
                     ORDER BY date_submitted DESC
                 `);
             }
@@ -1506,7 +1542,7 @@ async function sendBookingConfirmationEmail(booking) {
         console.warn('RESEND_API_KEY not configured; skipping email');
         return;
     }
-    console.log(`Sending confirmation email for booking ${booking.booking_reference}`);
+    console.log(`[sendBookingConfirmationEmail] Sending email for booking ${booking.booking_reference}`);
     if (!booking || !booking.customer_email) return;
     try {
         const total = parseFloat(booking.total_price || 0);
@@ -1551,8 +1587,17 @@ async function sendBookingConfirmationEmail(booking) {
         });
         if (error) {
             console.error('❌ Resend API error:', error);
+            if (error.statusCode === 403 && process.env.ADMIN_NOTIFICATION_EMAIL) {
+                console.warn('Retrying email to admin only due to Resend restrictions');
+                await resend.emails.send({
+                    from: FROM_EMAIL,
+                    to: [process.env.ADMIN_NOTIFICATION_EMAIL],
+                    subject: 'Your Booking Confirmation – Calma Car Rental',
+                    html
+                });
+            }
         } else {
-            console.log(`📧 Confirmation email sent to ${recipients.join(', ')}`);
+            console.log(`📧 Confirmation email sent to ${recipients.join(', ')} - id: ${data.id}`);
         }
     } catch (err) {
         console.error('❌ Failed to send confirmation email:', err);
@@ -1611,6 +1656,63 @@ app.get('/booking-confirmation', (req, res) => {
 // Explicit route for booking-confirmation.html used in Stripe redirect
 app.get('/booking-confirmation.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'booking-confirmation.html'));
+});
+
+// Admin: Get all cars with pricing details
+app.get('/api/admin/cars', requireAdminAuth, async (req, res) => {
+    try {
+        if (!global.dbConnected) {
+            return res.status(503).json({
+                success: false,
+                error: 'Database not connected',
+                cars: []
+            });
+        }
+
+        const result = await pool.query('SELECT * FROM cars');
+        const cars = result.rows.map(car => {
+            let unavailable_dates = car.unavailable_dates;
+            if (unavailable_dates && typeof unavailable_dates === 'string') {
+                try { unavailable_dates = JSON.parse(unavailable_dates); } catch {}
+            }
+
+            // monthly_pricing may be returned as a string depending on DB type
+            let monthlyPricing = car.monthly_pricing;
+            if (monthlyPricing && typeof monthlyPricing === 'string') {
+                try { monthlyPricing = JSON.parse(monthlyPricing); } catch {}
+            }
+
+            let dailyRate = 0;
+            if (monthlyPricing) {
+                const months = Object.keys(monthlyPricing);
+                if (months.length > 0) {
+                    const firstValue = monthlyPricing[months[0]];
+                    if (typeof firstValue === 'object') {
+                        dailyRate = firstValue.day_1 || firstValue['1'] || 0;
+                    } else if (!isNaN(firstValue)) {
+                        dailyRate = parseFloat(firstValue);
+                    }
+                }
+            }
+
+            return {
+                car_id: car.car_id,
+                make: car.make,
+                model: car.model,
+                category: car.category,
+                monthly_pricing: monthlyPricing,
+                available: car.available,
+                manual_status: car.manual_status,
+                specs: car.specs,
+                daily_rate: dailyRate,
+                unavailable_dates: unavailable_dates || []
+            };
+        });
+        res.json({ success: true, cars, source: 'database' });
+    } catch (error) {
+        console.error('[ADMIN] Error fetching cars:', error);
+        res.status(500).json({ success: false, error: error.message, cars: [] });
+    }
 });
 
 // Admin: Get a single car by ID (with specs)
