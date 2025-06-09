@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Simulate processing time and redirect
                 setTimeout(function() {
                     // Redirect to confirmation page
-                    window.location.href = `booking-confirmation.html?booking-ref=${bookingReference}`;
+                    window.location.href = `booking-confirmation?booking-ref=${bookingReference}`;
                 }, 2000);
                 
             } catch (error) {

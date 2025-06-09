@@ -79,7 +79,7 @@ export const createCheckoutSession = async (bookingData) => {
     // Simulate a successful response
     return {
       sessionId: 'mock_session_' + Date.now(),
-      url: `booking-confirmation.html?booking-ref=${bookingData.bookingReference}`
+      url: `booking-confirmation?booking-ref=${bookingData.bookingReference}`
     };
   } catch (error) {
     console.error('Error creating checkout session:', error);

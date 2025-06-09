@@ -46,6 +46,8 @@ const { pool, registerCreateTables } = require('./database');
 
 // Initialize Express app
 const app = express();
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 const port = process.env.PORT || 3000;
 // Fallback frontend URL used if the environment variable is not provided
 const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:${port}`;
@@ -158,6 +160,7 @@ async function createTables() {
                 gps_navigation BOOLEAN,
                 child_seat BOOLEAN,
                 booster_seat BOOLEAN,
+                confirmation_email_sent BOOLEAN DEFAULT false,
                 special_requests TEXT,
                 status TEXT DEFAULT 'pending',
                 date_submitted TIMESTAMP DEFAULT NOW()
@@ -243,6 +246,20 @@ async function migrateAddBoosterSeatToBookings() {
     }
 }
 
+// Migration: Add confirmation_email_sent column
+async function migrateAddConfirmationEmailSent() {
+    try {
+        if (!global.dbConnected) {
+            console.warn('⚠️ Cannot run migration: database not connected');
+            return;
+        }
+        await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS confirmation_email_sent BOOLEAN DEFAULT false`);
+        console.log('✅ Migration: confirmation_email_sent column ensured in bookings table.');
+    } catch (err) {
+        console.error('❌ Migration error (add confirmation_email_sent to bookings):', err);
+    }
+}
+
 // Insert a default admin if none exist
 async function ensureDefaultAdmin() {
     try {
@@ -265,6 +282,7 @@ if (global.dbConnected) {
     createTables();
     migrateAddCarIdToBookings();
     migrateAddBoosterSeatToBookings();
+    migrateAddConfirmationEmailSent();
     ensureDefaultAdmin();
 }
 
@@ -304,8 +322,8 @@ function requireAdminAuth(req, res, next) {
 
 // --- Addons In-Memory Store and API ---
 let addons = [
-  { id: 'child-seat', name: 'Child Seat', price: 7.5 },
-  { id: 'booster-seat', name: 'Booster Seat', price: 5.0 }
+  { id: 'child-seat', name: 'Child Seat', price: 5 },
+  { id: 'booster-seat', name: 'Booster Seat', price: 3 }
 ];
 
 // Get all addons
@@ -520,7 +538,7 @@ app.post('/api/bookings',
         return res.status(200).json({
             success: true,
             booking_reference: bookingRef,
-            redirect_url: `/booking-confirmation.html?reference=${bookingRef}`
+            redirect_url: `/booking-confirmation?reference=${bookingRef}`
         });
     } catch (error) {
         console.error('❌ Error creating booking:', error);
@@ -634,15 +652,20 @@ app.post('/api/bookings/:reference/confirm-payment',
         let booking = fetchResult.rows[0];
 
         if (booking.status !== 'confirmed') {
-            // Update status to confirmed and send confirmation email only once
             const updateResult = await pool.query(
                 `UPDATE bookings SET status = 'confirmed' WHERE booking_reference = $1 RETURNING *`,
                 [reference]
             );
             booking = updateResult.rows[0];
-
             await syncManualBlockWithBooking(booking);
+        }
+
+        if (!booking.confirmation_email_sent) {
             await sendBookingConfirmationEmail(booking);
+            await pool.query(
+                `UPDATE bookings SET confirmation_email_sent = true WHERE booking_reference = $1`,
+                [reference]
+            );
         }
 
         return res.json({ success: true, booking });
@@ -1442,8 +1465,8 @@ async function calculateTotalPrice(car_id, pickup_date, return_date) {
 
     const pickup = new Date(pickup_date);
     const return_date_obj = new Date(return_date);
-    // Calculate total days (inclusive)
-    const totalDays = Math.ceil((return_date_obj - pickup) / (1000 * 60 * 60 * 24)) + 1;
+    let totalDays = Math.ceil((return_date_obj - pickup) / (1000 * 60 * 60 * 24));
+    if (totalDays <= 0) totalDays = 1;
     let total_price = 0;
     // If rental is 1-7 days, use package price
     if (totalDays <= 7) {
@@ -1489,14 +1512,14 @@ async function sendBookingConfirmationEmail(booking) {
     console.log(`Sending confirmation email for booking ${booking.booking_reference}`);
     if (!booking || !booking.customer_email) return;
     try {
-        const total = parseFloat(booking.total_price || 0);
+        const total = parseFloat(booking.total_price || 0).toFixed(2);
         const paid = (total * 0.45).toFixed(2);
-        const due = (total * 0.55).toFixed(2);
+        const due = (total - paid).toFixed(2);
 
-        const recipients = [booking.customer_email];
-        if (process.env.ADMIN_NOTIFICATION_EMAIL) {
-            recipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
-        }
+        const addons = [];
+        if (booking.child_seat) addons.push('Child Seat');
+        if (booking.booster_seat) addons.push('Booster Seat');
+        const addonsText = addons.length ? addons.join(', ') : 'None';
 
         // Convert date objects to ISO strings for email template
         const pickupDate = booking.pickup_date instanceof Date
@@ -1515,18 +1538,27 @@ async function sendBookingConfirmationEmail(booking) {
                     return: returnDate,
                     total,
                     paid,
-                    due
+                    due,
+                    addons: addonsText
                 }
             })
         );
 
         await resend.emails.send({
             from: 'Calma Car Rental <booking@calmarental.com>',
-            to: recipients,
+            to: booking.customer_email,
             subject: 'Your Booking Confirmation – Calma Car Rental',
             html
         });
-        console.log(`📧 Confirmation email sent to ${recipients.join(', ')}`);
+        if (process.env.ADMIN_NOTIFICATION_EMAIL) {
+            await resend.emails.send({
+                from: 'Calma Car Rental <booking@calmarental.com>',
+                to: process.env.ADMIN_NOTIFICATION_EMAIL,
+                subject: `New Booking ${booking.booking_reference}`,
+                html
+            });
+        }
+        console.log('📧 Confirmation emails sent');
     } catch (err) {
         console.error('❌ Failed to send confirmation email:', err);
     }
@@ -1573,7 +1605,7 @@ app.get('/payment.html', (req, res) => {
 
 // Booking confirmation page
 app.get('/booking-confirmation', (req, res) => {
-    res.sendFile(path.join(__dirname, 'booking-confirmation.html'));
+    res.render('booking-confirmation');
 });
 
 // Admin: Get a single car by ID (with specs)
@@ -1938,7 +1970,7 @@ app.post('/api/create-checkout-session',
         },
       ],
       metadata: bookingReference ? { booking_reference: bookingReference } : undefined,
-      success_url: `${redirectBase}/booking-confirmation.html?reference=${bookingReference}&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${redirectBase}/booking-confirmation?reference=${bookingReference}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${redirectBase}/payment.html?cancelled=true`,
     });
 
@@ -1956,6 +1988,7 @@ async function startServerWithMigrations() {
         await createTables();
         await migrateAddCarIdToBookings();
         await migrateAddBoosterSeatToBookings();
+        await migrateAddConfirmationEmailSent();
     }
 
     // Register all routes only after migrations are complete

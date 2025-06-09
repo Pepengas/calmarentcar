@@ -284,7 +284,7 @@
             throw new Error('Missing booking data');
           }
 
-          const partialAmount = Math.round(bookingData.totalPrice * 0.45);
+          const partialAmount = parseFloat((bookingData.totalPrice * 0.45).toFixed(2));
           bookingData.partialAmount = partialAmount;
           localStorage.setItem('currentBooking', JSON.stringify(bookingData));
 
