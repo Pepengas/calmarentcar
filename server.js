@@ -1636,8 +1636,12 @@ app.get('/api/admin/cars', requireAdminAuth, async (req, res) => {
             if (car.monthly_pricing) {
                 const months = Object.keys(car.monthly_pricing);
                 if (months.length > 0) {
-                    const firstMonth = car.monthly_pricing[months[0]] || {};
-                    dailyRate = firstMonth.day_1 || firstMonth['1'] || 0;
+                    const firstValue = car.monthly_pricing[months[0]];
+                    if (typeof firstValue === 'object') {
+                        dailyRate = firstValue.day_1 || firstValue['1'] || 0;
+                    } else if (!isNaN(firstValue)) {
+                        dailyRate = parseFloat(firstValue);
+                    }
                 }
             }
 
