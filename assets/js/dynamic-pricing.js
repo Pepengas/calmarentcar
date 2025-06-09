@@ -269,7 +269,8 @@ async function calculateTotalPrice(carName, startDate, endDate, extras = {}) {
   }
   
   if (extras.childSeat && pricingData.extras.childSeat > 0) {
-    extrasTotal += pricingData.extras.childSeat * duration;
+    // Child seat is charged once per rental, not per day
+    extrasTotal += pricingData.extras.childSeat;
   }
   
   // Calculate total price
@@ -569,7 +570,7 @@ function updateExtrasLabels() {
   const childSeatLabel = document.querySelector('label[for="childSeat"]');
   if (childSeatLabel) {
     const price = pricingData.extras.childSeat;
-    childSeatLabel.textContent = `Child Seat (+${formatPrice(price)}/day)`;
+    childSeatLabel.textContent = `Child Seat (+${formatPrice(price)}/rental)`;
   }
 }
 

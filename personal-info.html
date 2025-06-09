@@ -1257,7 +1257,7 @@
                         <input type="checkbox" id="childSeat" name="addons" value="child-seat" class="form-checkbox h-5 w-5 text-blue-600">
                         <div>
                             <span class="font-medium">Child Seat</span>
-                            <p id="childSeatPrice" class="text-sm text-gray-600">€5.00 per day</p>
+                            <p id="childSeatPrice" class="text-sm text-gray-600">€5.00 per rental</p>
                         </div>
                     </label>
                 </div>
@@ -1266,7 +1266,7 @@
                         <input type="checkbox" id="boosterSeat" name="addons" value="booster-seat" class="form-checkbox h-5 w-5 text-blue-600">
                         <div>
                             <span class="font-medium">Booster Seat</span>
-                            <p id="boosterSeatPrice" class="text-sm text-gray-600">€3.00 per day</p>
+                            <p id="boosterSeatPrice" class="text-sm text-gray-600">€3.00 per rental</p>
                         </div>
                     </label>
                 </div>
@@ -1412,11 +1412,11 @@
             if (addon.id === 'child-seat') {
               optionPrices.childSeat = addon.price;
               const p = document.getElementById('childSeatPrice');
-              if (p) p.textContent = `€${addon.price.toFixed(2)} per day`;
+              if (p) p.textContent = `€${addon.price.toFixed(2)} per rental`;
             } else if (addon.id === 'booster-seat') {
               optionPrices.boosterSeat = addon.price;
               const p = document.getElementById('boosterSeatPrice');
-              if (p) p.textContent = `€${addon.price.toFixed(2)} per day`;
+              if (p) p.textContent = `€${addon.price.toFixed(2)} per rental`;
             }
           });
         }
@@ -1599,19 +1599,19 @@
         const childSeat = childSeatElem ? childSeatElem.checked : false;
         const boosterSeat = boosterSeatElem ? boosterSeatElem.checked : false;
         // Add additional options costs
-        if (childSeat) totalPrice += (optionPrices.childSeat || 0) * durationDays;
-        if (boosterSeat) totalPrice += (optionPrices.boosterSeat || 0) * durationDays;
+        if (childSeat) totalPrice += (optionPrices.childSeat || 0);
+        if (boosterSeat) totalPrice += (optionPrices.boosterSeat || 0);
         
         // Update additional options summary
         const additionalOptionsSummary = document.getElementById('additional-options-summary');
         additionalOptionsSummary.innerHTML = '';
         
         if (childSeat) {
-          additionalOptionsSummary.innerHTML += `<div class="option-item">Child Seat: €${((optionPrices.childSeat || 0) * durationDays).toFixed(2)}</div>`;
+          additionalOptionsSummary.innerHTML += `<div class="option-item">Child Seat: €${(optionPrices.childSeat || 0).toFixed(2)}</div>`;
         }
-        
+
         if (boosterSeat) {
-          additionalOptionsSummary.innerHTML += `<div class="option-item">Booster Seat: €${((optionPrices.boosterSeat || 0) * durationDays).toFixed(2)}</div>`;
+          additionalOptionsSummary.innerHTML += `<div class="option-item">Booster Seat: €${(optionPrices.boosterSeat || 0).toFixed(2)}</div>`;
         }
         
         if (!childSeat && !boosterSeat) {
@@ -1787,8 +1787,8 @@
             const childSeat = document.getElementById('childSeat').checked;
             const boosterSeat = document.getElementById('boosterSeat').checked;
             // Add additional options costs
-            if (childSeat) totalPrice += (optionPrices.childSeat || 0) * durationDays;
-            if (boosterSeat) totalPrice += (optionPrices.boosterSeat || 0) * durationDays;
+            if (childSeat) totalPrice += (optionPrices.childSeat || 0);
+            if (boosterSeat) totalPrice += (optionPrices.boosterSeat || 0);
             console.log('Fetched totalPrice before booking:', totalPrice);
             if (!totalPrice || totalPrice <= 0) {
               alert('Could not fetch price for this car and dates. Please try again or contact support.');
