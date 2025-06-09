@@ -1554,6 +1554,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Also serve index.html explicitly for direct links
+app.get('/index.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Booking flow pages
 app.get('/car-selection.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'car-selection.html'));
@@ -1577,6 +1582,11 @@ app.get('/payment.html', (req, res) => {
 
 // Booking confirmation page
 app.get('/booking-confirmation', (req, res) => {
+    res.sendFile(path.join(__dirname, 'booking-confirmation.html'));
+});
+
+// Explicit route for booking-confirmation.html used in Stripe redirect
+app.get('/booking-confirmation.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'booking-confirmation.html'));
 });
 
