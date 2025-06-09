@@ -18,8 +18,8 @@ require('dotenv').config();
 const { Resend } = require('resend');
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
-// Default to a Gmail address to avoid Resend test-mode restrictions
-const FROM_EMAIL = process.env.FROM_EMAIL || 'calmarental@gmail.com';
+// Default to Resend's onboarding address if no sender is configured
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 
 // Register JSX support for React email templates
 const { register: esbuildRegister } = require('esbuild-register/dist/node');
@@ -1555,6 +1555,11 @@ async function sendBookingConfirmationEmail(booking) {
         const recipients = [booking.customer_email];
         if (process.env.ADMIN_NOTIFICATION_EMAIL) {
             recipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
+        }
+
+        if (FROM_EMAIL.endsWith('@resend.dev')) {
+            const allowed = process.env.ADMIN_NOTIFICATION_EMAIL || 'calmarental@gmail.com';
+            recipients.splice(0, recipients.length, allowed);
         }
 
         // Convert date objects to ISO strings for email template
