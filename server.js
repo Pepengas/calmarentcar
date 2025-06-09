@@ -112,7 +112,7 @@ const validate = (validations) => async (req, res, next) => {
 app.get("/admin.html", requireAdminAuth, (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
 
 // Serve static files
-app.use(express.static(path.join(__dirname)));
+// Expose only the intended public directories
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
