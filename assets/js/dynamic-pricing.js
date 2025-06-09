@@ -257,19 +257,19 @@ async function calculateTotalPrice(carName, startDate, endDate, extras = {}) {
   
   // Only add cost if the extra has a price greater than 0
   if (extras.additionalDriver && pricingData.extras.additionalDriver > 0) {
-    extrasTotal += pricingData.extras.additionalDriver * duration;
+    extrasTotal += pricingData.extras.additionalDriver;
   }
-  
+
   if (extras.fullInsurance && pricingData.extras.fullInsurance > 0) {
-    extrasTotal += pricingData.extras.fullInsurance * duration;
+    extrasTotal += pricingData.extras.fullInsurance;
   }
-  
+
   if (extras.gpsNavigation && pricingData.extras.gpsNavigation > 0) {
-    extrasTotal += pricingData.extras.gpsNavigation * duration;
+    extrasTotal += pricingData.extras.gpsNavigation;
   }
-  
+
   if (extras.childSeat && pricingData.extras.childSeat > 0) {
-    extrasTotal += pricingData.extras.childSeat * duration;
+    extrasTotal += pricingData.extras.childSeat;
   }
   
   // Calculate total price
@@ -569,7 +569,7 @@ function updateExtrasLabels() {
   const childSeatLabel = document.querySelector('label[for="childSeat"]');
   if (childSeatLabel) {
     const price = pricingData.extras.childSeat;
-    childSeatLabel.textContent = `Child Seat (+${formatPrice(price)}/day)`;
+    childSeatLabel.textContent = `Child Seat (+${formatPrice(price)}/rental)`;
   }
 }
 
