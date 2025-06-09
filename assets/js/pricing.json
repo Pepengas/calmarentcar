@@ -1,0 +1,75 @@
+{
+  "cars": {
+    "Toyota Aygo": {
+      "category": "B",
+      "April": 45,
+      "May": 55,
+      "June": 60,
+      "July": 46,
+      "August": 80,
+      "September": 60,
+      "October": 45,
+      "extraDay": 35
+    },
+    "Suzuki Celerio": {
+      "category": "B",
+      "April": 45,
+      "May": 55,
+      "June": 60,
+      "July": 46,
+      "August": 80,
+      "September": 60,
+      "October": 45,
+      "extraDay": 35
+    },
+    "Hyundai i10": {
+      "category": "B",
+      "April": 45,
+      "May": 55,
+      "June": 60,
+      "July": 46,
+      "August": 80,
+      "September": 60,
+      "October": 45,
+      "extraDay": 35
+    },
+    "Citroen C3": {
+      "category": "C",
+      "April": 55,
+      "May": 65,
+      "June": 70,
+      "July": 80,
+      "August": 90,
+      "September": 70,
+      "October": 50,
+      "extraDay": 35
+    },
+    "Volkswagen Golf": {
+      "category": "D",
+      "April": 65,
+      "May": 75,
+      "June": 90,
+      "July": 100,
+      "August": 110,
+      "September": 90,
+      "October": 60,
+      "extraDay": 40
+    }
+  },
+  "extras": {
+    "additionalDriver": 0,
+    "fullInsurance": 25,
+    "gpsNavigation": 8,
+    "childSeat": 4
+  },
+  "durationPricing": {
+    "1": 1.0,
+    "2": 0.95,
+    "3": 0.9,
+    "4": 0.85,
+    "5": 0.8,
+    "6": 0.75,
+    "7": 0.7
+  },
+  "prepaymentPercentage": 45
+} 
