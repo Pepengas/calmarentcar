@@ -18,6 +18,7 @@ require('dotenv').config();
 const { Resend } = require('resend');
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 
 // Register JSX support for React email templates
 const { register: esbuildRegister } = require('esbuild-register/dist/node');
@@ -647,11 +648,10 @@ app.post('/api/bookings/:reference/confirm-payment',
         }
 
         let booking = fetchResult.rows[0];
-
-        if (booking.status !== 'confirmed' || !booking.payment_date) {
+          if (booking.status !== 'confirmed' || !booking.payment_date) {
             // Mark as confirmed and set payment date if not already set
             const updateResult = await pool.query(
-                 `UPDATE bookings
+           `UPDATE bookings
                  SET status = 'confirmed',
                      payment_date = COALESCE(payment_date, NOW())
                  WHERE booking_reference = $1
@@ -703,12 +703,13 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
             const carsTableExists = tablesResult.rows[0].exists;
             
             if (carsTableExists) {
-                // Join with cars table using car_id to avoid duplicate rows
+// Join with cars table using car_id and ensure unique bookings
                 result = await pool.query(`
-                    SELECT b.*, c.make AS car_make_db, c.model AS car_model_db
+                 SELECT DISTINCT ON (b.booking_reference)
+                        b.*, c.make AS car_make_db, c.model AS car_model_db
                     FROM bookings b
                     LEFT JOIN cars c ON b.car_id = c.car_id
-                    ORDER BY b.date_submitted DESC
+                    ORDER BY b.booking_reference, b.date_submitted DESC
                 `);
             } else {
                 // If cars table doesn't exist, just fetch from bookings
@@ -1542,13 +1543,17 @@ async function sendBookingConfirmationEmail(booking) {
             })
         );
 
-        await resend.emails.send({
-            from: 'Calma Car Rental <booking@calmarental.com>',
+        const { data, error } = await resend.emails.send({
+            from: FROM_EMAIL,
             to: recipients,
             subject: 'Your Booking Confirmation – Calma Car Rental',
             html
         });
-        console.log(`📧 Confirmation email sent to ${recipients.join(', ')}`);
+        if (error) {
+            console.error('❌ Resend API error:', error);
+        } else {
+            console.log(`📧 Confirmation email sent to ${recipients.join(', ')}`);
+        }
     } catch (err) {
         console.error('❌ Failed to send confirmation email:', err);
     }
