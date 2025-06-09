@@ -648,10 +648,14 @@ app.post('/api/bookings/:reference/confirm-payment',
 
         let booking = fetchResult.rows[0];
 
-        if (booking.status !== 'confirmed') {
-            // Update status to confirmed and send confirmation email only once
+        if (booking.status !== 'confirmed' || !booking.payment_date) {
+            // Mark as confirmed and set payment date if not already set
             const updateResult = await pool.query(
-                `UPDATE bookings SET status = 'confirmed', payment_date = NOW()' WHERE booking_reference = $1 RETURNING *`,
+                 `UPDATE bookings
+                 SET status = 'confirmed',
+                     payment_date = COALESCE(payment_date, NOW())
+                 WHERE booking_reference = $1
+                 RETURNING *`,
                 [reference]
             );
             booking = updateResult.rows[0];
@@ -1508,8 +1512,7 @@ async function sendBookingConfirmationEmail(booking) {
         const pickup = new Date(booking.pickup_date);
         const dropoff = new Date(booking.return_date);
         const rentalDays = Math.ceil((dropoff - pickup) / (1000 * 60 * 60 * 24)) + 1;
-        const base = (parseFloat(booking.daily_rate) || 0) * rentalDays;
-        const paid = (base * 0.45).toFixed(2);
+        const paid = (total * 0.45).toFixed(2);
         const due = (total - parseFloat(paid)).toFixed(2);
 
         const recipients = [booking.customer_email];
