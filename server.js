@@ -649,7 +649,7 @@ app.post('/api/bookings/:reference/confirm-payment',
         }
 
         let booking = fetchResult.rows[0];
-        if (booking.status !== 'confirmed' || !booking.payment_date) {
+       if (booking.status !== 'confirmed' || !booking.payment_date) {
             try {
                 const updateResult = await pool.query(
                     `UPDATE bookings
