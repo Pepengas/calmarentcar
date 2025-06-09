@@ -284,9 +284,6 @@ async function syncManualBlockWithBooking(booking) {
 
 // Admin authentication middleware
 function requireAdminAuth(req, res, next) {
-    if (process.env.DISABLE_ADMIN_AUTH === "true") {
-        return next();
-    }
     if (req.session && req.session.adminAuthenticated) {
         return next();
     }
