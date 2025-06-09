@@ -242,6 +242,20 @@ async function migrateAddBoosterSeatToBookings() {
         console.error('❌ Migration error (add booster_seat to bookings):', err);
     }
 }
+// Migration: Add payment_date column
+async function migrateAddPaymentDateToBookings() {
+    try {
+        if (!global.dbConnected) {
+            console.warn("⚠️ Cannot run migration: database not connected");
+            return;
+        }
+        await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_date TIMESTAMP`);
+        console.log("✅ Migration: payment_date column ensured in bookings table.");
+    } catch (err) {
+        console.error("❌ Migration error (add payment_date to bookings):", err);
+    }
+}
+
 
 // Insert a default admin if none exist
 async function ensureDefaultAdmin() {
@@ -265,6 +279,7 @@ if (global.dbConnected) {
     createTables();
     migrateAddCarIdToBookings();
     migrateAddBoosterSeatToBookings();
+    migrateAddPaymentDateToBookings();
     ensureDefaultAdmin();
 }
 
@@ -636,7 +651,7 @@ app.post('/api/bookings/:reference/confirm-payment',
         if (booking.status !== 'confirmed') {
             // Update status to confirmed and send confirmation email only once
             const updateResult = await pool.query(
-                `UPDATE bookings SET status = 'confirmed' WHERE booking_reference = $1 RETURNING *`,
+                `UPDATE bookings SET status = 'confirmed', payment_date = NOW()' WHERE booking_reference = $1 RETURNING *`,
                 [reference]
             );
             booking = updateResult.rows[0];
@@ -1970,6 +1985,7 @@ async function startServerWithMigrations() {
         await createTables();
         await migrateAddCarIdToBookings();
         await migrateAddBoosterSeatToBookings();
+        await migrateAddPaymentDateToBookings();
     }
 
     // Register all routes only after migrations are complete

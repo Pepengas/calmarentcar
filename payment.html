@@ -285,9 +285,9 @@
           }
 
           const basePrice = (bookingData.selectedCar && bookingData.durationDays)
-            ? bookingData.selectedCar.price * bookingData.durationDays
-            : bookingData.totalPrice || 0;
-          const totalPrice = bookingData.totalPrice || basePrice;
+            ? parseFloat(bookingData.selectedCar.price) * parseInt(bookingData.durationDays,10)
+            : parseFloat(bookingData.totalPrice || 0);
+          const totalPrice = parseFloat(bookingData.totalPrice || basePrice) || 0;
           const partialAmount = parseFloat((totalPrice * 0.45).toFixed(2));
           bookingData.partialAmount = partialAmount;
           localStorage.setItem('currentBooking', JSON.stringify(bookingData));
@@ -354,9 +354,9 @@
           document.getElementById('options').textContent = options;
           if (bookingData.totalPrice || (bookingData.selectedCar && bookingData.durationDays)) {
             const base = (bookingData.selectedCar && bookingData.durationDays)
-              ? bookingData.selectedCar.price * bookingData.durationDays
-              : bookingData.totalPrice || 0;
-            const total = bookingData.totalPrice || base;
+              ?parseFloat(bookingData.selectedCar.price) * parseInt(bookingData.durationDays,10)
+              : parseFloat(bookingData.totalPrice || 0);
+            const total = parseFloat(bookingData.totalPrice || base) || 0;
             const partial = (total * 0.45).toFixed(2);
             const remaining = (total - parseFloat(partial)).toFixed(2);
             document.getElementById('total-amount').textContent = `€${total.toFixed(2)}`;
