@@ -648,11 +648,10 @@ app.post('/api/bookings/:reference/confirm-payment',
         }
 
         let booking = fetchResult.rows[0];
-
-        if (booking.status !== 'confirmed' || !booking.payment_date) {
+          if (booking.status !== 'confirmed' || !booking.payment_date) {
             // Mark as confirmed and set payment date if not already set
             const updateResult = await pool.query(
-                `UPDATE bookings
+           `UPDATE bookings
                  SET status = 'confirmed',
                      payment_date = COALESCE(payment_date, NOW())
                  WHERE booking_reference = $1
@@ -704,9 +703,9 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
             const carsTableExists = tablesResult.rows[0].exists;
             
             if (carsTableExists) {
-                // Join with cars table using car_id and ensure unique bookings
+// Join with cars table using car_id and ensure unique bookings
                 result = await pool.query(`
-                    SELECT DISTINCT ON (b.booking_reference)
+                 SELECT DISTINCT ON (b.booking_reference)
                         b.*, c.make AS car_make_db, c.model AS car_model_db
                     FROM bookings b
                     LEFT JOIN cars c ON b.car_id = c.car_id
