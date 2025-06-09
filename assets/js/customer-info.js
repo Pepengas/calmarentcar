@@ -672,7 +672,7 @@ const CustomerInfo = {
                 sessionStorage.setItem('bookingParams', new URLSearchParams(window.location.search).toString());
                 
                 // Redirect to booking confirmation page with the reference
-                window.location.href = `booking-confirmation.html?reference=${bookingReference}`;
+                window.location.href = `booking-confirmation?reference=${bookingReference}`;
             } else {
                 console.error('Booking save failed:', data.error || 'Unknown error');
                 alert('Failed to save booking: ' + (data.error || 'Unknown error'));

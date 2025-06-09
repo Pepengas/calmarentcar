@@ -23,6 +23,7 @@ export default function BookingConfirmation({ data }) {
               <p><strong>Pickup Date:</strong> {data.pickup}</p>
               <p><strong>Return Date:</strong> {data.return}</p>
               <hr style={{ border: 'none', borderTop: '1px solid #ccc', margin: '20px 0' }} />
+              <p><strong>Add-ons:</strong> {data.addons}</p>
               <p><strong>Total Price:</strong> €{data.total}</p>
               <p><strong>Paid Amount (45%):</strong> €{data.paid}</p>
               <p><strong>Due at Pickup (55%):</strong> €{data.due}</p>
