@@ -699,11 +699,11 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
             const carsTableExists = tablesResult.rows[0].exists;
             
             if (carsTableExists) {
-                // Join with cars table to get car information if missing in bookings
+                // Join with cars table using car_id to avoid duplicate rows
                 result = await pool.query(`
-                    SELECT b.*, c.name AS car_name_lookup
+                    SELECT b.*, c.make AS car_make_db, c.model AS car_model_db
                     FROM bookings b
-                    LEFT JOIN cars c ON LOWER(CONCAT(b.car_make, ' ', b.car_model)) = LOWER(c.name)
+                    LEFT JOIN cars c ON b.car_id = c.car_id
                     ORDER BY b.date_submitted DESC
                 `);
             } else {
@@ -726,9 +726,9 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
         
         // Format bookings for the admin dashboard
         const bookings = result.rows.map(booking => {
-            // Use car_make/car_model from the cars table if available and booking fields are empty
-            const carMake = booking.car_make || booking.car_name_lookup || '';
-            const carModel = booking.car_model || booking.car_name_lookup || '';
+            // Prefer booking car_make/model, then fall back to joined car data
+            const carMake = booking.car_make || booking.car_make_db || booking.car_name_lookup || '';
+            const carModel = booking.car_model || booking.car_model_db || booking.car_name_lookup || '';
             const dailyRate = booking.daily_rate;
             
             return {
