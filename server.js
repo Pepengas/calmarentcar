@@ -304,8 +304,8 @@ function requireAdminAuth(req, res, next) {
 
 // --- Addons In-Memory Store and API ---
 let addons = [
-  { id: 'child-seat', name: 'Child Seat', price: 7.5 },
-  { id: 'booster-seat', name: 'Booster Seat', price: 5.0 }
+  { id: 'child-seat', name: 'Child Seat', price: 5.0 },
+  { id: 'booster-seat', name: 'Booster Seat', price: 3.0 }
 ];
 
 // Get all addons

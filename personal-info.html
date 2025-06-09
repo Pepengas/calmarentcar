@@ -1257,7 +1257,7 @@
                         <input type="checkbox" id="childSeat" name="addons" value="child-seat" class="form-checkbox h-5 w-5 text-blue-600">
                         <div>
                             <span class="font-medium">Child Seat</span>
-                            <p id="childSeatPrice" class="text-sm text-gray-600">$7.50 per rental</p>
+                            <p id="childSeatPrice" class="text-sm text-gray-600">€5.00 per rental</p>
                         </div>
                     </label>
                 </div>
@@ -1266,7 +1266,7 @@
                         <input type="checkbox" id="boosterSeat" name="addons" value="booster-seat" class="form-checkbox h-5 w-5 text-blue-600">
                         <div>
                             <span class="font-medium">Booster Seat</span>
-                            <p id="boosterSeatPrice" class="text-sm text-gray-600">$5.00 per rental</p>
+                            <p id="boosterSeatPrice" class="text-sm text-gray-600">€3.00 per rental</p>
                         </div>
                     </label>
                 </div>
@@ -1401,7 +1401,7 @@
   <!-- Debug Script -->
   <script>
     // Addon prices for use throughout the script
-    const optionPrices = {};
+    const optionPrices = { childSeat: 5, boosterSeat: 3 };
 
     async function loadAddonPrices() {
       try {
