@@ -369,39 +369,45 @@ app.post('/api/bookings',
         console.log('--- Incoming booking request ---');
         console.log('Payload:', JSON.stringify(booking, null, 2));
         
-        // Calculate total price
-        let total_price = null;
-        try {
-            total_price = await calculateTotalPrice(
-                booking.car_id,
-                booking.pickup_date,
-                booking.return_date
-            );
-            console.log(`[Booking] Calculated total_price: ${total_price} for car_id=${booking.car_id}`);
-        } catch (err) {
-            console.error(`[Booking] Error in calculateTotalPrice:`, err.message);
+        // Use provided total price or calculate if missing
+        let total_price = booking.total_price;
+        if (!total_price) {
+            try {
+                total_price = await calculateTotalPrice(
+                    booking.car_id,
+                    booking.pickup_date,
+                    booking.return_date
+                );
+                console.log(`[Booking] Calculated total_price: ${total_price} for car_id=${booking.car_id}`);
+            } catch (err) {
+                console.error(`[Booking] Error in calculateTotalPrice:`, err.message);
+            }
+        } else {
+            console.log(`[Booking] Using provided total_price: ${total_price}`);
         }
 
         // Get the daily rate for the pickup month
-        let daily_rate = null;
+        let daily_rate = booking.daily_rate;
         let pickup_month = null;
-        try {
-            pickup_month = new Date(booking.pickup_date).toISOString().slice(0, 7);
-            const rateResult = await pool.query(
-                'SELECT monthly_pricing FROM cars WHERE car_id = $1',
-                [booking.car_id]
-            );
-            if (rateResult.rows.length === 0) {
-                console.error(`[Booking] No car found for car_id=${booking.car_id}`);
-            } else {
-                daily_rate = rateResult.rows[0].monthly_pricing[pickup_month];
-                console.log(`[Booking] Fetched daily_rate for month ${pickup_month}:`, daily_rate);
+        if (!daily_rate) {
+            try {
+                pickup_month = new Date(booking.pickup_date).toISOString().slice(0, 7);
+                const rateResult = await pool.query(
+                    'SELECT monthly_pricing FROM cars WHERE car_id = $1',
+                    [booking.car_id]
+                );
+                if (rateResult.rows.length === 0) {
+                    console.error(`[Booking] No car found for car_id=${booking.car_id}`);
+                } else {
+                    daily_rate = rateResult.rows[0].monthly_pricing[pickup_month];
+                    console.log(`[Booking] Fetched daily_rate for month ${pickup_month}:`, daily_rate);
+                }
+            } catch (err) {
+                console.error(`[Booking] Error fetching daily_rate:`, err.message);
             }
-        } catch (err) {
-            console.error(`[Booking] Error fetching daily_rate:`, err.message);
         }
 
-        // Add calculated prices to booking
+        // Add prices to booking object
         booking.total_price = total_price;
         booking.daily_rate = daily_rate;
 
