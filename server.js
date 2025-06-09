@@ -649,16 +649,33 @@ app.post('/api/bookings/:reference/confirm-payment',
         }
 
         let booking = fetchResult.rows[0];
-        if (booking.status !== 'confirmed' || !booking.payment_date) {
-            const updateResult = await pool.query(
-                `UPDATE bookings
-                 SET status = 'confirmed',
-                     payment_date = COALESCE(payment_date, NOW())
-                 WHERE booking_reference = $1
-                 RETURNING *`,
-                [reference]
-            );
-            booking = updateResult.rows[0];
+       if (booking.status !== 'confirmed' || !booking.payment_date) {
+            try {
+                const updateResult = await pool.query(
+                    `UPDATE bookings
+                     SET status = 'confirmed',
+                         payment_date = COALESCE(payment_date, NOW())
+                     WHERE booking_reference = $1
+                     RETURNING *`,
+                    [reference]
+                );
+                booking = updateResult.rows[0];
+            } catch (updateErr) {
+                if (updateErr.message.includes('payment_date')) {
+                    await pool.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_date TIMESTAMP');
+                    const retry = await pool.query(
+                        `UPDATE bookings
+                         SET status = 'confirmed',
+                             payment_date = COALESCE(payment_date, NOW())
+                         WHERE booking_reference = $1
+                         RETURNING *`,
+                        [reference]
+                    );
+                    booking = retry.rows[0];
+                } else {
+                    throw updateErr;
+                }
+            }
 
             await syncManualBlockWithBooking(booking);
         }
@@ -705,18 +722,30 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
             const carsTableExists = tablesResult.rows[0].exists;
             
             if (carsTableExists) {
-// Join with cars table using car_id and ensure unique bookings
-                result = await pool.query(`
-                 SELECT DISTINCT ON (b.booking_reference)
-                        b.*, c.make AS car_make_db, c.model AS car_model_db
-                    FROM bookings b
-                    LEFT JOIN cars c ON b.car_id = c.car_id
-                    ORDER BY b.booking_reference, b.date_submitted DESC
-                `);
+                try {
+                    // Attempt join using make/model columns
+                    result = await pool.query(`
+                        SELECT DISTINCT ON (b.booking_reference)
+                            b.*, c.make AS car_make_db, c.model AS car_model_db
+                        FROM bookings b
+                        LEFT JOIN cars c ON b.car_id = c.car_id
+                        ORDER BY b.booking_reference, b.date_submitted DESC
+                    `);
+                } catch (joinErr) {
+                    console.warn('⚠️ Failed join on make/model, trying name column:', joinErr.message);
+                    // Fallback: join by matching booking make/model to car name column
+                    result = await pool.query(`
+                        SELECT DISTINCT ON (b.booking_reference)
+                            b.*, c.name AS car_name_lookup
+                        FROM bookings b
+                        LEFT JOIN cars c ON LOWER(CONCAT(b.car_make, ' ', b.car_model)) = LOWER(c.name)
+                        ORDER BY b.booking_reference, b.date_submitted DESC
+                    `);
+                }
             } else {
                 // If cars table doesn't exist, just fetch from bookings
                 result = await pool.query(`
-                    SELECT * FROM bookings 
+                    SELECT * FROM bookings
                     ORDER BY date_submitted DESC
                 `);
             }
