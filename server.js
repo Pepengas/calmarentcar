@@ -648,10 +648,9 @@ app.post('/api/bookings/:reference/confirm-payment',
         }
 
         let booking = fetchResult.rows[0];
-          if (booking.status !== 'confirmed' || !booking.payment_date) {
-            // Mark as confirmed and set payment date if not already set
+        if (booking.status !== 'confirmed' || !booking.payment_date) {
             const updateResult = await pool.query(
-           `UPDATE bookings
+                `UPDATE bookings
                  SET status = 'confirmed',
                      payment_date = COALESCE(payment_date, NOW())
                  WHERE booking_reference = $1
@@ -661,8 +660,10 @@ app.post('/api/bookings/:reference/confirm-payment',
             booking = updateResult.rows[0];
 
             await syncManualBlockWithBooking(booking);
-            await sendBookingConfirmationEmail(booking);
         }
+
+        // Always attempt to send the confirmation email
+        await sendBookingConfirmationEmail(booking);
 
         return res.json({ success: true, booking });
     } catch (error) {

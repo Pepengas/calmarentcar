@@ -104,6 +104,9 @@
             const bookingReference = urlParams.get('reference');
             const sessionId = urlParams.get('session_id');
 
+            // Clear stored booking data to prevent stale pricing
+            localStorage.removeItem('currentBooking');
+
             if (!bookingReference) {
                 showError('No booking reference found. Please check your confirmation email or contact customer support.');
                 return;
@@ -178,15 +181,8 @@
                 document.getElementById('carInfo').textContent = `${rental.car_make} ${rental.car_model}`;
                 document.getElementById('dailyRate').textContent = formatCurrency(rental.daily_rate);
                 document.getElementById('totalPrice').textContent = formatCurrency(rental.total_price);
-                const stored = JSON.parse(localStorage.getItem('currentBooking') || '{}');
                 const total = parseFloat(rental.total_price) || 0;
-                let partial;
-                if (stored.partialAmount) {
-                    partial = parseFloat(stored.partialAmount);
-                
-                } else {
-                    partial = parseFloat((total * 0.45).toFixed(2));
-                }
+                const partial = parseFloat((total * 0.45).toFixed(2));
                 const remaining = (total - partial).toFixed(2);
                 document.getElementById('partialPaid').textContent = `€${partial.toFixed(2)}`;
                 document.getElementById('remainingBalance').textContent = `€${remaining}`;
