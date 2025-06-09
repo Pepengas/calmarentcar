@@ -47,9 +47,9 @@
                 <h2 class="text-lg font-semibold mb-2">Payment Summary</h2>
                 <p><strong>Car:</strong> <span id="carInfo">Loading...</span></p>
                 <p><strong>Daily Rate:</strong> <span id="dailyRate">Loading...</span></p>
-                <p><strong>Total Rental Price:</strong> <span id="totalPrice" class="font-semibold">Loading...</span></p>
-                <p><strong>You have paid:</strong> <span id="partialPaid">Loading...</span> via Stripe</p>
-                <p><strong>Remaining Balance:</strong> <span id="remainingBalance" class="font-semibold text-red-600">Loading...</span> to be paid at pickup</p>
+                <p><strong>Total Price (with add-ons):</strong> <span id="totalPrice" class="font-semibold">Loading...</span></p>
+                <p><strong>Paid Amount (45%):</strong> <span id="partialPaid">Loading...</span> via Stripe</p>
+                <p><strong>Remaining Balance (55%):</strong> <span id="remainingBalance" class="font-semibold text-red-600">Loading...</span> to be paid at pickup</p>
             </div>
         </div>
         
@@ -177,9 +177,9 @@
                 const rental = booking.rental;
                 document.getElementById('carInfo').textContent = `${rental.car_make} ${rental.car_model}`;
                 document.getElementById('dailyRate').textContent = formatCurrency(rental.daily_rate);
-                document.getElementById('totalPrice').textContent = formatCurrency(rental.total_price);
                 const stored = JSON.parse(localStorage.getItem('currentBooking') || '{}');
-                const total = parseFloat(rental.total_price) || 0;
+                const total = stored.totalPrice ? parseFloat(stored.totalPrice) : parseFloat(rental.total_price) || 0;
+                document.getElementById('totalPrice').textContent = formatCurrency(total);
                 const partial = stored.partialAmount ? parseFloat(stored.partialAmount).toFixed(2) : (total * 0.45).toFixed(2);
                 const remaining = (total - parseFloat(partial)).toFixed(2);
                 document.getElementById('partialPaid').textContent = `€${partial}`;
