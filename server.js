@@ -1557,7 +1557,7 @@ async function sendBookingConfirmationEmail(booking) {
             recipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
         }
 
-        // When using Resend's onboarding domain, attempting to send to other
+// When using Resend's onboarding domain, attempting to send to other
         // recipients will fail with a 403 error. We try sending to both the
         // customer and admin first and, if it fails, retry with only the admin.
 
