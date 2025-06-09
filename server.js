@@ -121,6 +121,8 @@ app.get("/admin-login.html", (req, res) =>
 // Expose only the intended public directories
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
+// Serve images directory for existing HTML references
+app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 
 // Create database tables if they don't exist
 async function createTables() {
@@ -1546,6 +1548,27 @@ app.get('/admin-login', (req, res) => {
 // Home page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Booking flow pages
+app.get('/car-selection.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'car-selection.html'));
+});
+
+app.get('/choose-car.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'choose-car.html'));
+});
+
+app.get('/personal-info.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'personal-info.html'));
+});
+
+app.get('/booking-details.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'booking-details.html'));
+});
+
+app.get('/payment.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'payment.html'));
 });
 
 // Booking confirmation page
