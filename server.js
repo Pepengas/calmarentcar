@@ -162,6 +162,7 @@ async function createTables() {
                 booster_seat BOOLEAN,
                 confirmation_email_sent BOOLEAN DEFAULT false,
                 special_requests TEXT,
+                stripe_session_id TEXT UNIQUE,
                 status TEXT DEFAULT 'pending',
                 date_submitted TIMESTAMP DEFAULT NOW()
             )
