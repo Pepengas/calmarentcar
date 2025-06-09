@@ -1557,6 +1557,11 @@ async function sendBookingConfirmationEmail(booking) {
             recipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
         }
 
+        if (FROM_EMAIL.endsWith('@resend.dev')) {
+            const allowed = process.env.ADMIN_NOTIFICATION_EMAIL || 'calmarental@gmail.com';
+            recipients.splice(0, recipients.length, allowed);
+        }
+
         // Convert date objects to ISO strings for email template
         const pickupDate = booking.pickup_date instanceof Date
             ? booking.pickup_date.toISOString().split('T')[0]

@@ -101,4 +101,6 @@ Set the following environment variables to enable emails:
 - `RESEND_API_KEY` – your Resend API key
 - `ADMIN_NOTIFICATION_EMAIL` – optional address that receives a copy of every booking confirmation
 - `FROM_EMAIL` – sender address for booking emails. Use an address from a verified
-  domain in Resend or `onboarding@resend.dev` for testing.
+  domain in Resend or `onboarding@resend.dev` for testing. When using the onboarding
+  domain, emails can only be delivered to the email associated with your Resend
+  account, so set `ADMIN_NOTIFICATION_EMAIL` to that address.
