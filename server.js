@@ -648,10 +648,9 @@ app.post('/api/bookings/:reference/confirm-payment',
         }
 
         let booking = fetchResult.rows[0];
-          if (booking.status !== 'confirmed' || !booking.payment_date) {
-            // Mark as confirmed and set payment date if not already set
+        if (booking.status !== 'confirmed' || !booking.payment_date) {
             const updateResult = await pool.query(
-           `UPDATE bookings
+                `UPDATE bookings
                  SET status = 'confirmed',
                      payment_date = COALESCE(payment_date, NOW())
                  WHERE booking_reference = $1
@@ -661,8 +660,10 @@ app.post('/api/bookings/:reference/confirm-payment',
             booking = updateResult.rows[0];
 
             await syncManualBlockWithBooking(booking);
-            await sendBookingConfirmationEmail(booking);
         }
+
+        // Always attempt to send the confirmation email
+        await sendBookingConfirmationEmail(booking);
 
         return res.json({ success: true, booking });
     } catch (error) {
@@ -1611,6 +1612,53 @@ app.get('/booking-confirmation', (req, res) => {
 // Explicit route for booking-confirmation.html used in Stripe redirect
 app.get('/booking-confirmation.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'booking-confirmation.html'));
+});
+
+// Admin: Get all cars with pricing details
+app.get('/api/admin/cars', requireAdminAuth, async (req, res) => {
+    try {
+        if (!global.dbConnected) {
+            return res.status(503).json({
+                success: false,
+                error: 'Database not connected',
+                cars: []
+            });
+        }
+
+        const result = await pool.query('SELECT * FROM cars');
+        const cars = result.rows.map(car => {
+            let unavailable_dates = car.unavailable_dates;
+            if (unavailable_dates && typeof unavailable_dates === 'string') {
+                try { unavailable_dates = JSON.parse(unavailable_dates); } catch {}
+            }
+
+            let dailyRate = 0;
+            if (car.monthly_pricing) {
+                const months = Object.keys(car.monthly_pricing);
+                if (months.length > 0) {
+                    const firstMonth = car.monthly_pricing[months[0]] || {};
+                    dailyRate = firstMonth.day_1 || firstMonth['1'] || 0;
+                }
+            }
+
+            return {
+                car_id: car.car_id,
+                make: car.make,
+                model: car.model,
+                category: car.category,
+                monthly_pricing: car.monthly_pricing,
+                available: car.available,
+                manual_status: car.manual_status,
+                specs: car.specs,
+                daily_rate: dailyRate,
+                unavailable_dates: unavailable_dates || []
+            };
+        });
+        res.json({ success: true, cars, source: 'database' });
+    } catch (error) {
+        console.error('[ADMIN] Error fetching cars:', error);
+        res.status(500).json({ success: false, error: error.message, cars: [] });
+    }
 });
 
 // Admin: Get a single car by ID (with specs)
