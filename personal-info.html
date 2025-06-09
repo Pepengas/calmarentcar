@@ -1774,14 +1774,13 @@
             }
           };
           fetchTotalPrice().then(async (basePrice) => {
-            let totalPrice = basePrice;
-            if (!totalPrice || totalPrice <= 0) {
-              // Fallback to stored price if API didn't return a value
-              if (storedCarData && storedCarData.totalPrice) {
-                totalPrice = storedCarData.totalPrice;
-              } else {
-                totalPrice = finalDailyRate * durationDays;
-              }
+            let totalPrice = 0;
+            if (storedCarData && storedCarData.totalPrice) {
+              totalPrice = storedCarData.totalPrice;
+            } else if (basePrice && basePrice > 0) {
+              totalPrice = basePrice;
+            } else {
+              totalPrice = finalDailyRate * durationDays;
             }
             // Check additional options
             const childSeat = document.getElementById('childSeat').checked;
