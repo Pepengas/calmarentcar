@@ -18,8 +18,8 @@ require('dotenv').config();
 const { Resend } = require('resend');
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
-// Default to a Gmail address to avoid Resend test-mode restrictions
-const FROM_EMAIL = process.env.FROM_EMAIL || 'calmarental@gmail.com';
+// Default to Resend's onboarding address if no sender is configured
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 
 // Register JSX support for React email templates
 const { register: esbuildRegister } = require('esbuild-register/dist/node');
