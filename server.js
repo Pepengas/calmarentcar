@@ -109,7 +109,13 @@ const validate = (validations) => async (req, res, next) => {
     }
     next();
 };
-app.get("/admin.html", requireAdminAuth, (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
+app.get("/admin.html", requireAdminAuth, (req, res) =>
+  res.sendFile(path.join(__dirname, "admin.html"))
+);
+// Serve the login page when requesting /admin-login.html for consistency
+app.get("/admin-login.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "admin-login.html"))
+);
 
 // Serve static files
 // Expose only the intended public directories
