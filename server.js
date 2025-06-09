@@ -723,7 +723,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
             const carsTableExists = tablesResult.rows[0].exists;
 
             if (carsTableExists) {
-                // Determine if make/model columns exist
+// Determine if make/model columns exist
                 const columnsResult = await pool.query(`
                     SELECT column_name FROM information_schema.columns
                     WHERE table_name = 'cars' AND column_name IN ('make', 'model')
@@ -738,7 +738,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
                         LEFT JOIN cars c ON b.car_id = c.car_id
                         ORDER BY b.booking_reference, b.date_submitted DESC
                     `);
-                } else {
+} else {
                     result = await pool.query(`
                         SELECT DISTINCT ON (b.booking_reference)
                             b.*, c.name AS car_name_lookup
