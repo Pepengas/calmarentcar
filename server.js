@@ -18,7 +18,8 @@ require('dotenv').config();
 const { Resend } = require('resend');
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+// Default to a Gmail address to avoid Resend test-mode restrictions
+const FROM_EMAIL = process.env.FROM_EMAIL || 'calmarental@gmail.com';
 
 // Register JSX support for React email templates
 const { register: esbuildRegister } = require('esbuild-register/dist/node');
@@ -720,10 +721,16 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
             `);
             
             const carsTableExists = tablesResult.rows[0].exists;
-            
+
             if (carsTableExists) {
-                try {
-                    // Attempt join using make/model columns
+// Determine if make/model columns exist
+                const columnsResult = await pool.query(`
+                    SELECT column_name FROM information_schema.columns
+                    WHERE table_name = 'cars' AND column_name IN ('make', 'model')
+                `);
+                const hasMakeModel = columnsResult.rows.length === 2;
+
+                if (hasMakeModel) {
                     result = await pool.query(`
                         SELECT DISTINCT ON (b.booking_reference)
                             b.*, c.make AS car_make_db, c.model AS car_model_db
@@ -731,9 +738,7 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
                         LEFT JOIN cars c ON b.car_id = c.car_id
                         ORDER BY b.booking_reference, b.date_submitted DESC
                     `);
-                } catch (joinErr) {
-                    console.warn('⚠️ Failed join on make/model, trying name column:', joinErr.message);
-                    // Fallback: join by matching booking make/model to car name column
+} else {
                     result = await pool.query(`
                         SELECT DISTINCT ON (b.booking_reference)
                             b.*, c.name AS car_name_lookup
@@ -1582,6 +1587,15 @@ async function sendBookingConfirmationEmail(booking) {
         });
         if (error) {
             console.error('❌ Resend API error:', error);
+            if (error.statusCode === 403 && process.env.ADMIN_NOTIFICATION_EMAIL) {
+                console.warn('Retrying email to admin only due to Resend restrictions');
+                await resend.emails.send({
+                    from: FROM_EMAIL,
+                    to: [process.env.ADMIN_NOTIFICATION_EMAIL],
+                    subject: 'Your Booking Confirmation – Calma Car Rental',
+                    html
+                });
+            }
         } else {
             console.log(`📧 Confirmation email sent to ${recipients.join(', ')} - id: ${data.id}`);
         }
