@@ -118,11 +118,7 @@
 
             async function confirmPayment() {
                 try {
-                    const res = await fetch(`/api/bookings/${bookingReference}/confirm-payment`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sessionId })
-                    });
+                    const res = await fetch(`/api/bookings/${bookingReference}/confirm-payment`, { method: 'POST' });
                     if (!res.ok) {
                         console.error('Payment confirmation failed');
                     }
