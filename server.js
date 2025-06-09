@@ -649,7 +649,7 @@ app.post('/api/bookings/:reference/confirm-payment',
         }
 
         let booking = fetchResult.rows[0];
-       if (booking.status !== 'confirmed' || !booking.payment_date) {
+        if (booking.status !== 'confirmed' || !booking.payment_date) {
             try {
                 const updateResult = await pool.query(
                     `UPDATE bookings
@@ -1662,11 +1662,17 @@ app.get('/api/admin/cars', requireAdminAuth, async (req, res) => {
                 try { unavailable_dates = JSON.parse(unavailable_dates); } catch {}
             }
 
+            // monthly_pricing may be returned as a string depending on DB type
+            let monthlyPricing = car.monthly_pricing;
+            if (monthlyPricing && typeof monthlyPricing === 'string') {
+                try { monthlyPricing = JSON.parse(monthlyPricing); } catch {}
+            }
+
             let dailyRate = 0;
-            if (car.monthly_pricing) {
-                const months = Object.keys(car.monthly_pricing);
+            if (monthlyPricing) {
+                const months = Object.keys(monthlyPricing);
                 if (months.length > 0) {
-                    const firstValue = car.monthly_pricing[months[0]];
+                    const firstValue = monthlyPricing[months[0]];
                     if (typeof firstValue === 'object') {
                         dailyRate = firstValue.day_1 || firstValue['1'] || 0;
                     } else if (!isNaN(firstValue)) {
@@ -1680,7 +1686,7 @@ app.get('/api/admin/cars', requireAdminAuth, async (req, res) => {
                 make: car.make,
                 model: car.model,
                 category: car.category,
-                monthly_pricing: car.monthly_pricing,
+                monthly_pricing: monthlyPricing,
                 available: car.available,
                 manual_status: car.manual_status,
                 specs: car.specs,
