@@ -242,6 +242,20 @@ async function migrateAddBoosterSeatToBookings() {
         console.error('❌ Migration error (add booster_seat to bookings):', err);
     }
 }
+// Migration: Add payment_date column
+async function migrateAddPaymentDateToBookings() {
+    try {
+        if (!global.dbConnected) {
+            console.warn("⚠️ Cannot run migration: database not connected");
+            return;
+        }
+        await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_date TIMESTAMP`);
+        console.log("✅ Migration: payment_date column ensured in bookings table.");
+    } catch (err) {
+        console.error("❌ Migration error (add payment_date to bookings):", err);
+    }
+}
+
 
 // Insert a default admin if none exist
 async function ensureDefaultAdmin() {
@@ -265,6 +279,7 @@ if (global.dbConnected) {
     createTables();
     migrateAddCarIdToBookings();
     migrateAddBoosterSeatToBookings();
+    migrateAddPaymentDateToBookings();
     ensureDefaultAdmin();
 }
 
@@ -304,8 +319,8 @@ function requireAdminAuth(req, res, next) {
 
 // --- Addons In-Memory Store and API ---
 let addons = [
-  { id: 'child-seat', name: 'Child Seat', price: 7.5 },
-  { id: 'booster-seat', name: 'Booster Seat', price: 5.0 }
+  { id: 'child-seat', name: 'Child Seat', price: 5.0 },
+  { id: 'booster-seat', name: 'Booster Seat', price: 3.0 }
 ];
 
 // Get all addons
@@ -636,7 +651,7 @@ app.post('/api/bookings/:reference/confirm-payment',
         if (booking.status !== 'confirmed') {
             // Update status to confirmed and send confirmation email only once
             const updateResult = await pool.query(
-                `UPDATE bookings SET status = 'confirmed' WHERE booking_reference = $1 RETURNING *`,
+                `UPDATE bookings SET status = 'confirmed', payment_date = NOW()' WHERE booking_reference = $1 RETURNING *`,
                 [reference]
             );
             booking = updateResult.rows[0];
@@ -684,11 +699,11 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
             const carsTableExists = tablesResult.rows[0].exists;
             
             if (carsTableExists) {
-                // Join with cars table to get car information if missing in bookings
+                // Join with cars table using car_id to avoid duplicate rows
                 result = await pool.query(`
-                    SELECT b.*, c.name AS car_name_lookup
+                    SELECT b.*, c.make AS car_make_db, c.model AS car_model_db
                     FROM bookings b
-                    LEFT JOIN cars c ON LOWER(CONCAT(b.car_make, ' ', b.car_model)) = LOWER(c.name)
+                    LEFT JOIN cars c ON b.car_id = c.car_id
                     ORDER BY b.date_submitted DESC
                 `);
             } else {
@@ -711,9 +726,9 @@ app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
         
         // Format bookings for the admin dashboard
         const bookings = result.rows.map(booking => {
-            // Use car_make/car_model from the cars table if available and booking fields are empty
-            const carMake = booking.car_make || booking.car_name_lookup || '';
-            const carModel = booking.car_model || booking.car_name_lookup || '';
+            // Prefer booking car_make/model, then fall back to joined car data
+            const carMake = booking.car_make || booking.car_make_db || booking.car_name_lookup || '';
+            const carModel = booking.car_model || booking.car_model_db || booking.car_name_lookup || '';
             const dailyRate = booking.daily_rate;
             
             return {
@@ -1970,6 +1985,7 @@ async function startServerWithMigrations() {
         await createTables();
         await migrateAddCarIdToBookings();
         await migrateAddBoosterSeatToBookings();
+        await migrateAddPaymentDateToBookings();
     }
 
     // Register all routes only after migrations are complete
