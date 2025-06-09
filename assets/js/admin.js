@@ -1041,8 +1041,14 @@ function showBookingDetails(booking) {
     const formattedDailyRate = isNaN(dailyRate) ? 'N/A' : formatCurrency(dailyRate);
     const formattedTotalPrice = isNaN(totalPrice) ? 'N/A' : formatCurrency(totalPrice);
 
-    const paidAmount = isNaN(totalPrice) ? null : (totalPrice * 0.45).toFixed(2);
-    const dueAmount = isNaN(totalPrice) ? null : (totalPrice * 0.55).toFixed(2);
+    let paidAmount = null;
+    let dueAmount = null;
+    if (!isNaN(totalPrice) && !isNaN(dailyRate)) {
+        const days = Math.ceil((new Date(booking.return_date) - new Date(booking.pickup_date)) / (1000 * 60 * 60 * 24)) + 1;
+        const base = dailyRate * days;
+        paidAmount = (base * 0.45).toFixed(2);
+        dueAmount = (totalPrice - parseFloat(paidAmount)).toFixed(2);
+    }
     const formattedPaid = paidAmount ? `€${paidAmount}` : 'N/A';
     const formattedDue = dueAmount ? `€${dueAmount}` : 'N/A';
     

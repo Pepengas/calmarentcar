@@ -180,7 +180,14 @@
                 document.getElementById('totalPrice').textContent = formatCurrency(rental.total_price);
                 const stored = JSON.parse(localStorage.getItem('currentBooking') || '{}');
                 const total = parseFloat(rental.total_price) || 0;
-                const partial = stored.partialAmount ? (stored.partialAmount).toFixed(2) : (total * 0.45).toFixed(2);
+                let partial;
+                if (stored.partialAmount) {
+                    partial = parseFloat(stored.partialAmount).toFixed(2);
+                } else {
+                    const days = Math.ceil((new Date(rental.return_date) - new Date(rental.pickup_date)) / (1000*60*60*24)) + 1;
+                    const base = (parseFloat(rental.daily_rate) || 0) * days;
+                    partial = (base * 0.45).toFixed(2);
+                }
                 const remaining = (total - parseFloat(partial)).toFixed(2);
                 document.getElementById('partialPaid').textContent = `€${partial}`;
                 document.getElementById('remainingBalance').textContent = `€${remaining}`;
