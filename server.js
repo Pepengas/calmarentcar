@@ -260,42 +260,6 @@ async function migrateAddConfirmationEmailSent() {
     }
 }
 
-// Remove duplicate bookings by reference, keeping the earliest entry
-async function deduplicateBookings() {
-    try {
-        if (!global.dbConnected) return;
-        const dupes = await pool.query(`
-            SELECT booking_reference, MIN(id) as keep_id, ARRAY_AGG(id) as ids
-            FROM bookings
-            GROUP BY booking_reference
-            HAVING COUNT(*) > 1
-        `);
-        for (const row of dupes.rows) {
-            const idsToDelete = row.ids.filter(id => id !== row.keep_id);
-            if (idsToDelete.length > 0) {
-                await pool.query('DELETE FROM bookings WHERE id = ANY($1)', [idsToDelete]);
-                console.log(`🗑 Removed ${idsToDelete.length} duplicate rows for booking ${row.booking_reference}`);
-            }
-        }
-    } catch (err) {
-        console.error('❌ Error removing duplicate bookings:', err);
-    }
-}
-
-// Migration: Add stripe_session_id column
-async function migrateAddStripeSessionId() {
-    try {
-        if (!global.dbConnected) {
-            console.warn('⚠️ Cannot run migration: database not connected');
-            return;
-        }
-        await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS stripe_session_id TEXT UNIQUE`);
-        console.log('✅ Migration: stripe_session_id column ensured in bookings table.');
-    } catch (err) {
-        console.error('❌ Migration error (add stripe_session_id to bookings):', err);
-    }
-}
-
 // Insert a default admin if none exist
 async function ensureDefaultAdmin() {
     try {
@@ -319,8 +283,6 @@ if (global.dbConnected) {
     migrateAddCarIdToBookings();
     migrateAddBoosterSeatToBookings();
     migrateAddConfirmationEmailSent();
-    migrateAddStripeSessionId();
-    deduplicateBookings();
     ensureDefaultAdmin();
 }
 
@@ -406,28 +368,6 @@ app.post('/api/bookings',
         const booking = req.body;
         console.log('--- Incoming booking request ---');
         console.log('Payload:', JSON.stringify(booking, null, 2));
-
-        // If a reference or Stripe session ID is provided, check if booking already exists
-        if (booking.booking_reference) {
-            const existing = await pool.query('SELECT booking_reference FROM bookings WHERE booking_reference = $1', [booking.booking_reference]);
-            if (existing.rows.length > 0) {
-                return res.status(200).json({
-                    success: true,
-                    booking_reference: booking.booking_reference,
-                    redirect_url: `/booking-confirmation?reference=${booking.booking_reference}`
-                });
-            }
-        }
-        if (booking.stripe_session_id) {
-            const existing = await pool.query('SELECT booking_reference FROM bookings WHERE stripe_session_id = $1', [booking.stripe_session_id]);
-            if (existing.rows.length > 0) {
-                return res.status(200).json({
-                    success: true,
-                    booking_reference: existing.rows[0].booking_reference,
-                    redirect_url: `/booking-confirmation?reference=${existing.rows[0].booking_reference}`
-                });
-            }
-        }
         
         // Use provided total price or calculate if missing
         let total_price = booking.total_price;
@@ -596,11 +536,11 @@ app.post('/api/bookings',
                 customer_first_name, customer_last_name, customer_email,
                 customer_phone, customer_age, driver_license, license_expiration, country,
                 pickup_date, return_date, pickup_location, dropoff_location,
-                car_make, car_model, daily_rate, total_price, stripe_session_id, status,
+                car_make, car_model, daily_rate, total_price, status,
                 additional_driver, full_insurance, gps_navigation, child_seat,
                 booster_seat, special_requests
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
             RETURNING *
         `, [
             bookingRef,
@@ -621,7 +561,6 @@ app.post('/api/bookings',
             carModel,
             dailyRate,
             booking.total_price,
-            null,
             'pending',
             booking.additional_driver || false,
             booking.full_insurance || false,
@@ -741,7 +680,6 @@ app.post('/api/bookings/:reference/confirm-payment',
     async (req, res) => {
     try {
         const { reference } = req.params;
-        const { sessionId } = req.body;
 
         if (!global.dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
@@ -756,17 +694,6 @@ app.post('/api/bookings/:reference/confirm-payment',
         }
 
         let booking = fetchResult.rows[0];
-        if (sessionId && !booking.stripe_session_id) {
-            try {
-                await pool.query(
-                    'UPDATE bookings SET stripe_session_id = $1 WHERE booking_reference = $2',
-                    [sessionId, reference]
-                );
-                booking.stripe_session_id = sessionId;
-            } catch (err) {
-                console.error('Error saving stripe session ID during confirmation:', err);
-            }
-        }
 
         if (booking.status !== 'confirmed') {
             const updateResult = await pool.query(
@@ -2095,17 +2022,6 @@ app.post('/api/create-checkout-session',
       cancel_url: `${redirectBase}/payment.html?cancelled=true`,
     });
 
-    if (bookingReference && global.dbConnected) {
-      try {
-        await pool.query(
-          `UPDATE bookings SET stripe_session_id = $1 WHERE booking_reference = $2`,
-          [session.id, bookingReference]
-        );
-      } catch (err) {
-        console.error('Error saving Stripe session ID:', err);
-      }
-    }
-
     res.json({ url: session.url });
   } catch (error) {
     console.error('Stripe Checkout error:', error);
@@ -2121,8 +2037,6 @@ async function startServerWithMigrations() {
         await migrateAddCarIdToBookings();
         await migrateAddBoosterSeatToBookings();
         await migrateAddConfirmationEmailSent();
-        await migrateAddStripeSessionId();
-        await deduplicateBookings();
     }
 
     // Register all routes only after migrations are complete
