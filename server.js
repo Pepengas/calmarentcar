@@ -651,7 +651,7 @@ app.post('/api/bookings/:reference/confirm-payment',
         if (booking.status !== 'confirmed' || !booking.payment_date) {
             // Mark as confirmed and set payment date if not already set
             const updateResult = await pool.query(
-                `UPDATE bookings
+                 `UPDATE bookings
                  SET status = 'confirmed',
                      payment_date = COALESCE(payment_date, NOW())
                  WHERE booking_reference = $1
