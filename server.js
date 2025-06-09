@@ -441,14 +441,34 @@ app.post('/api/bookings',
             });
         }
         
+        // If a booking was already saved in this session, return the same reference
+        if (req.session.bookingSaved && req.session.bookingReference) {
+            try {
+                const existing = await pool.query(
+                    'SELECT booking_reference FROM bookings WHERE booking_reference = $1',
+                    [req.session.bookingReference]
+                );
+                if (existing.rows.length > 0) {
+                    console.log('🔄 Booking already saved in this session');
+                    return res.status(200).json({
+                        success: true,
+                        booking_reference: req.session.bookingReference,
+                        redirect_url: `/booking-confirmation?reference=${req.session.bookingReference}`
+                    });
+                }
+            } catch (err) {
+                console.error('Error checking existing booking:', err);
+            }
+        }
+
         // Generate unique booking reference
         const bookingRef = `BK-${uuidv4().substring(0, 8).toUpperCase()}`;
 
-        // Check for an existing pending booking for the same details
+        // Check for an existing booking for the same details
         const dupCheck = await pool.query(
             `SELECT booking_reference FROM bookings
              WHERE car_id = $1 AND pickup_date = $2 AND return_date = $3
-             AND customer_email = $4 AND status = 'pending'`,
+             AND customer_email = $4`,
             [booking.car_id, booking.pickup_date, booking.return_date, booking.customer_email]
         );
         if (dupCheck.rows.length > 0) {
@@ -553,6 +573,8 @@ app.post('/api/bookings',
         console.log('✅ Booking saved to database successfully, reference:', bookingRef);
 
         if (insertResult.rows && insertResult.rows.length > 0) {
+            req.session.bookingSaved = true;
+            req.session.bookingReference = bookingRef;
             await syncManualBlockWithBooking(insertResult.rows[0]);
             // Confirmation email will be sent once payment is confirmed
         }
@@ -689,6 +711,10 @@ app.post('/api/bookings/:reference/confirm-payment',
                 [reference]
             );
         }
+
+        // Clear session flag so new bookings can be created in the same session
+        req.session.bookingSaved = false;
+        req.session.bookingReference = null;
 
         return res.json({ success: true, booking });
     } catch (error) {
