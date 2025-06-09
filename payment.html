@@ -284,9 +284,9 @@
             throw new Error('Missing booking data');
           }
 
-          const basePrice = bookingData.selectedCar && bookingData.durationDays
-            ? bookingData.selectedCar.price * bookingData.durationDays
-            : bookingData.totalPrice;
+          const basePrice = (bookingData.totalPrice && bookingData.totalPrice > 0)
+            ? bookingData.totalPrice
+            : (bookingData.selectedCar?.price || 0) * (bookingData.durationDays || 1);
           const partialAmount = Math.round(basePrice * 0.45);
           bookingData.partialAmount = partialAmount;
           localStorage.setItem('currentBooking', JSON.stringify(bookingData));
@@ -350,10 +350,10 @@
             if (opts.length) options = opts.join(', ');
           }
           document.getElementById('options').textContent = options;
-          if (bookingData.totalPrice) {
-            const base = bookingData.selectedCar && bookingData.durationDays
-              ? bookingData.selectedCar.price * bookingData.durationDays
-              : bookingData.totalPrice;
+          if (bookingData.totalPrice || (bookingData.selectedCar && bookingData.durationDays)) {
+            const base = (bookingData.totalPrice && bookingData.totalPrice > 0)
+              ? bookingData.totalPrice
+              : (bookingData.selectedCar?.price || 0) * (bookingData.durationDays || 1);
             const total = bookingData.totalPrice;
             const partial = (base * 0.45).toFixed(2);
             const remaining = (total - parseFloat(partial)).toFixed(2);
