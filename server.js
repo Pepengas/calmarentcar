@@ -634,6 +634,7 @@ app.post('/api/bookings/:reference/confirm-payment',
     async (req, res) => {
     try {
         const { reference } = req.params;
+        console.log(`[confirm-payment] Received request for ${reference}`);
 
         if (!global.dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
@@ -1507,7 +1508,7 @@ async function sendBookingConfirmationEmail(booking) {
         console.warn('RESEND_API_KEY not configured; skipping email');
         return;
     }
-    console.log(`Sending confirmation email for booking ${booking.booking_reference}`);
+    console.log(`[sendBookingConfirmationEmail] Sending email for booking ${booking.booking_reference}`);
     if (!booking || !booking.customer_email) return;
     try {
         const total = parseFloat(booking.total_price || 0);
@@ -1553,7 +1554,7 @@ async function sendBookingConfirmationEmail(booking) {
         if (error) {
             console.error('❌ Resend API error:', error);
         } else {
-            console.log(`📧 Confirmation email sent to ${recipients.join(', ')}`);
+            console.log(`📧 Confirmation email sent to ${recipients.join(', ')} - id: ${data.id}`);
         }
     } catch (err) {
         console.error('❌ Failed to send confirmation email:', err);
