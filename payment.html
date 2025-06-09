@@ -352,6 +352,7 @@
           }
           document.getElementById('options').textContent = options;
           if (bookingData.totalPrice || (bookingData.selectedCar && bookingData.durationDays)) {
+            if (bookingData.totalPrice || (bookingData.selectedCar && bookingData.durationDays)) {
             const base = (bookingData.selectedCar && bookingData.durationDays)
               ? bookingData.selectedCar.price * bookingData.durationDays
               : bookingData.totalPrice;
