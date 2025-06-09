@@ -18,8 +18,8 @@ require('dotenv').config();
 const { Resend } = require('resend');
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
-// Default to a Gmail address to avoid Resend test-mode restrictions
-const FROM_EMAIL = process.env.FROM_EMAIL || 'calmarental@gmail.com';
+// Default to Resend's onboarding address if no sender is configured
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 
 // Register JSX support for React email templates
 const { register: esbuildRegister } = require('esbuild-register/dist/node');
@@ -1556,6 +1556,10 @@ async function sendBookingConfirmationEmail(booking) {
         if (process.env.ADMIN_NOTIFICATION_EMAIL) {
             recipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
         }
+
+        // When using Resend's onboarding domain, attempting to send to other
+        // recipients will fail with a 403 error. We try sending to both the
+        // customer and admin first and, if it fails, retry with only the admin.
 
         // Convert date objects to ISO strings for email template
         const pickupDate = booking.pickup_date instanceof Date
