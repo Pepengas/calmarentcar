@@ -162,6 +162,7 @@ async function createTables() {
                 booster_seat BOOLEAN,
                 confirmation_email_sent BOOLEAN DEFAULT false,
                 special_requests TEXT,
+                stripe_session_id TEXT UNIQUE,
                 status TEXT DEFAULT 'pending',
                 date_submitted TIMESTAMP DEFAULT NOW()
             )
@@ -621,7 +622,7 @@ app.post('/api/bookings',
             carModel,
             dailyRate,
             booking.total_price,
-            null,
+            booking.stripe_session_id || null,
             'pending',
             booking.additional_driver || false,
             booking.full_insurance || false,
@@ -756,15 +757,23 @@ app.post('/api/bookings/:reference/confirm-payment',
         }
 
         let booking = fetchResult.rows[0];
-        if (sessionId && !booking.stripe_session_id) {
-            try {
-                await pool.query(
-                    'UPDATE bookings SET stripe_session_id = $1 WHERE booking_reference = $2',
-                    [sessionId, reference]
-                );
-                booking.stripe_session_id = sessionId;
-            } catch (err) {
-                console.error('Error saving stripe session ID during confirmation:', err);
+
+        if (sessionId) {
+            const dupe = await pool.query('SELECT * FROM bookings WHERE stripe_session_id = $1', [sessionId]);
+            if (dupe.rows.length > 0 && dupe.rows[0].booking_reference !== reference) {
+                return res.json({ success: true, booking: dupe.rows[0] });
+            }
+
+            if (!booking.stripe_session_id) {
+                try {
+                    await pool.query(
+                        'UPDATE bookings SET stripe_session_id = $1 WHERE booking_reference = $2',
+                        [sessionId, reference]
+                    );
+                    booking.stripe_session_id = sessionId;
+                } catch (err) {
+                    console.error('Error saving stripe session ID during confirmation:', err);
+                }
             }
         }
 
