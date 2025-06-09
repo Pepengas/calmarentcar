@@ -437,6 +437,22 @@ app.post('/api/bookings',
         
         // Generate unique booking reference
         const bookingRef = `BK-${uuidv4().substring(0, 8).toUpperCase()}`;
+
+        // Check for an existing pending booking for the same details
+        const dupCheck = await pool.query(
+            `SELECT booking_reference FROM bookings
+             WHERE car_id = $1 AND pickup_date = $2 AND return_date = $3
+             AND customer_email = $4 AND status = 'pending'`,
+            [booking.car_id, booking.pickup_date, booking.return_date, booking.customer_email]
+        );
+        if (dupCheck.rows.length > 0) {
+            console.log('⚠️ Duplicate booking detected, returning existing record');
+            return res.status(200).json({
+                success: true,
+                booking_reference: dupCheck.rows[0].booking_reference,
+                redirect_url: `/booking-confirmation?reference=${dupCheck.rows[0].booking_reference}`
+            });
+        }
         
         if (!global.dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
