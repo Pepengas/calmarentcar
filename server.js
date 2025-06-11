@@ -119,11 +119,21 @@ app.get("/admin-login.html", (req, res) =>
   res.sendFile(path.join(__dirname, "admin-login.html"))
 );
 
-// Serve static files
-// Expose only the intended public directories
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
-app.use('/public', express.static(path.join(__dirname, 'public')));
-// Serve images directory for existing HTML references
+// Serve static files with proper MIME types
+app.use('/assets', express.static(path.join(__dirname, 'assets'), {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+  }
+}));
+app.use('/public', express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+  }
+}));
 app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 
 // Serve main HTML files
@@ -2005,57 +2015,45 @@ app.delete('/api/admin/manual-block/:id',
         }
     });
 
-// Stripe Checkout session endpoint
-app.post('/api/create-checkout-session',
-    validate([
-        body('bookingDetails.carName').notEmpty(),
-        body('bookingDetails.partialAmount').isFloat({ min: MIN_CHARGE_AMOUNT }),
-        body('bookingDetails.startDate').optional().isISO8601(),
-        body('bookingDetails.endDate').optional().isISO8601(),
-        body('bookingDetails.bookingReference').optional().isString()
-    ]),
-    async (req, res) => {
+// Stripe checkout session endpoint
+app.post('/api/create-checkout-session', async (req, res) => {
   try {
     const { bookingDetails } = req.body;
-    if (!bookingDetails || !bookingDetails.carName || !bookingDetails.partialAmount) {
-      return res.status(400).json({ error: 'Missing required booking details' });
+    
+    if (!bookingDetails || !bookingDetails.partialAmount) {
+      return res.status(400).json({ error: 'Missing booking details or amount' });
     }
 
-    const { carName, partialAmount, startDate, endDate, bookingReference } = bookingDetails;
-
-    if (partialAmount < MIN_CHARGE_AMOUNT) {
-      return res.status(400).json({ error: `Amount must be at least €${MIN_CHARGE_AMOUNT.toFixed(2)}` });
-    }
-    const description = startDate && endDate ? `Rental: ${startDate} to ${endDate}` : undefined;
-
-    const origin = req.get('origin');
-    const redirectBase = process.env.FRONTEND_URL || origin || `http://localhost:${port}`;
-
+    // Create a Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      mode: 'payment',
       line_items: [
         {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: carName,
-              description: description || '',
+              name: `Car Rental Booking - ${bookingDetails.carName}`,
+              description: `Booking Reference: ${bookingDetails.bookingReference}\nPeriod: ${bookingDetails.startDate} to ${bookingDetails.endDate}`,
             },
-            unit_amount: Math.round(partialAmount * 100),
+            unit_amount: Math.round(bookingDetails.partialAmount * 100), // Convert to cents
           },
           quantity: 1,
         },
       ],
-      metadata: bookingReference ? { booking_reference: bookingReference } : undefined,
-      success_url: `${redirectBase}/booking-confirmation?reference=${bookingReference}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${redirectBase}/payment.html?cancelled=true`,
+      mode: 'payment',
+      success_url: `${FRONTEND_URL}/booking-confirmation.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_URL}/payment.html`,
+      metadata: {
+        bookingReference: bookingDetails.bookingReference,
+        totalPrice: bookingDetails.totalPrice,
+        partialAmount: bookingDetails.partialAmount
+      }
     });
 
     res.json({ url: session.url });
   } catch (error) {
-    console.error('Stripe Checkout error:', error);
-    res.status(500).json({ error: 'Failed to create Stripe Checkout session' });
+    console.error('Stripe session creation error:', error);
+    res.status(500).json({ error: 'Failed to create checkout session' });
   }
 });
 

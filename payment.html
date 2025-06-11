@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment - Calma Car Rental</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/assets/css/styles.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
   <style>
     /* Reset and base styles */
@@ -179,6 +179,7 @@
       vertical-align: middle;
     }
   </style>
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
   <!-- Header -->
@@ -293,18 +294,24 @@
             totalPrice: bookingData.totalPrice,
             carName: bookingData.selectedCar ? `${bookingData.selectedCar.make} ${bookingData.selectedCar.model}` : 'Car',
             startDate: bookingData.pickupDate,
-            endDate: bookingData.returnDate
+            endDate: bookingData.returnDate,
+            partialAmount: partialAmount
           };
 
           const response = await fetch('/api/create-checkout-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ bookingDetails: { ...bookingDetails, partialAmount } })
+            body: JSON.stringify({ bookingDetails })
           });
 
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create session');
+          }
+
           const data = await response.json();
-          if (!response.ok || !data.url) {
-            throw new Error(data.error || 'Failed to create session');
+          if (!data.url) {
+            throw new Error('No checkout URL received');
           }
 
           window.location.href = data.url;
