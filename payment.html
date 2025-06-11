@@ -272,6 +272,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const payButton = document.getElementById('pay-button');
+      const MIN_AMOUNT = 0.50; // Minimum amount in EUR
 
       loadBookingSummary();
 
@@ -286,6 +287,12 @@
           }
 
           const partialAmount = parseFloat((bookingData.totalPrice * 0.45).toFixed(2));
+          
+          // Validate minimum amount
+          if (partialAmount < MIN_AMOUNT) {
+            throw new Error(`Payment amount (€${partialAmount.toFixed(2)}) is too small. Minimum amount is €${MIN_AMOUNT.toFixed(2)}`);
+          }
+
           bookingData.partialAmount = partialAmount;
           localStorage.setItem('currentBooking', JSON.stringify(bookingData));
 
@@ -304,12 +311,12 @@
             body: JSON.stringify({ bookingDetails })
           });
 
+          const data = await response.json();
+          
           if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to create session');
+            throw new Error(data.error || 'Failed to create session');
           }
 
-          const data = await response.json();
           if (!data.url) {
             throw new Error('No checkout URL received');
           }
@@ -368,7 +375,24 @@
       }
 
       function showPaymentError(msg) {
-        alert(msg);
+        // Create a Bootstrap alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show mt-3';
+        alertDiv.role = 'alert';
+        alertDiv.innerHTML = `
+          ${msg}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Insert the alert before the payment button
+        const paymentMethods = document.querySelector('.payment-methods');
+        paymentMethods.insertBefore(alertDiv, paymentMethods.firstChild);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+          const bsAlert = new bootstrap.Alert(alertDiv);
+          bsAlert.close();
+        }, 5000);
       }
     });
   </script>

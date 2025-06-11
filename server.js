@@ -2024,6 +2024,15 @@ app.post('/api/create-checkout-session', async (req, res) => {
       return res.status(400).json({ error: 'Missing booking details or amount' });
     }
 
+    // Validate minimum amount
+    const MIN_AMOUNT = 0.50; // Minimum amount in EUR
+    if (bookingDetails.partialAmount < MIN_AMOUNT) {
+      return res.status(400).json({ 
+        error: `Payment amount must be at least €${MIN_AMOUNT.toFixed(2)}`,
+        code: 'amount_too_small'
+      });
+    }
+
     // Create a Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -2053,7 +2062,21 @@ app.post('/api/create-checkout-session', async (req, res) => {
     res.json({ url: session.url });
   } catch (error) {
     console.error('Stripe session creation error:', error);
-    res.status(500).json({ error: 'Failed to create checkout session' });
+    
+    // Handle specific Stripe errors
+    if (error.type === 'StripeInvalidRequestError') {
+      if (error.code === 'amount_too_small') {
+        return res.status(400).json({ 
+          error: 'Payment amount is too small. Minimum amount is €0.50',
+          code: 'amount_too_small'
+        });
+      }
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to create checkout session',
+      details: error.message
+    });
   }
 });
 
