@@ -51,6 +51,9 @@ app.set('views', path.join(__dirname, 'views'));
 const port = process.env.PORT || 3000;
 // Fallback frontend URL used if the environment variable is not provided
 const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:${port}`;
+
+console.log(`FRONTEND_URL set to: ${FRONTEND_URL}`);
+
 // Stripe requires a minimum amount of 0.50 EUR
 const MIN_CHARGE_AMOUNT = 0.5;
 
