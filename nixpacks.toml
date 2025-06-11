@@ -1,0 +1,18 @@
+[phases.setup]
+nixpkgs = ['nodejs', 'nodejs.pkgs.npm']
+
+[phases.install]
+cmds = [
+  'npm ci'
+]
+
+[phases.build]
+cmds = [
+  'npm run build'
+]
+
+[start]
+cmd = 'npm start'
+
+[variables]
+NODE_ENV = 'production' 

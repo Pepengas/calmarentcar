@@ -1,0 +1,49 @@
+{
+  "name": "calma-car-rental",
+  "version": "1.0.0",
+  "description": "Calma Car Rental Website",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "echo \"No build step required\""
+  },
+  "keywords": [
+    "car rental",
+    "booking",
+    "tourism"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "body-parser": "^1.20.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-session": "^1.18.1",
+    "express-validator": "^7.2.1",
+    "jsdom": "^26.1.0",
+    "pg": "^8.11.0",
+    "resend": "^4.5.2",
+    "stripe": "^18.2.1",
+    "uuid": "^11.1.0",
+    "xss": "^1.0.15",
+    "@react-email/html": "^0.0.11",
+    "@react-email/head": "^0.0.12",
+    "@react-email/preview": "^0.0.13",
+    "@react-email/render": "^1.1.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "esbuild": "^0.25.5",
+    "esbuild-register": "^3.6.0",
+    "ejs": "^3.1.9"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
