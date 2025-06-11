@@ -4,7 +4,7 @@
  */
 
 // Get the Stripe publishable key from environment
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_51ABC123DEF456GHI789JKL'; // Replace with actual key in production
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RMsufGI5o73GWxm48MIg0kogh9i3UBUGYTZE7MnD9KDRQ8JHvP9e5PrBoWDZVYvjSs8LXVGhKsIyLcOwg6wm4TM00ALZCZ3xO'; // Replace with actual key in production
 
 // Initialize Stripe
 let stripePromise = null;
