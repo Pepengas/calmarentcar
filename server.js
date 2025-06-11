@@ -2053,7 +2053,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `${FRONTEND_URL}/booking-confirmation.html?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${FRONTEND_URL}/booking-confirmation.html?session_id={CHECKOUT_SESSION_ID}&reference=${bookingDetails.bookingReference}`,
       cancel_url: `${FRONTEND_URL}/payment.html`,
       metadata: {
         bookingReference: bookingDetails.bookingReference,

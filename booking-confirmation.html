@@ -101,8 +101,13 @@
             
             // Get the booking reference from URL
             const urlParams = new URLSearchParams(window.location.search);
-            const bookingReference = urlParams.get('reference');
+            let bookingReference = urlParams.get('reference');
             const sessionId = urlParams.get('session_id');
+
+            if (!bookingReference) {
+                const stored = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+                bookingReference = stored.bookingReference;
+            }
 
             if (!bookingReference) {
                 showError('No booking reference found. Please check your confirmation email or contact customer support.');
