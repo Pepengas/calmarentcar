@@ -126,6 +126,35 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 // Serve images directory for existing HTML references
 app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 
+// Serve main HTML files
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/index.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/car-selection.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'car-selection.html'));
+});
+
+app.get('/personal-info.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'personal-info.html'));
+});
+
+app.get('/payment.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'payment.html'));
+});
+
+app.get('/booking-confirmation.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'booking-confirmation.html'));
+});
+
+app.get('/booking-details.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'booking-details.html'));
+});
+
 // Create database tables if they don't exist
 async function createTables() {
     try {
