@@ -419,8 +419,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Helper: Check if two date ranges overlap (inclusive)
+  // We treat both the start and end dates as unavailable, so if either range
+  // shares a date with the other we consider it overlapping.
   function rangesOverlap(start1, end1, start2, end2) {
-    return !(end1 <= start2 || end2 <= start1);
+    return end1 >= start2 && start1 <= end2;
   }
   
   function parseDateUTC(dateString) {
