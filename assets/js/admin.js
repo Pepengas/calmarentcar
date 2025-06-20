@@ -741,6 +741,22 @@ function formatDateTime(dateString) {
 }
 
 /**
+ * Format a date string as YYYY-MM-DD
+ * @param {string} dateString - The date string to format
+ * @returns {string} - Formatted ISO date string
+ */
+function formatDateISO(dateString) {
+    if (!dateString) return '';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date)) return dateString.substring(0, 10);
+        return date.toISOString().split('T')[0];
+    } catch (e) {
+        return dateString.substring(0, 10);
+    }
+}
+
+/**
  * Format a number as currency
  * @param {number} amount - The amount to format
  * @returns {string} - Formatted currency string
@@ -1613,7 +1629,7 @@ async function loadCarAvailability() {
             let manualBlocksHtml = '';
             if (car.manual_blocks && car.manual_blocks.length > 0) {
                 manualBlocksHtml = car.manual_blocks.map((b, i) =>
-                    `<span class="badge bg-warning text-dark me-1 mb-1">${b.start} to ${b.end} <span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;">🗑️</span></span>`
+                    `<span class="badge bg-warning text-dark me-1 mb-1">${formatDateISO(b.start)} to ${formatDateISO(b.end)} <span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;">🗑️</span></span>`
                 ).join('');
             }
 
@@ -1626,7 +1642,9 @@ async function loadCarAvailability() {
                 `).join('<br>') + '</div>';
             }
             if (car.manual_blocks && car.manual_blocks.length > 0) {
-                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' + car.manual_blocks.map(b => `${b.start} to ${b.end}`).join('<br>') + '</div>';
+                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' +
+                    car.manual_blocks.map(b => `${formatDateISO(b.start)} to ${formatDateISO(b.end)}`).join('<br>') +
+                    '</div>';
             }
             if (!calendarHtml) calendarHtml = '—';
 
