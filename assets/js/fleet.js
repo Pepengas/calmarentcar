@@ -5,6 +5,36 @@
 import { API_BASE_URL } from './config.js';
 import { showNotification } from './ui.js';
 
+// Convert a date string to YYYY-MM-DD
+// Accepts formats:
+//  - MM/DD/YYYY
+//  - YYYY-MM-DD
+//  - full ISO strings like YYYY-MM-DDTHH:mm:ssZ
+function toISODateString(dateStr) {
+    if (typeof dateStr !== 'string') return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return dateStr;
+    }
+    const isoMatch = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (isoMatch) {
+        return isoMatch[1];
+    }
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+        return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+    }
+    return '';
+}
+
+// Parse a date string in UTC to avoid timezone shifts
+function parseDateUTC(dateInput) {
+    if (dateInput instanceof Date) {
+        return new Date(Date.UTC(dateInput.getUTCFullYear(), dateInput.getUTCMonth(), dateInput.getUTCDate()));
+    }
+    const iso = toISODateString(dateInput);
+    return iso ? new Date(`${iso}T00:00:00Z`) : new Date(NaN);
+}
+
 export const Fleet = {
     carGrid: null,
     carSelectionDropdown: null,
@@ -52,7 +82,13 @@ export const Fleet = {
             const response = await fetch('/api/manual-blocks');
             if (!response.ok) return [];
             const data = await response.json();
-            return data.success ? data.blocks : [];
+            if (!data.success || !Array.isArray(data.blocks)) return [];
+            return data.blocks.map(b => ({
+                id: b.id,
+                car_id: b.car_id,
+                start: b.start_date,
+                end: b.end_date
+            }));
         } catch (e) {
             return [];
         }
@@ -72,7 +108,7 @@ export const Fleet = {
         let dropoffDate = dropoffDateInput ? dropoffDateInput.value : null;
         let userRange = null;
         if (pickupDate && dropoffDate) {
-            userRange = [new Date(pickupDate), new Date(dropoffDate)];
+            userRange = [parseDateUTC(pickupDate), parseDateUTC(dropoffDate)];
         }
         cars.forEach(car => {
             console.log('Rendering car:', car);
@@ -94,8 +130,8 @@ export const Fleet = {
                 isAvailable = true;
             } else if (userRange && Array.isArray(car.manual_blocks) && car.manual_blocks.length > 0) {
                 for (const block of car.manual_blocks) {
-                    const rangeStart = new Date(block.start);
-                    const rangeEnd = new Date(block.end);
+                    const rangeStart = parseDateUTC(block.start);
+                    const rangeEnd = parseDateUTC(block.end);
                     if (rangesOverlap(userRange[0], userRange[1], rangeStart, rangeEnd)) {
                         isAvailable = false;
                         unavailableReason = 'Unavailable';
@@ -141,7 +177,7 @@ export const Fleet = {
         let dropoffDate = dropoffDateInput ? dropoffDateInput.value : null;
         let userRange = null;
         if (pickupDate && dropoffDate) {
-            userRange = [new Date(pickupDate), new Date(dropoffDate)];
+            userRange = [parseDateUTC(pickupDate), parseDateUTC(dropoffDate)];
         }
         cars.forEach(car => {
             let isAvailable = true;
@@ -151,8 +187,8 @@ export const Fleet = {
                 isAvailable = true;
             } else if (userRange && Array.isArray(car.manual_blocks) && car.manual_blocks.length > 0) {
                 for (const block of car.manual_blocks) {
-                    const rangeStart = new Date(block.start);
-                    const rangeEnd = new Date(block.end);
+                    const rangeStart = parseDateUTC(block.start);
+                    const rangeEnd = parseDateUTC(block.end);
                     if (rangesOverlap(userRange[0], userRange[1], rangeStart, rangeEnd)) {
                         isAvailable = false;
                         break;
@@ -202,6 +238,9 @@ export const Fleet = {
 
 // Add a helper function to normalize dates to the start of the day
 function normalizeDate(date) {
+    if (typeof date === 'string') {
+        return parseDateUTC(date);
+    }
     const d = new Date(date);
     // Always use UTC to avoid timezone issues
     return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
