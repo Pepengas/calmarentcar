@@ -5,20 +5,36 @@
 import { API_BASE_URL } from './config.js';
 import { showNotification } from './ui.js';
 
-// Convert an MM/DD/YYYY or YYYY-MM-DD string to YYYY-MM-DD
+// Convert a date string to YYYY-MM-DD
+// Accepts formats:
+//  - MM/DD/YYYY
+//  - YYYY-MM-DD
+//  - full ISO strings like YYYY-MM-DDTHH:mm:ssZ
 function toISODateString(dateStr) {
-    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
     if (typeof dateStr !== 'string') return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return dateStr;
+    }
+    const isoMatch = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (isoMatch) {
+        return isoMatch[1];
+    }
     const parts = dateStr.split('/');
-    if (parts.length !== 3) return '';
-    return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+    if (parts.length === 3) {
+        return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+    }
+    return '';
 }
 
 // Parse a date string in UTC to avoid timezone shifts
-function parseDateUTC(dateStr) {
-    const iso = toISODateString(dateStr);
+function parseDateUTC(dateInput) {
+    if (dateInput instanceof Date) {
+        return new Date(Date.UTC(dateInput.getUTCFullYear(), dateInput.getUTCMonth(), dateInput.getUTCDate()));
+    }
+    const iso = toISODateString(dateInput);
     return iso ? new Date(`${iso}T00:00:00Z`) : new Date(NaN);
 }
+
 
 export const Fleet = {
     carGrid: null,
@@ -67,7 +83,13 @@ export const Fleet = {
             const response = await fetch('/api/manual-blocks');
             if (!response.ok) return [];
             const data = await response.json();
-            return data.success ? data.blocks : [];
+            if (!data.success || !Array.isArray(data.blocks)) return [];
+            return data.blocks.map(b => ({
+                id: b.id,
+                car_id: b.car_id,
+                start: b.start_date,
+                end: b.end_date
+            }));
         } catch (e) {
             return [];
         }
