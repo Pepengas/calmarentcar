@@ -1625,12 +1625,27 @@ async function loadCarAvailability() {
             let blockInput = `<input type="text" class="form-control form-control-sm manual-block-input" id="${blockInputId}" placeholder="Add block..." data-car-id="${realCarId}" style="max-width:160px;display:inline-block;" readonly>`;
             let addBlockBtn = `<button class="btn btn-sm btn-outline-primary ms-1 add-block-btn" data-car-id="${realCarId}" data-input-id="${blockInputId}">Add</button>`;
 
-            // Manual blocks display with delete icons
+            // Manual blocks display in table layout
             let manualBlocksHtml = '';
             if (car.manual_blocks && car.manual_blocks.length > 0) {
-                manualBlocksHtml = car.manual_blocks.map((b, i) =>
-                    `<span class="badge bg-warning text-dark me-1 mb-1">${formatDateISO(b.start)} to ${formatDateISO(b.end)} <span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;">🗑️</span></span>`
+                const rows = car.manual_blocks.map((b, i) =>
+                    `<tr>
+                        <td>${formatDateISO(b.start)}</td>
+                        <td>${formatDateISO(b.end)}</td>
+                        <td><span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" title="Delete block">🗑️</span></td>
+                    </tr>`
                 ).join('');
+
+                manualBlocksHtml = `
+                    <div><strong>📅 Manual Blocks (${car.manual_blocks.length} total)</strong></div>
+                    <div class="manual-blocks-wrapper mt-1">
+                        <table class="table table-sm table-bordered manual-blocks-table mb-0">
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+            } else {
+                manualBlocksHtml = '<div>No manual blocks yet</div>';
             }
 
             // Booked ranges display
