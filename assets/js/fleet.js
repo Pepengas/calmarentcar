@@ -35,6 +35,7 @@ function parseDateUTC(dateInput) {
     return iso ? new Date(`${iso}T00:00:00Z`) : new Date(NaN);
 }
 
+
 export const Fleet = {
     carGrid: null,
     carSelectionDropdown: null,
