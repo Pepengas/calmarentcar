@@ -5,6 +5,21 @@
 import { API_BASE_URL } from './config.js';
 import { showNotification } from './ui.js';
 
+// Convert an MM/DD/YYYY or YYYY-MM-DD string to YYYY-MM-DD
+function toISODateString(dateStr) {
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    if (typeof dateStr !== 'string') return '';
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return '';
+    return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+}
+
+// Parse a date string in UTC to avoid timezone shifts
+function parseDateUTC(dateStr) {
+    const iso = toISODateString(dateStr);
+    return iso ? new Date(`${iso}T00:00:00Z`) : new Date(NaN);
+}
+
 export const Fleet = {
     carGrid: null,
     carSelectionDropdown: null,
@@ -72,7 +87,7 @@ export const Fleet = {
         let dropoffDate = dropoffDateInput ? dropoffDateInput.value : null;
         let userRange = null;
         if (pickupDate && dropoffDate) {
-            userRange = [new Date(pickupDate), new Date(dropoffDate)];
+            userRange = [parseDateUTC(pickupDate), parseDateUTC(dropoffDate)];
         }
         cars.forEach(car => {
             console.log('Rendering car:', car);
@@ -94,8 +109,8 @@ export const Fleet = {
                 isAvailable = true;
             } else if (userRange && Array.isArray(car.manual_blocks) && car.manual_blocks.length > 0) {
                 for (const block of car.manual_blocks) {
-                    const rangeStart = new Date(block.start);
-                    const rangeEnd = new Date(block.end);
+                    const rangeStart = parseDateUTC(block.start);
+                    const rangeEnd = parseDateUTC(block.end);
                     if (rangesOverlap(userRange[0], userRange[1], rangeStart, rangeEnd)) {
                         isAvailable = false;
                         unavailableReason = 'Unavailable';
@@ -141,7 +156,7 @@ export const Fleet = {
         let dropoffDate = dropoffDateInput ? dropoffDateInput.value : null;
         let userRange = null;
         if (pickupDate && dropoffDate) {
-            userRange = [new Date(pickupDate), new Date(dropoffDate)];
+            userRange = [parseDateUTC(pickupDate), parseDateUTC(dropoffDate)];
         }
         cars.forEach(car => {
             let isAvailable = true;
@@ -151,8 +166,8 @@ export const Fleet = {
                 isAvailable = true;
             } else if (userRange && Array.isArray(car.manual_blocks) && car.manual_blocks.length > 0) {
                 for (const block of car.manual_blocks) {
-                    const rangeStart = new Date(block.start);
-                    const rangeEnd = new Date(block.end);
+                    const rangeStart = parseDateUTC(block.start);
+                    const rangeEnd = parseDateUTC(block.end);
                     if (rangesOverlap(userRange[0], userRange[1], rangeStart, rangeEnd)) {
                         isAvailable = false;
                         break;
@@ -202,6 +217,9 @@ export const Fleet = {
 
 // Add a helper function to normalize dates to the start of the day
 function normalizeDate(date) {
+    if (typeof date === 'string') {
+        return parseDateUTC(date);
+    }
     const d = new Date(date);
     // Always use UTC to avoid timezone issues
     return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
