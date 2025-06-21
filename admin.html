@@ -705,6 +705,55 @@
                 padding: 0.25rem;
             }
 
+            .calendar-summary {
+                font-size: 0.85rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .mini-grid {
+                display: grid;
+                grid-template-columns: repeat(15, 8px);
+                gap: 2px;
+                margin-top: 0.25rem;
+            }
+
+            .mini-day {
+                width: 8px;
+                height: 8px;
+                border-radius: 2px;
+                border: 1px solid #ccc;
+            }
+
+            .mini-day.booked { background-color: #28a745; }
+            .mini-day.blocked { background-color: #ffc107; }
+            .mini-day.available { background-color: #fff; }
+
+            .calendar-day {
+                width: 32px;
+                height: 32px;
+                text-align: center;
+                vertical-align: middle;
+                border: 1px solid #ccc;
+                font-size: 0.75rem;
+            }
+
+            .calendar-day.booked { background-color: #28a745; color: #fff; }
+            .calendar-day.blocked { background-color: #ffc107; }
+
+            .calendar-legend span {
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                margin-right: 4px;
+                border: 1px solid #ccc;
+            }
+
+            .calendar-legend .booked { background-color: #28a745; }
+            .calendar-legend .blocked { background-color: #ffc107; }
+
+            .calendar-modal-table { width: 100%; border-collapse: collapse; }
+            .calendar-modal-table td { padding: 4px; }
+        
             /* Improve form controls on mobile */
             .form-control, .form-select {
                 font-size: 16px !important; /* Prevent zoom on iOS */
@@ -968,6 +1017,19 @@
               <button type="submit" class="btn btn-primary" id="saveBookingBtn">Save</button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Car Calendar Modal -->
+    <div class="modal fade" id="carCalendarModal" tabindex="-1" aria-labelledby="carCalendarModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="carCalendarModalLabel">Car Availability</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="carCalendarContainer"></div>
         </div>
       </div>
     </div>
