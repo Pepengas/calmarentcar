@@ -9,6 +9,8 @@ const sanitized = html
   .replace(/<link[^>]*href=.*?>/g, '');
 
 const dom = new JSDOM(sanitized, { runScripts: 'dangerously', resources: 'usable' });
+// jsdom does not implement window.scrollTo; stub it to avoid errors
+dom.window.scrollTo = () => {};
 
 function waitForDOMContentLoaded() {
   return new Promise((resolve) => {
