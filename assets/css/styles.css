@@ -14,6 +14,40 @@
     --border-radius: 10px;
 }
 
+/* Calendar status indicators */
+.calendar-day.booked,
+.mini-day.booked {
+    background-color: #d4f4dd;
+    color: #166534;
+}
+
+.calendar-day.blocked,
+.mini-day.blocked {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.calendar-day.available,
+.mini-day.available {
+    background-color: #ffffff;
+}
+
+.calendar-day:hover {
+    background-color: #f2f2f2;
+}
+
+.calendar-day.booked:hover {
+    background-color: #c1edce;
+}
+
+.calendar-day.blocked:hover {
+    background-color: #fde9a8;
+}
+
+.calendar-day.today {
+    font-weight: bold;
+}
+
 /* Reset and Base Styles */
 * {
     margin: 0;
