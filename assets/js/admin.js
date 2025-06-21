@@ -768,6 +768,22 @@ function formatDateISO(dateString) {
     }
 }
 
+/**
+ * Format a date string to YYYY-MM-DD
+ * @param {string} dateString
+ * @returns {string}
+ */
+function formatDateISO(dateString) {
+    if (!dateString) return '';
+    try {
+        const d = new Date(dateString);
+        if (isNaN(d)) return dateString;
+        return d.toISOString().split('T')[0];
+    } catch (e) {
+        return dateString;
+    }
+}
+
 function diffDays(start, end) {
     try {
         const s = new Date(start);
