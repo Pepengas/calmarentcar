@@ -77,6 +77,11 @@ if (calendarModalElem) {
     calendarModal = new bootstrap.Modal(calendarModalElem);
 }
 
+// Currently viewed car and month in the calendar modal
+let calendarCar = null;
+let calendarYear = new Date().getFullYear();
+let calendarMonth = new Date().getMonth();
+
 function getMonthNameFromKey(key) {
     // key is like '2025-01', '2025-02', ...
     const monthNum = parseInt(key.split('-')[1], 10);
@@ -809,21 +814,26 @@ function dateRangeSet(ranges) {
     return set;
 }
 
-function generateCalendarHtml(car) {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
+function generateCalendarHtml(car, year = calendarYear, month = calendarMonth) {
+    calendarYear = year;
+    calendarMonth = month;
+
+    const monthName = new Date(year, month, 1).toLocaleString('default', { month: 'long' });
     const firstDay = new Date(year, month, 1).getDay();
+    const offset = (firstDay + 6) % 7; // start week on Monday
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const blockSet = dateRangeSet(car.manual_blocks);
     const bookedSet = dateRangeSet(car.booked_ranges);
 
-    let html = '<div class="calendar-legend mb-2">';
-    html += '<span class="legend blocked"></span> Blocked ';
-    html += '<span class="legend booked ms-2"></span> Booked';
-    html += '</div>';
-    html += '<table class="calendar-modal-table"><tbody><tr>';
-    for (let i = 0; i < firstDay; i++) html += '<td></td>';
+    let html = `<div class="calendar-nav">
+        <button type="button" class="btn btn-sm btn-outline-secondary calendar-prev">&lt;</button>
+        <span class="fw-bold">${monthName} ${year}</span>
+        <button type="button" class="btn btn-sm btn-outline-secondary calendar-next">&gt;</button>
+    </div>`;
+    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    html += '<table class="calendar-modal-table table table-bordered">';
+    html += '<thead><tr>' + days.map(d=>`<th>${d}</th>`).join('') + '</tr></thead><tbody><tr>';
+    for (let i = 0; i < offset; i++) html += '<td></td>';
     for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
         const ds = formatDateISO(date);
@@ -831,11 +841,37 @@ function generateCalendarHtml(car) {
         let status = 'Available';
         if (bookedSet.has(ds)) { cls = 'booked'; status = 'Booked'; }
         else if (blockSet.has(ds)) { cls = 'blocked'; status = 'Blocked'; }
-        html += `<td class="calendar-day ${cls}" title="${ds}: ${status}">${day}</td>`;
-        if ((firstDay + day) % 7 === 0 && day !== daysInMonth) html += '</tr><tr>';
+        if (ds === formatDateISO(new Date())) cls += ' today';
+        html += `<td class="calendar-day ${cls}" data-bs-toggle="tooltip" data-bs-placement="top" title="${ds} – ${status}">${day}</td>`;
+        if ((offset + day) % 7 === 0 && day !== daysInMonth) html += '</tr><tr>';
     }
     html += '</tr></tbody></table>';
+    html += '<div class="calendar-legend mt-2">';
+    html += '<span class="legend booked"></span> Booked ';
+    html += '<span class="legend blocked ms-2"></span> Blocked ';
+    html += '<span class="legend available ms-2"></span> Available';
+    html += '</div>';
     return html;
+}
+
+function renderCalendar() {
+    if (!calendarContainer || !calendarCar) return;
+    calendarContainer.innerHTML = generateCalendarHtml(calendarCar, calendarYear, calendarMonth);
+    if (window.bootstrap) {
+        calendarContainer.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+    }
+    const prev = calendarContainer.querySelector('.calendar-prev');
+    const next = calendarContainer.querySelector('.calendar-next');
+    if (prev) prev.addEventListener('click', () => {
+        calendarMonth--;
+        if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+        renderCalendar();
+    });
+    if (next) next.addEventListener('click', () => {
+        calendarMonth++;
+        if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+        renderCalendar();
+    });
 }
 
 function generateMiniGrid(car) {
@@ -1900,12 +1936,14 @@ async function loadCarAvailability() {
                 const carId = this.getAttribute('data-car-id');
                 const car = carAvailabilityMap[carId];
                 if (car && calendarModal) {
+                    calendarCar = car;
+                    const today = new Date();
+                    calendarYear = today.getFullYear();
+                    calendarMonth = today.getMonth();
                     if (calendarModalLabel) {
                         calendarModalLabel.textContent = `${car.name} Availability`;
                     }
-                    if (calendarContainer) {
-                        calendarContainer.innerHTML = generateCalendarHtml(car);
-                    }
+                    renderCalendar();
                     calendarModal.show();
                 }
             });

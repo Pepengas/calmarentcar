@@ -733,12 +733,36 @@
                 height: 32px;
                 text-align: center;
                 vertical-align: middle;
-                border: 1px solid #ccc;
                 font-size: 0.75rem;
+                border-radius: 6px;
+                padding: 6px 8px;
+                cursor: default;
+                transition: background-color 0.2s;
             }
 
-            .calendar-day.booked { background-color: #28a745; color: #fff; }
-            .calendar-day.blocked { background-color: #ffc107; }
+            .calendar-day.booked {
+                background-color: #d4f4dd;
+                color: #166534;
+            }
+            .calendar-day.blocked {
+                background-color: #fef3c7;
+                color: #92400e;
+            }
+            .calendar-day.available {
+                background-color: #ffffff;
+            }
+            .calendar-day:hover {
+                background-color: #f2f2f2;
+            }
+            .calendar-day.booked:hover {
+                background-color: #c1edce;
+            }
+            .calendar-day.blocked:hover {
+                background-color: #fde9a8;
+            }
+            .calendar-day.today {
+                font-weight: bold;
+            }
 
             .calendar-legend span {
                 display: inline-block;
@@ -746,13 +770,41 @@
                 height: 12px;
                 margin-right: 4px;
                 border: 1px solid #ccc;
+                border-radius: 3px;
             }
 
-            .calendar-legend .booked { background-color: #28a745; }
-            .calendar-legend .blocked { background-color: #ffc107; }
+            .calendar-legend .booked { background-color: #d4f4dd; border-color: #d4f4dd; }
+            .calendar-legend .blocked { background-color: #fef3c7; border-color: #fef3c7; }
+            .calendar-legend .available { background-color: #ffffff; border-color: #ccc; }
 
-            .calendar-modal-table { width: 100%; border-collapse: collapse; }
-            .calendar-modal-table td { padding: 4px; }
+            .calendar-modal-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            .calendar-modal-table td,
+            .calendar-modal-table th {
+                padding: 6px 8px;
+                text-align: center;
+            }
+            .calendar-modal-table tbody tr + tr td {
+                border-top: 1px solid #e5e5e5;
+            }
+
+            .calendar-nav {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 1rem;
+                margin-bottom: 0.5rem;
+            }
+            .calendar-nav span {
+                flex-grow: 1;
+                text-align: center;
+            }
+            .calendar-nav button {
+                padding: 0.25rem 0.5rem;
+            }
         
             /* Improve form controls on mobile */
             .form-control, .form-select {
