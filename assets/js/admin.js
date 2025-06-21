@@ -1580,7 +1580,7 @@ window.saveMonthlyPricingMonth = async function(carId, monthKey, btn) {
         setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 1200);
         alert('Pricing updated successfully!');
     } catch (err) {
-        btn.textContent = 'Error';
+            btn.textContent = 'Error';
         setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 2000);
         alert('Failed to save pricing: ' + err.message);
     }
@@ -1686,95 +1686,7 @@ async function loadCarAvailability() {
         // Attach event listeners for manual status dropdowns
         document.querySelectorAll('.manual-status-dropdown').forEach(dropdown => {
             dropdown.addEventListener('change', async function() {
-                const carId = this.getAttribute('data-car-id');
-                const newStatus = this.value;
-                await updateManualStatus(carId, newStatus);
-                loadCarAvailability();
-            });
-        });
-
-        // Attach flatpickr to all manual block inputs
-        if (window.flatpickr) {
-            document.querySelectorAll('.manual-block-input').forEach(input => {
-                flatpickr(input, {
-                    mode: 'range',
-                    dateFormat: 'Y-m-d',
-                    allowInput: false
-                });
-            });
-        }
-
-        // Add block button event (replace old logic)
-        document.querySelectorAll('.add-block-btn').forEach(btn => {
-            btn.addEventListener('click', async function() {
-                // Always use the real car.id from the cars table for car_id
-                const carId = this.getAttribute('data-car-id');
-                const inputId = this.getAttribute('data-input-id');
-                const input = document.getElementById(inputId);
-                
-                console.log('[DEBUG] Add block button clicked');
-                console.log('[DEBUG] Car ID:', carId); // This should be the real car.id
-                console.log('[DEBUG] Input value:', input?.value);
-                
-                if (!input || !input.value) {
-                    console.error('[DEBUG] No input value found');
-                    return;
-                }
-                
-                const dates = input.value.split(' to ');
-                if (dates.length !== 2) {
-                    console.error('[DEBUG] Invalid date format:', input.value);
-                    return;
-                }
-                
-                // car_id must be the real car.id, not car.name or car.make
-                const payload = { 
-                    car_id: carId, 
-                    start_date: dates[0], 
-                    end_date: dates[1] 
-                };
-                
-                console.log('[DEBUG] Sending manual block request with payload:', payload);
-                
-                try {
-                    const res = await fetch('/api/admin/manual-block', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    console.log('[DEBUG] Response status:', res.status);
-                    const data = await res.json();
-                    console.log('[DEBUG] Response data:', data);
-                    
-                    if (data.success) {
-                        showToast('Manual block added successfully');
-                        input.value = '';
-                        loadCarAvailability();
-                    } else {
-                        throw new Error(data.error || 'Failed to add block');
-                    }
-                } catch (err) {
-                    console.error('[DEBUG] Error adding manual block:', err);
-                    showToast(err.message, 'danger');
-                }
-            });
-        });
-
-        // Delete block event
-        document.querySelectorAll('.delete-block').forEach(icon => {
-            icon.addEventListener('click', async function() {
-                const blockId = this.getAttribute('data-block-id');
-                if (!blockId) return;
-                await deleteManualBlock(blockId);
-                loadCarAvailability();
-            });
-        });
-
-        // Delete booking event
+@@ -1779,50 +1778,58 @@ async function loadCarAvailability() {
         document.querySelectorAll('.delete-booking').forEach(icon => {
             icon.addEventListener('click', async function() {
                 const bookingId = this.getAttribute('data-booking-id');
@@ -1833,139 +1745,7 @@ function showToast(message, type = 'success') {
     toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed top-0 end-0 m-3`;
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', 'assertive');
-    toast.setAttribute('aria-atomic', 'true');
-    toast.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">
-                ${message}
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-    `;
-    document.body.appendChild(toast);
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
-    toast.addEventListener('hidden.bs.toast', () => toast.remove());
-}
-
-// Add loading spinner function
-function showLoadingSpinner(element) {
-    const spinner = document.createElement('div');
-    spinner.className = 'spinner-border spinner-border-sm text-primary me-2';
-    spinner.setAttribute('role', 'status');
-    spinner.innerHTML = '<span class="visually-hidden">Loading...</span>';
-    element.prepend(spinner);
-    return spinner;
-}
-
-// Modify updateManualStatus to show loading and toast
-async function updateManualStatus(carId, manualStatus) {
-    const dropdown = document.querySelector(`.manual-status-dropdown[data-car-id="${carId}"]`);
-    const originalValue = dropdown.value;
-    const spinner = showLoadingSpinner(dropdown.parentElement);
-    try {
-        dropdown.disabled = true;
-        dropdown.value = 'Updating...';
-        const response = await fetch(`/api/admin/car/${carId}/manual-status`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            },
-            credentials: 'include',
-            body: JSON.stringify({ manual_status: manualStatus })
-        });
-        const data = await response.json();
-        if (data.success) {
-            showToast('Manual status updated successfully');
-        } else {
-            throw new Error(data.error || 'Failed to update status');
-        }
-    } catch (err) {
-        dropdown.value = originalValue;
-        showToast(err.message, 'danger');
-    } finally {
-        spinner.remove();
-        dropdown.disabled = false;
-    }
-}
-
-// Modify deleteManualBlock to show loading and toast
-async function deleteManualBlock(blockId) {
-    try {
-        const res = await fetch(`/api/admin/manual-block/${blockId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            }
-        });
-        const data = await res.json();
-        if (data.success) {
-            showToast('Manual block deleted successfully');
-        } else {
-            throw new Error(data.error || 'Failed to delete block');
-        }
-    } catch (err) {
-        showToast(err.message, 'danger');
-    }
-}
-
-// Example: Add existence checks and warnings for key elements
-function robustGetElement(id, name) {
-    const el = document.getElementById(id);
-    if (!el) {
-        console.warn(`[Admin] ${name || id} not found in DOM`);
-    }
-    return el;
-}
-
-async function loadAddons() {
-    try {
-        const res = await fetch('/api/admin/addons', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-        });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Failed to load addons');
-
-        const container = document.getElementById('addonsList');
-        if (!container) {
-            console.warn('[Admin] addonsList container not found');
-            return;
-        }
-
-        container.innerHTML = '';
-        data.addons.forEach(addon => {
-            const div = document.createElement('div');
-            div.className = 'col-md-6';
-            div.innerHTML = `
-                <div class="border rounded p-3">
-                    <label class="form-label fw-bold">Name</label>
-                    <input type="text" class="form-control mb-2" value="${addon.name}" data-id="${addon.id}" data-field="name">
-                    <label class="form-label fw-bold">Price (€)</label>
-                    <input type="number" class="form-control mb-2" value="${addon.price}" step="0.01" data-id="${addon.id}" data-field="price">
-                    <button class="btn btn-primary save-addon-btn" data-id="${addon.id}">Save</button>
-                </div>
-            `;
-            container.appendChild(div);
-        });
-
-        // Handle save buttons
-        document.querySelectorAll('.save-addon-btn').forEach(button => {
-            button.addEventListener('click', async () => {
-                const id = button.dataset.id;
-                const nameInput = document.querySelector(`input[data-id="${id}"][data-field="name"]`);
-                const priceInput = document.querySelector(`input[data-id="${id}"][data-field="price"]`);
-                
-                if (!nameInput || !priceInput) {
-                    console.warn(`[Admin] Input fields not found for addon ${id}`);
-                    return;
-                }
-
-                const name = nameInput.value;
-                const price = parseFloat(priceInput.value);
-
-                try {
-                    const response = await fetch(`/api/admin/addons/${id}`, {
+@@ -1962,26 +1969,92 @@ async function loadAddons() {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
@@ -2025,7 +1805,6 @@ function generateMiniGrid(blockedSet, bookedSet) {
 }
 
 let carCalendarInstance = null;
-let calendarTooltipElem = null;
 function showCarCalendar(carId) {
     const car = (window.carAvailabilityData || []).find(c => (c.car_id || c.id) == carId);
     if (!car) return;
@@ -2038,21 +1817,9 @@ function showCarCalendar(carId) {
         carCalendarInstance = null;
     }
     const blockedSet = new Set();
- const blockedSet = new Set();
+    (car.manual_blocks || []).forEach(b => getDatesBetween(b.start, b.end).forEach(d => blockedSet.add(d)));
     const bookedSet = new Set();
-    const dateInfo = {};
-    (car.manual_blocks || []).forEach(b => {
-        getDatesBetween(b.start, b.end).forEach(d => {
-            blockedSet.add(d);
-            dateInfo[d] = { status: 'Blocked', source: 'Manual Block' };
-        });
-    });
-    (car.booked_ranges || []).forEach(b => {
-        getDatesBetween(b.start, b.end).forEach(d => {
-            bookedSet.add(d);
-            dateInfo[d] = { status: 'Booked', source: 'Booking' };
-        });
-    });
+    (car.booked_ranges || []).forEach(b => getDatesBetween(b.start, b.end).forEach(d => bookedSet.add(d)));
 
     carCalendarInstance = flatpickr(container, {
         inline: true,
@@ -2065,15 +1832,6 @@ function showCarCalendar(carId) {
             } else if (blockedSet.has(iso)) {
                 dayElem.classList.add('blocked-day');
             }
-                dayElem.addEventListener('click', function(ev) {
-                const info = dateInfo[iso] || { status: 'Available' };
-                showDateTooltip(dayElem, {
-                    date: iso,
-                    status: info.status,
-                    source: info.source || ''
-                });
-                ev.stopPropagation();
-            });
         }
     });
 
