@@ -105,6 +105,13 @@ document.addEventListener("DOMContentLoaded", async function() {
     carFilter = document.getElementById('carFilter');
     textSearchFilter = document.getElementById('textSearchFilter');
     clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    function setActive(element) {
+        document.querySelectorAll('.nav-link, .mobile-nav .btn').forEach(el => {
+            el.classList.remove('active');
+        });
+        if (element) element.classList.add('active');
+    }
     
     // Tab click handlers
     const tabHandlers = {
@@ -284,7 +291,8 @@ document.addEventListener("DOMContentLoaded", async function() {
         try {
             editCarMsg.textContent = '';
             const res = await fetch(`/api/admin/car/${carId}`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+                credentials: 'include'
             });
             const data = await res.json();
             if (!data.success) throw new Error(data.error || 'Failed to fetch car');
@@ -349,6 +357,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ name, category, description, image, features, specs })
                 });
                 const data = await res.json();
@@ -397,13 +406,13 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     // --- Sidebar Tab Navigation ---
     const tabSectionMap = [
-        { tab: 'dashboardTab', content: 'dashboardContent' },
-        { tab: 'carsTab', content: 'carsContent' },
-        { tab: 'customersTab', content: 'customersContent' },
-        { tab: 'reportsTab', content: 'reportsContent' },
-        { tab: 'settingsTab', content: 'settingsContent' },
-        { tab: 'editCarTab', content: 'editCarContent' },
-        { tab: 'addonsTab', content: 'addonsContent' }
+        { tab: 'dashboardTab', content: 'dashboard' },
+        { tab: 'carsTab', content: 'cars' },
+        { tab: 'customersTab', content: 'customers' },
+        { tab: 'reportsTab', content: 'reports' },
+        { tab: 'settingsTab', content: 'settings' },
+        { tab: 'editCarTab', content: 'editCar' },
+        { tab: 'addonsTab', content: 'addons' }
     ];
     function showSection(section) {
         // Hide all sections
@@ -436,15 +445,15 @@ document.addEventListener("DOMContentLoaded", async function() {
                 e.preventDefault();
                 showSection(content);
                 // Load data if needed
-                if (content === 'carsContent') loadCarsForPricing();
-                if (content === 'editCarContent') loadEditCarDropdown();
-                if (content === 'dashboardContent') loadBookings();
-                if (content === 'customersContent') loadCarAvailability();
+                if (content === 'cars') loadCarsForPricing();
+                if (content === 'editCar') loadEditCarDropdown();
+                if (content === 'dashboard') loadBookings();
+                if (content === 'customers') loadCarAvailability();
             });
         }
     });
     // Show dashboard by default on load
-    showSection('dashboardContent');
+    showSection('dashboard');
 
     const addonsTab = document.getElementById('addonsTab');
     if (addonsTab) {
@@ -474,6 +483,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ currentPassword, newPassword })
                 });
                 const data = await res.json();
@@ -498,6 +508,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ email, password })
                 });
                 const data = await res.json();
@@ -515,7 +526,8 @@ document.addEventListener("DOMContentLoaded", async function() {
     async function loadAdmins() {
         try {
             const res = await fetch('/api/admin/admins', {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+                credentials: 'include'
             });
             const data = await res.json();
             const list = document.getElementById('adminList');
@@ -531,7 +543,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                     btn.textContent = 'Delete';
                     btn.addEventListener('click', async () => {
                         if (!confirm('Delete admin?')) return;
-                        await fetch(`/api/admin/${a.id}`, { method: 'DELETE', headers:{'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }});
+                        await fetch(`/api/admin/${a.id}`, { method: 'DELETE', headers:{'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }, credentials: 'include'});
                         loadAdmins();
                     });
                     li.appendChild(btn);
@@ -999,6 +1011,7 @@ async function saveBookingEdits(e) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${API_TOKEN}`
             },
+            credentials: 'include',
             body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -1199,6 +1212,7 @@ function updateBookingStatus() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${API_TOKEN}`
         },
+        credentials: 'include',
         body: JSON.stringify({ status: newStatus.toLowerCase() })
     })
     .then(response => {
@@ -1572,6 +1586,7 @@ window.saveMonthlyPricingMonth = async function(carId, monthKey, btn) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             },
+            credentials: 'include',
             body: JSON.stringify({ monthly_pricing: pricing })
         });
         const data = await res.json();
@@ -1697,7 +1712,8 @@ async function loadCarAvailability() {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                        }
+                        },
+                        credentials: 'include'
                     });
                     const data = await res.json();
                     if (data.success) {
@@ -1745,19 +1761,147 @@ function showToast(message, type = 'success') {
     toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed top-0 end-0 m-3`;
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', 'assertive');
-@@ -1962,26 +1969,92 @@ async function loadAddons() {
+    toast.setAttribute('aria-atomic', 'true');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+
+function showLoadingSpinner(element) {
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner-border spinner-border-sm text-primary me-2';
+    spinner.setAttribute('role', 'status');
+    spinner.innerHTML = '<span class="visually-hidden">Loading...</span>';
+    element.prepend(spinner);
+    return spinner;
+}
+
+async function updateManualStatus(carId, manualStatus) {
+    const dropdown = document.querySelector(`.manual-status-dropdown[data-car-id="${carId}"]`);
+    const originalValue = dropdown.value;
+    const spinner = showLoadingSpinner(dropdown.parentElement);
+    try {
+        dropdown.disabled = true;
+        dropdown.value = 'Updating...';
+        const response = await fetch(`/api/admin/car/${carId}/manual-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            credentials: 'include',
+            body: JSON.stringify({ manual_status: manualStatus })
+        });
+        const data = await response.json();
+        if (data.success) {
+            showToast('Manual status updated successfully');
+        } else {
+            throw new Error(data.error || 'Failed to update status');
+        }
+    } catch (err) {
+        dropdown.value = originalValue;
+        showToast(err.message, 'danger');
+    } finally {
+        spinner.remove();
+        dropdown.disabled = false;
+    }
+}
+
+async function deleteManualBlock(blockId) {
+    try {
+        const res = await fetch(`/api/admin/manual-block/${blockId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Manual block deleted successfully');
+        } else {
+            throw new Error(data.error || 'Failed to delete block');
+        }
+    } catch (err) {
+        showToast(err.message, 'danger');
+    }
+}
+
+function robustGetElement(id, name) {
+    const el = document.getElementById(id);
+    if (!el) {
+        console.warn(`[Admin] ${name || id} not found in DOM`);
+    }
+    return el;
+}
+
+async function loadAddons() {
+    try {
+        const res = await fetch('/api/admin/addons', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to load addons');
+
+        const container = document.getElementById('addonsList');
+        if (!container) {
+            console.warn('[Admin] addonsList container not found');
+            return;
+        }
+
+        container.innerHTML = '';
+        data.addons.forEach(addon => {
+            const div = document.createElement('div');
+            div.className = 'col-md-6';
+            div.innerHTML = `
+                <div class="border rounded p-3">
+                    <label class="form-label fw-bold">Name</label>
+                    <input type="text" class="form-control mb-2" value="${addon.name}" data-id="${addon.id}" data-field="name">
+                    <label class="form-label fw-bold">Price (€)</label>
+                    <input type="number" class="form-control mb-2" value="${addon.price}" step="0.01" data-id="${addon.id}" data-field="price">
+                    <button class="btn btn-primary save-addon-btn" data-id="${addon.id}">Save</button>
+                </div>`;
+            container.appendChild(div);
+        });
+
+        document.querySelectorAll('.save-addon-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const id = button.dataset.id;
+                const nameInput = document.querySelector(`input[data-id="${id}"][data-field="name"]`);
+                const priceInput = document.querySelector(`input[data-id="${id}"][data-field="price"]`);
+
+                if (!nameInput || !priceInput) {
+                    console.warn(`[Admin] Input fields not found for addon ${id}`);
+                    return;
+                }
+
+                const name = nameInput.value;
+                const price = parseFloat(priceInput.value);
+
+                try {
+                    const response = await fetch(`/api/admin/addons/${id}`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                         },
+                        credentials: 'include',
                         body: JSON.stringify({ name, price })
                     });
 
                     const result = await response.json();
                     if (!result.success) throw new Error(result.error || 'Failed to save addon');
 
-                    // Show success message
                     showToast('Addon updated successfully', 'success');
                 } catch (error) {
                     console.error('[Admin] Error saving addon:', error);
