@@ -831,7 +831,7 @@
             }
 
 @@ -793,53 +834,50 @@
-                padding: 0.5rem !important;
+                                padding: 0.5rem !important;
             }
 
             .card, .card-stats, .card-revenue, .card-bookings, .card-cars {
@@ -856,6 +856,40 @@
                 font-size: 13px !important;
             }
 
+            .filter-section {
+                padding: 0.6rem;
+            }
+        .filter-section {
+            padding: 0.6rem;
+        }
+
+        .booked-day {
+            background-color: #28a745 !important;
+            color: #fff !important;
+        }
+
+        .blocked-day {
+            background-color: #f0ad4e !important;
+            color: #000 !important;
+        }
+
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(15, 8px);
+            gap: 2px;
+            margin-top: 4px;
+        }
+
+        .mini-day {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            background: #e9ecef;
+            display: inline-block;
+        }
+
+        .mini-day.booked { background: #28a745; }
+        .mini-day.blocked { background: #f0ad4e; }
         }
     </style>
 </head>
@@ -881,421 +915,7 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-                <div class="position-sticky pt-3 d-flex flex-column h-100">
-                    <ul class="nav flex-column mb-auto" role="tablist" aria-label="Admin sections">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#" data-section="dashboard" role="tab" aria-selected="true" tabindex="0">
-                                <i class="fas fa-chart-line me-2"></i>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-section="cars" role="tab" aria-selected="false" tabindex="0">
-                                <i class="fas fa-car me-2"></i>
-                                Car Pricing
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-section="customers" role="tab" aria-selected="false" tabindex="0">
-                                <i class="fas fa-users me-2"></i>
-                                Car Availability
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-section="editCar" role="tab" aria-selected="false" tabindex="0">
-                                <i class="fas fa-edit me-2"></i>
-                                Edit Car
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-section="addons" role="tab" aria-selected="false" tabindex="0">
-                                <i class="fas fa-puzzle-piece me-2"></i>
-                                Addons
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-section="settings" role="tab" aria-selected="false" tabindex="0">
-                                <i class="fas fa-cog me-2"></i>
-                                Settings
-                            </a>
-                        </li>
-                    </ul>
-                    <div class="mt-auto pb-3">
-                        <a class="nav-link text-danger" href="#" id="logoutBtn">
-                            <i class="fas fa-sign-out-alt me-2"></i>Logout
-                        </a>
-    </div>
-  </div>
-</div>
-
-    <!-- Edit Booking Modal -->
-    <div class="modal fade" id="editBookingModal" tabindex="-1" aria-labelledby="editBookingModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-          <form id="editBookingForm">
-            <div class="modal-header">
-              <h5 class="modal-title" id="editBookingModalLabel">Edit Booking</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label for="editFirstName" class="form-label">First Name</label>
-                  <input type="text" id="editFirstName" name="customer_first_name" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                  <label for="editLastName" class="form-label">Last Name</label>
-                  <input type="text" id="editLastName" name="customer_last_name" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                  <label for="editEmail" class="form-label">Email</label>
-                  <input type="email" id="editEmail" name="customer_email" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                  <label for="editPhone" class="form-label">Phone</label>
-                  <input type="text" id="editPhone" name="customer_phone" class="form-control">
-                </div>
-                <div class="col-md-6">
-                  <label for="editPickupDate" class="form-label">Pickup Date</label>
-                  <input type="date" id="editPickupDate" name="pickup_date" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                  <label for="editReturnDate" class="form-label">Return Date</label>
-                  <input type="date" id="editReturnDate" name="return_date" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                  <label for="editCarMake" class="form-label">Car Make</label>
-                  <input type="text" id="editCarMake" name="car_make" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                  <label for="editCarModel" class="form-label">Car Model</label>
-                  <input type="text" id="editCarModel" name="car_model" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                  <label for="editStatus" class="form-label">Booking Status</label>
-                  <select id="editStatus" name="status" class="form-select">
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="completed">Completed</option>
-                  </select>
-                </div>
-                <div class="col-md-6 d-flex align-items-center">
-                  <div class="form-check me-3">
-                    <input class="form-check-input" type="checkbox" id="editChildSeat" name="child_seat">
-                    <label class="form-check-label" for="editChildSeat">Child Seat</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="editBoosterSeat" name="booster_seat">
-                    <label class="form-check-label" for="editBoosterSeat">Booster Seat</label>
-                  </div>
-                </div>
-                <div class="col-12">
-                  <label for="editSpecialRequests" class="form-label">Special Requests</label>
-                  <textarea id="editSpecialRequests" name="special_requests" class="form-control" rows="2"></textarea>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="submit" class="btn btn-primary" id="saveBookingBtn">Save</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-            <!-- Main Content -->
-            <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <!-- Dashboard Content (visible by default) -->
-                <div id="dashboardContent" class="content-section">
-                    <div class="card shadow-sm p-4 mb-4">
-                        <h4 class="text-primary mb-3"><i class="fas fa-chart-line me-2"></i>Dashboard Overview</h4>
-                        <p>This is the default dashboard. You can add widgets or metrics here.</p>
-                        <div class="row mb-4">
-                            <div class="col-md-4 mb-2">
-                                <div class="card card-stats card-bookings p-3">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-calendar-check fa-2x text-primary me-3"></i>
-                                        <div>
-                                            <div class="fw-bold">Total Bookings</div>
-                                            <div id="totalBookings" class="fs-4">0</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-2">
-                                <div class="card card-stats card-revenue p-3">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-euro-sign fa-2x text-success me-3"></i>
-                                        <div>
-                                            <div class="fw-bold">Total Revenue</div>
-                                            <div id="totalRevenue" class="fs-4">€0.00</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-2">
-                                <div class="card card-stats card-cars p-3">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-car-side fa-2x text-warning me-3"></i>
-                                        <div>
-                                            <div class="fw-bold">Cars Booked Today</div>
-                                            <div id="carsBookedToday" class="fs-4">0</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="adminErrorContainer" class="alert alert-danger d-none"></div>
-                        <div class="table-responsive">
-                            <table class="table" id="bookingsTable">
-                                <thead>
-                                    <tr>
-                                        <th>ID/Reference</th>
-                                        <th>Customer</th>
-                                        <th>Car</th>
-                                        <th>Pickup Date</th>
-                                        <th>Return Date</th>
-                                        <th>Payment Info</th>
-                                        <th>Status</th>
-                                        <th>Submitted</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="bookingsTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cars Content -->
-                <div id="carsContent" class="content-section d-none">
-                    <div class="container-fluid">
-                        <div class="card shadow-sm p-4 mb-4 border border-blue-100">
-                            <h3 class="text-primary mb-4"><i class="fas fa-euro-sign me-2"></i>Car Pricing</h3>
-                            <div class="table-responsive">
-                                <table class="table table-striped table-lg align-middle" id="priceEditorTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Car</th>
-                                            <th>Daily Rate (€)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Customers Content -->
-                <div id="customersContent" class="content-section d-none">
-                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
-                        <h4 class="text-primary mb-3"><i class="fas fa-users me-2"></i>Cars Availability</h4>
-                        <div class="table-responsive">
-                            <table class="table" id="carAvailabilityTable">
-                                <thead>
-                                    <tr>
-                                        <th>Car</th>
-                                        <th>Status</th>
-                                        <th>Manual Status</th>
-                                        <th>Calendar</th>
-                                        <th>Manual Blocks</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reports Content -->
-                <div id="reportsContent" class="content-section d-none">
-                    <div class="card shadow-sm p-4 mb-4">
-                        <h4 class="text-primary mb-3"><i class="fas fa-chart-line me-2"></i>Reports</h4>
-                        <p>Reports section coming soon...</p>
-                    </div>
-                </div>
-
-                <!-- Settings Content -->
-                <div id="settingsContent" class="content-section d-none">
-                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
-                        <h4 class="text-primary mb-3"><i class="fas fa-cog me-2"></i>Settings</h4>
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <h5 class="mb-3">Change Password</h5>
-                                <form id="changePasswordForm">
-                                    <div class="mb-2">
-                                        <label class="form-label">Current Password</label>
-                                        <input type="password" name="current" class="form-control" required>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">New Password</label>
-                                        <input type="password" name="new" class="form-control" required>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Confirm New Password</label>
-                                        <input type="password" name="confirm" class="form-control" required>
-                                    </div>
-                                    <div id="changePasswordMsg" class="small text-danger mb-2"></div>
-                                    <button type="submit" class="btn btn-primary">Update Password</button>
-                                </form>
-                            </div>
-                            <div class="col-md-6">
-                                <h5 class="mb-3">Add New Admin</h5>
-                                <form id="addAdminForm">
-                                    <div class="mb-2">
-                                        <label class="form-label">Email</label>
-                                        <input type="email" name="email" class="form-control" required>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Password</label>
-                                        <input type="password" name="password" class="form-control" required>
-                                    </div>
-                                    <div id="addAdminMsg" class="small text-danger mb-2"></div>
-                                    <button type="submit" class="btn btn-success">Add Admin</button>
-                                </form>
-                                <hr>
-                                <h5 class="mb-3">Remove Admin</h5>
-                                <ul id="adminList" class="list-group"></ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Edit Car Content -->
-                <div id="editCarContent" class="content-section d-none">
-                    <div class="container-fluid">
-                        <div class="card shadow-sm p-4 mb-4 border border-blue-100">
-                            <h3 class="text-primary mb-4"><i class="fas fa-edit me-2"></i>Edit Car</h3>
-                            <select id="editCarDropdown" class="form-select mb-3">
-                                <!-- Options will be populated by JS -->
-                            </select>
-                            <form id="editCarForm" class="row g-4">
-                                <div class="col-md-6">
-                                    <label for="editCarName" class="form-label">Car Name</label>
-                                    <input type="text" class="form-control" id="editCarName" name="name" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editCarCategory" class="form-label">Category</label>
-                                    <input type="text" class="form-control" id="editCarCategory" name="category" required>
-                                </div>
-                                <div class="col-12">
-                                    <label for="editCarDescription" class="form-label">Description</label>
-                                    <textarea class="form-control" id="editCarDescription" name="description" rows="2"></textarea>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editCarImage" class="form-label">Image URL</label>
-                                    <input type="text" class="form-control" id="editCarImage" name="image">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editCarFeatures" class="form-label">Features (comma separated)</label>
-                                    <input type="text" class="form-control" id="editCarFeatures" name="features">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="editCarEngine" class="form-label">Engine</label>
-                                    <input type="text" class="form-control" id="editCarEngine" name="engine">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="editCarDoors" class="form-label">Doors</label>
-                                    <input type="number" class="form-control" id="editCarDoors" name="doors">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="editCarPassengers" class="form-label">Passengers</label>
-                                    <input type="number" class="form-control" id="editCarPassengers" name="passengers">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="editCarGearbox" class="form-label">Gearbox</label>
-                                    <input type="text" class="form-control" id="editCarGearbox" name="gearbox">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="editCarFuel" class="form-label">Fuel</label>
-                                    <input type="text" class="form-control" id="editCarFuel" name="fuel">
-                                </div>
-                                <div class="col-md-4 d-flex align-items-center">
-                                    <div class="form-check me-3">
-                                        <input class="form-check-input" type="checkbox" id="editCarAirCondition" name="airCondition">
-                                        <label class="form-check-label" for="editCarAirCondition">Air Condition</label>
-                                    </div>
-                                    <div class="form-check me-3">
-                                        <input class="form-check-input" type="checkbox" id="editCarABS" name="abs">
-                                        <label class="form-check-label" for="editCarABS">ABS</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="editCarAirbag" name="airbag">
-                                        <label class="form-check-label" for="editCarAirbag">Airbag</label>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <label for="editCarEntertainment" class="form-label">Entertainment</label>
-                                    <input type="text" class="form-control" id="editCarEntertainment" name="entertainment">
-                                </div>
-                                <div class="col-12 text-end">
-                                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                                </div>
-                            </form>
-                            <div id="editCarMsg" class="mt-3"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Addons Content -->
-                <div id="addonsContent" class="content-section d-none">
-                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
-                        <h4 class="text-primary mb-3"><i class="fas fa-puzzle-piece me-2"></i>Manage Addons</h4>
-                        <div id="addonsList" class="row g-3">
-                            <!-- Addon items will be injected here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mobile Bottom Navigation -->
-    <nav class="mobile-nav fixed-bottom bg-white border-top d-md-none">
-        <div class="row g-0 text-center">
-            <div class="col">
-                <button class="btn btn-link w-100 py-2 text-muted" data-section="dashboard">
-                    <i class="fas fa-chart-line d-block"></i>
-                    <small>Dashboard</small>
-                </button>
-            </div>
-            <div class="col">
-                <button class="btn btn-link w-100 py-2 text-muted" data-section="cars">
-                    <i class="fas fa-car d-block"></i>
-                    <small>Cars</small>
-                </button>
-            </div>
-            <div class="col">
-                <button class="btn btn-link w-100 py-2 text-muted" data-section="customers">
-                    <i class="fas fa-users d-block"></i>
-                    <small>Availability</small>
-                </button>
-            </div>
-            <div class="col">
-                <button class="btn btn-link w-100 py-2 text-muted" data-section="editCar">
-                    <i class="fas fa-edit d-block"></i>
-                    <small>Edit Car</small>
-                </button>
-            </div>
-            <div class="col">
-                <button class="btn btn-link w-100 py-2 text-muted" data-section="addons">
-                    <i class="fas fa-puzzle-piece d-block"></i>
-                    <small>Addons</small>
-                </button>
-            </div>
-            <div class="col">
-                <button class="btn btn-link w-100 py-2 text-muted" data-section="settings">
-                    <i class="fas fa-cog d-block"></i>
-                    <small>Settings</small>
-                </button>
-            </div>
-            <div class="col">
-                <button class="btn btn-link w-100 py-2 text-muted" id="logoutBtnMobile">
-                    <i class="fas fa-sign-out-alt d-block"></i>
+@@ -1261,50 +1289,72 @@
                     <small>Logout</small>
                 </button>
             </div>
