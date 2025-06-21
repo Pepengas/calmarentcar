@@ -105,6 +105,13 @@ document.addEventListener("DOMContentLoaded", async function() {
     carFilter = document.getElementById('carFilter');
     textSearchFilter = document.getElementById('textSearchFilter');
     clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    function setActive(element) {
+        document.querySelectorAll('.nav-link, .mobile-nav .btn').forEach(el => {
+            el.classList.remove('active');
+        });
+        if (element) element.classList.add('active');
+    }
     
     // Tab click handlers
     const tabHandlers = {
