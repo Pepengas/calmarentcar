@@ -105,13 +105,6 @@ document.addEventListener("DOMContentLoaded", async function() {
     carFilter = document.getElementById('carFilter');
     textSearchFilter = document.getElementById('textSearchFilter');
     clearSearchBtn = document.getElementById('clearSearchBtn');
-
-    function setActive(element) {
-        document.querySelectorAll('.nav-link, .mobile-nav .btn').forEach(el => {
-            el.classList.remove('active');
-        });
-        if (element) element.classList.add('active');
-    }
     
     // Tab click handlers
     const tabHandlers = {
@@ -291,8 +284,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         try {
             editCarMsg.textContent = '';
             const res = await fetch(`/api/admin/car/${carId}`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
-                credentials: 'include'
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
             });
             const data = await res.json();
             if (!data.success) throw new Error(data.error || 'Failed to fetch car');
@@ -357,7 +349,6 @@ document.addEventListener("DOMContentLoaded", async function() {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                     },
-                    credentials: 'include',
                     body: JSON.stringify({ name, category, description, image, features, specs })
                 });
                 const data = await res.json();
@@ -406,13 +397,13 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     // --- Sidebar Tab Navigation ---
     const tabSectionMap = [
-        { tab: 'dashboardTab', content: 'dashboard' },
-        { tab: 'carsTab', content: 'cars' },
-        { tab: 'customersTab', content: 'customers' },
-        { tab: 'reportsTab', content: 'reports' },
-        { tab: 'settingsTab', content: 'settings' },
-        { tab: 'editCarTab', content: 'editCar' },
-        { tab: 'addonsTab', content: 'addons' }
+        { tab: 'dashboardTab', content: 'dashboardContent' },
+        { tab: 'carsTab', content: 'carsContent' },
+        { tab: 'customersTab', content: 'customersContent' },
+        { tab: 'reportsTab', content: 'reportsContent' },
+        { tab: 'settingsTab', content: 'settingsContent' },
+        { tab: 'editCarTab', content: 'editCarContent' },
+        { tab: 'addonsTab', content: 'addonsContent' }
     ];
     function showSection(section) {
         // Hide all sections
@@ -445,15 +436,15 @@ document.addEventListener("DOMContentLoaded", async function() {
                 e.preventDefault();
                 showSection(content);
                 // Load data if needed
-                if (content === 'cars') loadCarsForPricing();
-                if (content === 'editCar') loadEditCarDropdown();
-                if (content === 'dashboard') loadBookings();
-                if (content === 'customers') loadCarAvailability();
+                if (content === 'carsContent') loadCarsForPricing();
+                if (content === 'editCarContent') loadEditCarDropdown();
+                if (content === 'dashboardContent') loadBookings();
+                if (content === 'customersContent') loadCarAvailability();
             });
         }
     });
     // Show dashboard by default on load
-    showSection('dashboard');
+    showSection('dashboardContent');
 
     const addonsTab = document.getElementById('addonsTab');
     if (addonsTab) {
@@ -483,7 +474,6 @@ document.addEventListener("DOMContentLoaded", async function() {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                     },
-                    credentials: 'include',
                     body: JSON.stringify({ currentPassword, newPassword })
                 });
                 const data = await res.json();
@@ -508,7 +498,6 @@ document.addEventListener("DOMContentLoaded", async function() {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                     },
-                    credentials: 'include',
                     body: JSON.stringify({ email, password })
                 });
                 const data = await res.json();
@@ -526,8 +515,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     async function loadAdmins() {
         try {
             const res = await fetch('/api/admin/admins', {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
-                credentials: 'include'
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
             });
             const data = await res.json();
             const list = document.getElementById('adminList');
@@ -543,7 +531,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                     btn.textContent = 'Delete';
                     btn.addEventListener('click', async () => {
                         if (!confirm('Delete admin?')) return;
-                        await fetch(`/api/admin/${a.id}`, { method: 'DELETE', headers:{'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }, credentials: 'include'});
+                        await fetch(`/api/admin/${a.id}`, { method: 'DELETE', headers:{'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }});
                         loadAdmins();
                     });
                     li.appendChild(btn);
@@ -749,22 +737,6 @@ function formatDateTime(dateString) {
         });
     } catch (e) {
         return dateString;
-    }
-}
-
-/**
- * Format a date string as YYYY-MM-DD
- * @param {string} dateString - The date string to format
- * @returns {string} - Formatted ISO date string
- */
-function formatDateISO(dateString) {
-    if (!dateString) return '';
-    try {
-        const date = new Date(dateString);
-        if (isNaN(date)) return dateString.substring(0, 10);
-        return date.toISOString().split('T')[0];
-    } catch (e) {
-        return dateString.substring(0, 10);
     }
 }
 
@@ -1011,7 +983,6 @@ async function saveBookingEdits(e) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${API_TOKEN}`
             },
-            credentials: 'include',
             body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -1212,7 +1183,6 @@ function updateBookingStatus() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${API_TOKEN}`
         },
-        credentials: 'include',
         body: JSON.stringify({ status: newStatus.toLowerCase() })
     })
     .then(response => {
@@ -1586,7 +1556,6 @@ window.saveMonthlyPricingMonth = async function(carId, monthKey, btn) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             },
-            credentials: 'include',
             body: JSON.stringify({ monthly_pricing: pricing })
         });
         const data = await res.json();
@@ -1595,7 +1564,7 @@ window.saveMonthlyPricingMonth = async function(carId, monthKey, btn) {
         setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 1200);
         alert('Pricing updated successfully!');
     } catch (err) {
-            btn.textContent = 'Error';
+        btn.textContent = 'Error';
         setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 2000);
         alert('Failed to save pricing: ' + err.message);
     }
@@ -1620,7 +1589,6 @@ async function loadCarAvailability() {
         const data = await response.json();
         if (!data.success) throw new Error(data.error || 'Failed to fetch cars');
         tableBody.innerHTML = '';
-        window.carAvailabilityData = data.cars || [];
         if (!data.cars || data.cars.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="5">No cars found.</td></tr>';
             return;
@@ -1641,41 +1609,26 @@ async function loadCarAvailability() {
             let blockInput = `<input type="text" class="form-control form-control-sm manual-block-input" id="${blockInputId}" placeholder="Add block..." data-car-id="${realCarId}" style="max-width:160px;display:inline-block;" readonly>`;
             let addBlockBtn = `<button class="btn btn-sm btn-outline-primary ms-1 add-block-btn" data-car-id="${realCarId}" data-input-id="${blockInputId}">Add</button>`;
 
-            // Manual blocks display in table layout
+            // Manual blocks display with delete icons
             let manualBlocksHtml = '';
             if (car.manual_blocks && car.manual_blocks.length > 0) {
-                const rows = car.manual_blocks.map((b, i) =>
-                    `<tr>
-                        <td>${formatDateISO(b.start)}</td>
-                        <td>${formatDateISO(b.end)}</td>
-                        <td><span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" title="Delete block">🗑️</span></td>
-                    </tr>`
+                manualBlocksHtml = car.manual_blocks.map((b, i) =>
+                    `<span class="badge bg-warning text-dark me-1 mb-1">${b.start} to ${b.end} <span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;">🗑️</span></span>`
                 ).join('');
-
-                manualBlocksHtml = `
-                    <div><strong>📅 Manual Blocks (${car.manual_blocks.length} total)</strong></div>
-                    <div class="manual-blocks-wrapper mt-1">
-                        <table class="table table-sm table-bordered manual-blocks-table mb-0">
-                            <tbody>${rows}</tbody>
-                        </table>
-                    </div>
-                `;
-            } else {
-                manualBlocksHtml = '<div>No manual blocks yet</div>';
             }
 
-            // Calendar summary
-            const blockedDays = (car.manual_blocks || []).reduce((sum,b) => sum + getDaysDiff(b.start, b.end), 0);
-            const bookedDays = (car.booked_ranges || []).reduce((sum,b) => sum + getDaysDiff(b.start, b.end), 0);
-            const summary = `Blocked: ${blockedDays} day${blockedDays!==1?'s':''} | Booked: ${bookedDays} day${bookedDays!==1?'s':''}`;
-
-            const blockedSet = new Set();
-            (car.manual_blocks || []).forEach(b => getDatesBetween(b.start,b.end).forEach(d=>blockedSet.add(d)));
-            const bookedSet = new Set();
-            (car.booked_ranges || []).forEach(b => getDatesBetween(b.start,b.end).forEach(d=>bookedSet.add(d)));
-
-            calendarHtml = `<div>${summary}</div>` + generateMiniGrid(blockedSet, bookedSet) +
-                `<button class="btn btn-sm btn-outline-primary mt-1 view-calendar-btn" data-car-id="${realCarId}">🗓 View Calendar</button>`;
+            // Booked ranges display
+            let calendarHtml = '';
+            if (car.booked_ranges && car.booked_ranges.length > 0) {
+                calendarHtml += '<div><b>Booked:</b><br>' + car.booked_ranges.map(r => `
+                    ${r.start} to ${r.end} <span class='badge bg-secondary ms-1'>${r.status}</span>
+                    <span class="delete-booking" data-booking-id="${r.id}" style="cursor:pointer;" title="Delete Booking">🗑️</span>
+                `).join('<br>') + '</div>';
+            }
+            if (car.manual_blocks && car.manual_blocks.length > 0) {
+                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' + car.manual_blocks.map(b => `${b.start} to ${b.end}`).join('<br>') + '</div>';
+            }
+            if (!calendarHtml) calendarHtml = '—';
 
             // Determine status badge
             let statusBadge = '<span class="badge bg-success">Available</span>';
@@ -1701,7 +1654,95 @@ async function loadCarAvailability() {
         // Attach event listeners for manual status dropdowns
         document.querySelectorAll('.manual-status-dropdown').forEach(dropdown => {
             dropdown.addEventListener('change', async function() {
-@@ -1779,50 +1778,58 @@ async function loadCarAvailability() {
+                const carId = this.getAttribute('data-car-id');
+                const newStatus = this.value;
+                await updateManualStatus(carId, newStatus);
+                loadCarAvailability();
+            });
+        });
+
+        // Attach flatpickr to all manual block inputs
+        if (window.flatpickr) {
+            document.querySelectorAll('.manual-block-input').forEach(input => {
+                flatpickr(input, {
+                    mode: 'range',
+                    dateFormat: 'Y-m-d',
+                    allowInput: false
+                });
+            });
+        }
+
+        // Add block button event (replace old logic)
+        document.querySelectorAll('.add-block-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                // Always use the real car.id from the cars table for car_id
+                const carId = this.getAttribute('data-car-id');
+                const inputId = this.getAttribute('data-input-id');
+                const input = document.getElementById(inputId);
+                
+                console.log('[DEBUG] Add block button clicked');
+                console.log('[DEBUG] Car ID:', carId); // This should be the real car.id
+                console.log('[DEBUG] Input value:', input?.value);
+                
+                if (!input || !input.value) {
+                    console.error('[DEBUG] No input value found');
+                    return;
+                }
+                
+                const dates = input.value.split(' to ');
+                if (dates.length !== 2) {
+                    console.error('[DEBUG] Invalid date format:', input.value);
+                    return;
+                }
+                
+                // car_id must be the real car.id, not car.name or car.make
+                const payload = { 
+                    car_id: carId, 
+                    start_date: dates[0], 
+                    end_date: dates[1] 
+                };
+                
+                console.log('[DEBUG] Sending manual block request with payload:', payload);
+                
+                try {
+                    const res = await fetch('/api/admin/manual-block', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    console.log('[DEBUG] Response status:', res.status);
+                    const data = await res.json();
+                    console.log('[DEBUG] Response data:', data);
+                    
+                    if (data.success) {
+                        showToast('Manual block added successfully');
+                        input.value = '';
+                        loadCarAvailability();
+                    } else {
+                        throw new Error(data.error || 'Failed to add block');
+                    }
+                } catch (err) {
+                    console.error('[DEBUG] Error adding manual block:', err);
+                    showToast(err.message, 'danger');
+                }
+            });
+        });
+
+        // Delete block event
+        document.querySelectorAll('.delete-block').forEach(icon => {
+            icon.addEventListener('click', async function() {
+                const blockId = this.getAttribute('data-block-id');
+                if (!blockId) return;
+                await deleteManualBlock(blockId);
+                loadCarAvailability();
+            });
+        });
+
+        // Delete booking event
         document.querySelectorAll('.delete-booking').forEach(icon => {
             icon.addEventListener('click', async function() {
                 const bookingId = this.getAttribute('data-booking-id');
@@ -1712,8 +1753,7 @@ async function loadCarAvailability() {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                        },
-                        credentials: 'include'
+                        }
                     });
                     const data = await res.json();
                     if (data.success) {
@@ -1725,14 +1765,6 @@ async function loadCarAvailability() {
                 } catch (err) {
                     showToast(err.message, 'danger');
                 }
-            });
-        });
-
-        // View calendar event
-        document.querySelectorAll('.view-calendar-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const carId = this.getAttribute('data-car-id');
-                showCarCalendar(carId);
             });
         });
 
@@ -1776,6 +1808,7 @@ function showToast(message, type = 'success') {
     toast.addEventListener('hidden.bs.toast', () => toast.remove());
 }
 
+// Add loading spinner function
 function showLoadingSpinner(element) {
     const spinner = document.createElement('div');
     spinner.className = 'spinner-border spinner-border-sm text-primary me-2';
@@ -1785,6 +1818,7 @@ function showLoadingSpinner(element) {
     return spinner;
 }
 
+// Modify updateManualStatus to show loading and toast
 async function updateManualStatus(carId, manualStatus) {
     const dropdown = document.querySelector(`.manual-status-dropdown[data-car-id="${carId}"]`);
     const originalValue = dropdown.value;
@@ -1816,14 +1850,14 @@ async function updateManualStatus(carId, manualStatus) {
     }
 }
 
+// Modify deleteManualBlock to show loading and toast
 async function deleteManualBlock(blockId) {
     try {
         const res = await fetch(`/api/admin/manual-block/${blockId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            },
-            credentials: 'include'
+            }
         });
         const data = await res.json();
         if (data.success) {
@@ -1836,6 +1870,7 @@ async function deleteManualBlock(blockId) {
     }
 }
 
+// Example: Add existence checks and warnings for key elements
 function robustGetElement(id, name) {
     const el = document.getElementById(id);
     if (!el) {
@@ -1847,8 +1882,7 @@ function robustGetElement(id, name) {
 async function loadAddons() {
     try {
         const res = await fetch('/api/admin/addons', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
-            credentials: 'include'
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed to load addons');
@@ -1870,16 +1904,18 @@ async function loadAddons() {
                     <label class="form-label fw-bold">Price (€)</label>
                     <input type="number" class="form-control mb-2" value="${addon.price}" step="0.01" data-id="${addon.id}" data-field="price">
                     <button class="btn btn-primary save-addon-btn" data-id="${addon.id}">Save</button>
-                </div>`;
+                </div>
+            `;
             container.appendChild(div);
         });
 
+        // Handle save buttons
         document.querySelectorAll('.save-addon-btn').forEach(button => {
             button.addEventListener('click', async () => {
                 const id = button.dataset.id;
                 const nameInput = document.querySelector(`input[data-id="${id}"][data-field="name"]`);
                 const priceInput = document.querySelector(`input[data-id="${id}"][data-field="price"]`);
-
+                
                 if (!nameInput || !priceInput) {
                     console.warn(`[Admin] Input fields not found for addon ${id}`);
                     return;
@@ -1895,13 +1931,13 @@ async function loadAddons() {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                         },
-                        credentials: 'include',
                         body: JSON.stringify({ name, price })
                     });
 
                     const result = await response.json();
                     if (!result.success) throw new Error(result.error || 'Failed to save addon');
 
+                    // Show success message
                     showToast('Addon updated successfully', 'success');
                 } catch (error) {
                     console.error('[Admin] Error saving addon:', error);
@@ -1915,96 +1951,4 @@ async function loadAddons() {
     }
 }
 
-// ---------------- Calendar Helpers ----------------
-function getDaysDiff(start, end) {
-    const s = new Date(start);
-    const e = new Date(end);
-    const diff = Math.round((e - s) / (1000 * 60 * 60 * 24));
-    return diff + 1;
-}
-
-function getDatesBetween(start, end) {
-    const dates = [];
-    let current = new Date(start);
-    const last = new Date(end);
-    while (current <= last) {
-        dates.push(current.toISOString().split('T')[0]);
-        current.setDate(current.getDate() + 1);
-    }
-    return dates;
-}
-
-function generateMiniGrid(blockedSet, bookedSet) {
-    let cells = '';
-    for (let i = 0; i < 30; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() + i);
-        const iso = d.toISOString().split('T')[0];
-        let cls = 'mini-day';
-        if (bookedSet.has(iso)) cls += ' booked';
-        else if (blockedSet.has(iso)) cls += ' blocked';
-        cells += `<span class="${cls}" title="${iso} ${bookedSet.has(iso) ? 'Booked' : blockedSet.has(iso) ? 'Blocked' : 'Available'}"></span>`;
-    }
-    return `<div class="mini-grid">${cells}</div>`;
-}
-
-let carCalendarInstance = null;
-function showCarCalendar(carId) {
-    const car = (window.carAvailabilityData || []).find(c => (c.car_id || c.id) == carId);
-    if (!car) return;
-    const modalEl = document.getElementById('carCalendarModal');
-    const container = document.getElementById('carCalendarContainer');
-    if (!modalEl || !container) return;
-    container.innerHTML = '';
-    if (carCalendarInstance) {
-        carCalendarInstance.destroy();
-        carCalendarInstance = null;
-    }
-    const blockedSet = new Set();
-    (car.manual_blocks || []).forEach(b => getDatesBetween(b.start, b.end).forEach(d => blockedSet.add(d)));
-    const bookedSet = new Set();
-    (car.booked_ranges || []).forEach(b => getDatesBetween(b.start, b.end).forEach(d => bookedSet.add(d)));
-
-    carCalendarInstance = flatpickr(container, {
-        inline: true,
-        defaultDate: new Date(),
-        locale: { firstDayOfWeek: 1 },
-        onDayCreate: function(dObj, dStr, fp, dayElem) {
-            const iso = dayElem.dateObj.toISOString().split('T')[0];
-            if (bookedSet.has(iso)) {
-                dayElem.classList.add('booked-day');
-            } else if (blockedSet.has(iso)) {
-                dayElem.classList.add('blocked-day');
-            }
-        }
-    });
-
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
-}
-
-function showDateTooltip(targetElem, info) {
-    hideDateTooltip();
-    calendarTooltipElem = document.createElement('div');
-    calendarTooltipElem.id = 'calendar-date-tooltip';
-    calendarTooltipElem.className = 'calendar-tooltip';
-    calendarTooltipElem.innerHTML =
-        `<div>Date: ${info.date}</div>` +
-        `<div>Status: ${info.status}</div>` +
-        (info.source ? `<div>Source: ${info.source}</div>` : '');
-    document.body.appendChild(calendarTooltipElem);
-    const rect = targetElem.getBoundingClientRect();
-    calendarTooltipElem.style.top = (rect.bottom + window.scrollY + 4) + 'px';
-    calendarTooltipElem.style.left = (rect.left + window.scrollX) + 'px';
-
-    setTimeout(() => {
-        document.addEventListener('click', hideDateTooltip, { once: true });
-    });
-}
-
-function hideDateTooltip() {
-    if (calendarTooltipElem) {
-        calendarTooltipElem.remove();
-        calendarTooltipElem = null;
-    }
-}
+       
