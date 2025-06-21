@@ -690,7 +690,6 @@
                 margin-left: 0.3rem;
             }
 
-
             /* Improve form controls on mobile */
             .form-control, .form-select {
                 font-size: 16px !important; /* Prevent zoom on iOS */
@@ -714,16 +713,6 @@
                 padding: 0 0.8rem;
                 -webkit-overflow-scrolling: touch;
             }
-        }
-
-        .manual-blocks-wrapper {
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .manual-blocks-wrapper td {
-            padding: 0.25rem;
-            vertical-align: middle;
         }
 
         /* Loading Spinner Improvements */
@@ -764,47 +753,6 @@
             background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
         }
 
-        .booked-day {
-            background-color: #28a745 !important;
-            color: #fff !important;
-        }
-
-        .blocked-day {
-            background-color: #f0ad4e !important;
-            color: #000 !important;
-        }
-
-        .mini-grid {
-            display: grid;
-            grid-template-columns: repeat(15, 8px);
-            gap: 2px;
-            margin-top: 4px;
-        }
-
-        .mini-day {
-            width: 8px;
-            height: 8px;
-            border-radius: 2px;
-            background: #e9ecef;
-            display: inline-block;
-        }
-
-        .mini-day.booked { background: #28a745; }
-        .mini-day.blocked { background: #f0ad4e; }
-
-        .calendar-tooltip {
-            position: absolute;
-            background: #fff;
-            border: 1px solid #ccc;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            z-index: 1060;
-        }
-
-        /* style overrides moved to main section */
-
         /* Extra small screens tweaks */
         @media (max-width: 480px) {
             html {
@@ -830,7 +778,7 @@
                 margin-bottom: 0.6rem;
             }
 
-@@ -793,53 +834,50 @@
+            .container-fluid, .row, .col-md-9, .col-lg-10, .px-md-4 {
                 padding: 0.5rem !important;
             }
 
@@ -856,6 +804,9 @@
                 font-size: 13px !important;
             }
 
+            .filter-section {
+                padding: 0.6rem;
+            }
         }
     </style>
 </head>
@@ -1316,28 +1267,6 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             <button type="button" class="btn btn-primary" id="updateStatusBtn">Update Status</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Car Calendar Modal -->
-    <div class="modal fade" id="carCalendarModal" tabindex="-1" aria-labelledby="carCalendarModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="carCalendarModalLabel">Car Availability</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div id="carCalendarContainer"></div>
-            <div class="mt-2">
-              <span class="badge bg-success">Booked</span>
-              <span class="badge bg-warning text-dark">Blocked</span>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
