@@ -2025,6 +2025,7 @@ function generateMiniGrid(blockedSet, bookedSet) {
 }
 
 let carCalendarInstance = null;
+let calendarTooltipElem = null;
 function showCarCalendar(carId) {
     const car = (window.carAvailabilityData || []).find(c => (c.car_id || c.id) == carId);
     if (!car) return;
@@ -2037,9 +2038,21 @@ function showCarCalendar(carId) {
         carCalendarInstance = null;
     }
     const blockedSet = new Set();
-    (car.manual_blocks || []).forEach(b => getDatesBetween(b.start, b.end).forEach(d => blockedSet.add(d)));
+ const blockedSet = new Set();
     const bookedSet = new Set();
-    (car.booked_ranges || []).forEach(b => getDatesBetween(b.start, b.end).forEach(d => bookedSet.add(d)));
+    const dateInfo = {};
+    (car.manual_blocks || []).forEach(b => {
+        getDatesBetween(b.start, b.end).forEach(d => {
+            blockedSet.add(d);
+            dateInfo[d] = { status: 'Blocked', source: 'Manual Block' };
+        });
+    });
+    (car.booked_ranges || []).forEach(b => {
+        getDatesBetween(b.start, b.end).forEach(d => {
+            bookedSet.add(d);
+            dateInfo[d] = { status: 'Booked', source: 'Booking' };
+        });
+    });
 
     carCalendarInstance = flatpickr(container, {
         inline: true,
@@ -2052,9 +2065,44 @@ function showCarCalendar(carId) {
             } else if (blockedSet.has(iso)) {
                 dayElem.classList.add('blocked-day');
             }
+                dayElem.addEventListener('click', function(ev) {
+                const info = dateInfo[iso] || { status: 'Available' };
+                showDateTooltip(dayElem, {
+                    date: iso,
+                    status: info.status,
+                    source: info.source || ''
+                });
+                ev.stopPropagation();
+            });
         }
     });
 
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
+}
+
+function showDateTooltip(targetElem, info) {
+    hideDateTooltip();
+    calendarTooltipElem = document.createElement('div');
+    calendarTooltipElem.id = 'calendar-date-tooltip';
+    calendarTooltipElem.className = 'calendar-tooltip';
+    calendarTooltipElem.innerHTML =
+        `<div>Date: ${info.date}</div>` +
+        `<div>Status: ${info.status}</div>` +
+        (info.source ? `<div>Source: ${info.source}</div>` : '');
+    document.body.appendChild(calendarTooltipElem);
+    const rect = targetElem.getBoundingClientRect();
+    calendarTooltipElem.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+    calendarTooltipElem.style.left = (rect.left + window.scrollX) + 'px';
+
+    setTimeout(() => {
+        document.addEventListener('click', hideDateTooltip, { once: true });
+    });
+}
+
+function hideDateTooltip() {
+    if (calendarTooltipElem) {
+        calendarTooltipElem.remove();
+        calendarTooltipElem = null;
+    }
 }
