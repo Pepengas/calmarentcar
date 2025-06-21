@@ -397,13 +397,13 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     // --- Sidebar Tab Navigation ---
     const tabSectionMap = [
-        { tab: 'dashboardTab', content: 'dashboardContent' },
-        { tab: 'carsTab', content: 'carsContent' },
-        { tab: 'customersTab', content: 'customersContent' },
-        { tab: 'reportsTab', content: 'reportsContent' },
-        { tab: 'settingsTab', content: 'settingsContent' },
-        { tab: 'editCarTab', content: 'editCarContent' },
-        { tab: 'addonsTab', content: 'addonsContent' }
+        { tab: 'dashboardTab', content: 'dashboard' },
+        { tab: 'carsTab', content: 'cars' },
+        { tab: 'customersTab', content: 'customers' },
+        { tab: 'reportsTab', content: 'reports' },
+        { tab: 'settingsTab', content: 'settings' },
+        { tab: 'editCarTab', content: 'editCar' },
+        { tab: 'addonsTab', content: 'addons' }
     ];
     function showSection(section) {
         // Hide all sections
@@ -436,15 +436,15 @@ document.addEventListener("DOMContentLoaded", async function() {
                 e.preventDefault();
                 showSection(content);
                 // Load data if needed
-                if (content === 'carsContent') loadCarsForPricing();
-                if (content === 'editCarContent') loadEditCarDropdown();
-                if (content === 'dashboardContent') loadBookings();
-                if (content === 'customersContent') loadCarAvailability();
+                if (content === 'cars') loadCarsForPricing();
+                if (content === 'editCar') loadEditCarDropdown();
+                if (content === 'dashboard') loadBookings();
+                if (content === 'customers') loadCarAvailability();
             });
         }
     });
     // Show dashboard by default on load
-    showSection('dashboardContent');
+    showSection('dashboard');
 
     const addonsTab = document.getElementById('addonsTab');
     if (addonsTab) {
