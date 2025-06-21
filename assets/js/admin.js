@@ -1625,7 +1625,7 @@ async function loadCarAvailability() {
             let blockInput = `<input type="text" class="form-control form-control-sm manual-block-input" id="${blockInputId}" placeholder="Add block..." data-car-id="${realCarId}" style="max-width:160px;display:inline-block;" readonly>`;
             let addBlockBtn = `<button class="btn btn-sm btn-outline-primary ms-1 add-block-btn" data-car-id="${realCarId}" data-input-id="${blockInputId}">Add</button>`;
 
-            // Manual blocks displayed in small table with delete icons
+             // Manual blocks displayed in small table with delete icons
             let manualBlocksHtml = '';
             const blockCount = car.manual_blocks ? car.manual_blocks.length : 0;
             if (blockCount > 0) {
