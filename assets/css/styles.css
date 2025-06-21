@@ -2295,3 +2295,21 @@ select#pickup-location, select#dropoff-location {
         height: 28px;
     }
 } 
+@media (max-width: 768px) {
+    #priceEditorWrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    #priceEditorTable {
+        width: max-content;
+    }
+    #priceEditorTable th,
+    #priceEditorTable td {
+        white-space: nowrap;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    #carsContent .card {
+        padding: 1rem !important;
+    }
+}
