@@ -65,6 +65,18 @@ if (!carDropdown) {
 
 let allCarsForPricing = [];
 
+// Map of car_id to availability info for quick lookup
+let carAvailabilityMap = {};
+
+// Calendar modal references
+let calendarModal = null;
+const calendarModalElem = document.getElementById('carCalendarModal');
+const calendarContainer = document.getElementById('carCalendarContainer');
+const calendarModalLabel = document.getElementById('carCalendarModalLabel');
+if (calendarModalElem) {
+    calendarModal = new bootstrap.Modal(calendarModalElem);
+}
+
 function getMonthNameFromKey(key) {
     // key is like '2025-01', '2025-02', ...
     const monthNum = parseInt(key.split('-')[1], 10);
@@ -754,6 +766,93 @@ function formatDateISO(dateString) {
     } catch (e) {
         return dateString;
     }
+}
+
+/**
+ * Format a date string to YYYY-MM-DD
+ * @param {string} dateString
+ * @returns {string}
+ */
+function formatDateISO(dateString) {
+    if (!dateString) return '';
+    try {
+        const d = new Date(dateString);
+        if (isNaN(d)) return dateString;
+        return d.toISOString().split('T')[0];
+    } catch (e) {
+        return dateString;
+    }
+}
+
+function diffDays(start, end) {
+    try {
+        const s = new Date(start);
+        const e = new Date(end);
+        if (isNaN(s) || isNaN(e)) return 0;
+        return Math.round((e - s) / (24 * 60 * 60 * 1000)) + 1;
+    } catch (e) {
+        return 0;
+    }
+}
+
+function dateRangeSet(ranges) {
+    const set = new Set();
+    if (!Array.isArray(ranges)) return set;
+    ranges.forEach(r => {
+        const s = new Date(r.start);
+        const e = new Date(r.end);
+        if (isNaN(s) || isNaN(e)) return;
+        for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
+            set.add(formatDateISO(d));
+        }
+    });
+    return set;
+}
+
+function generateCalendarHtml(car) {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const blockSet = dateRangeSet(car.manual_blocks);
+    const bookedSet = dateRangeSet(car.booked_ranges);
+
+    let html = '<div class="calendar-legend mb-2">';
+    html += '<span class="legend blocked"></span> Blocked ';
+    html += '<span class="legend booked ms-2"></span> Booked';
+    html += '</div>';
+    html += '<table class="calendar-modal-table"><tbody><tr>';
+    for (let i = 0; i < firstDay; i++) html += '<td></td>';
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const ds = formatDateISO(date);
+        let cls = 'available';
+        let status = 'Available';
+        if (bookedSet.has(ds)) { cls = 'booked'; status = 'Booked'; }
+        else if (blockSet.has(ds)) { cls = 'blocked'; status = 'Blocked'; }
+        html += `<td class="calendar-day ${cls}" title="${ds}: ${status}">${day}</td>`;
+        if ((firstDay + day) % 7 === 0 && day !== daysInMonth) html += '</tr><tr>';
+    }
+    html += '</tr></tbody></table>';
+    return html;
+}
+
+function generateMiniGrid(car) {
+    const blockSet = dateRangeSet(car.manual_blocks);
+    const bookedSet = dateRangeSet(car.booked_ranges);
+    const cells = [];
+    const start = new Date();
+    for (let i = 0; i < 30; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        const ds = formatDateISO(d);
+        let cls = 'available';
+        if (bookedSet.has(ds)) cls = 'booked';
+        else if (blockSet.has(ds)) cls = 'blocked';
+        cells.push(`<div class="mini-day ${cls}" title="${ds}"></div>`);
+    }
+    return `<div class="mini-grid">${cells.join('')}</div>`;
 }
 
 /**
@@ -1609,9 +1708,11 @@ async function loadCarAvailability() {
             tableBody.innerHTML = '<tr><td colspan="5">No cars found.</td></tr>';
             return;
         }
+        carAvailabilityMap = {};
         data.cars.forEach((car, idx) => {
             // Use car.car_id everywhere for data-car-id
             const realCarId = car.car_id || car.id;
+            carAvailabilityMap[realCarId] = car;
             // Manual status dropdown
             const statusOptions = ['automatic', 'available', 'unavailable'];
             let statusDropdown = `<select class="form-select form-select-sm manual-status-dropdown" data-car-id="${realCarId}">`;
@@ -1625,7 +1726,7 @@ async function loadCarAvailability() {
             let blockInput = `<input type="text" class="form-control form-control-sm manual-block-input" id="${blockInputId}" placeholder="Add block..." data-car-id="${realCarId}" style="max-width:160px;display:inline-block;" readonly>`;
             let addBlockBtn = `<button class="btn btn-sm btn-outline-primary ms-1 add-block-btn" data-car-id="${realCarId}" data-input-id="${blockInputId}">Add</button>`;
 
-             // Manual blocks displayed in small table with delete icons
+            // Manual blocks displayed in small table with delete icons
             let manualBlocksHtml = '';
             const blockCount = car.manual_blocks ? car.manual_blocks.length : 0;
             if (blockCount > 0) {
@@ -1647,18 +1748,13 @@ async function loadCarAvailability() {
                 manualBlocksHtml = '<div class="manual-blocks-title">No manual blocks yet</div>';
             }
 
-            // Booked ranges display
-            let calendarHtml = '';
-            if (car.booked_ranges && car.booked_ranges.length > 0) {
-                calendarHtml += '<div><b>Booked:</b><br>' + car.booked_ranges.map(r => `
-                    ${r.start} to ${r.end} <span class='badge bg-secondary ms-1'>${r.status}</span>
-                    <span class="delete-booking" data-booking-id="${r.id}" style="cursor:pointer;" title="Delete Booking">🗑️</span>
-                `).join('<br>') + '</div>';
-            }
-            if (car.manual_blocks && car.manual_blocks.length > 0) {
-                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' + car.manual_blocks.map(b => `${formatDateISO(b.start)} to ${formatDateISO(b.end)}`).join('<br>') + '</div>';
-            }
-            if (!calendarHtml) calendarHtml = '—';
+            // Calendar summary and view button
+            const bookedDays = car.booked_ranges ? car.booked_ranges.reduce((s, r) => s + diffDays(r.start, r.end), 0) : 0;
+            const blockedDays = car.manual_blocks ? car.manual_blocks.reduce((s, b) => s + diffDays(b.start, b.end), 0) : 0;
+            const summary = `Blocked: ${blockedDays} day${blockedDays !== 1 ? 's' : ''} | Booked: ${bookedDays} day${bookedDays !== 1 ? 's' : ''}`;
+            let calendarHtml = `<div class="calendar-summary">${summary}</div>`;
+            calendarHtml += `<button class="btn btn-sm btn-outline-secondary view-calendar-btn" data-car-id="${realCarId}">🗓 View Calendar</button>`;
+            calendarHtml += generateMiniGrid(car);
 
             // Determine status badge
             let statusBadge = '<span class="badge bg-success">Available</span>';
@@ -1794,6 +1890,23 @@ async function loadCarAvailability() {
                     }
                 } catch (err) {
                     showToast(err.message, 'danger');
+                }
+            });
+        });
+
+        // View calendar event
+        document.querySelectorAll('.view-calendar-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const carId = this.getAttribute('data-car-id');
+                const car = carAvailabilityMap[carId];
+                if (car && calendarModal) {
+                    if (calendarModalLabel) {
+                        calendarModalLabel.textContent = `${car.name} Availability`;
+                    }
+                    if (calendarContainer) {
+                        calendarContainer.innerHTML = generateCalendarHtml(car);
+                    }
+                    calendarModal.show();
                 }
             });
         });
