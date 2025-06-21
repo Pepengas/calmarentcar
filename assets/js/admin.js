@@ -741,6 +741,22 @@ function formatDateTime(dateString) {
 }
 
 /**
+ * Format a date string to YYYY-MM-DD
+ * @param {string} dateString
+ * @returns {string}
+ */
+function formatDateISO(dateString) {
+    if (!dateString) return '';
+    try {
+        const d = new Date(dateString);
+        if (isNaN(d)) return dateString;
+        return d.toISOString().split('T')[0];
+    } catch (e) {
+        return dateString;
+    }
+}
+
+/**
  * Format a number as currency
  * @param {number} amount - The amount to format
  * @returns {string} - Formatted currency string
@@ -1615,8 +1631,8 @@ async function loadCarAvailability() {
             if (blockCount > 0) {
                 const rows = car.manual_blocks.map((b, i) =>
                     `<tr>
-                        <td>${b.start}</td>
-                        <td>${b.end}</td>
+                        <td>${formatDateISO(b.start)}</td>
+                        <td>${formatDateISO(b.end)}</td>
                         <td><span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;" title="Remove this manual block">🗑️</span></td>
                     </tr>`
                 ).join('');
@@ -1640,7 +1656,7 @@ async function loadCarAvailability() {
                 `).join('<br>') + '</div>';
             }
             if (car.manual_blocks && car.manual_blocks.length > 0) {
-                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' + car.manual_blocks.map(b => `${b.start} to ${b.end}`).join('<br>') + '</div>';
+                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' + car.manual_blocks.map(b => `${formatDateISO(b.start)} to ${formatDateISO(b.end)}`).join('<br>') + '</div>';
             }
             if (!calendarHtml) calendarHtml = '—';
 
