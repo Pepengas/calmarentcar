@@ -741,6 +741,22 @@ function formatDateTime(dateString) {
 }
 
 /**
+ * Format a date string to YYYY-MM-DD
+ * @param {string} dateString
+ * @returns {string}
+ */
+function formatDateISO(dateString) {
+    if (!dateString) return '';
+    try {
+        const d = new Date(dateString);
+        if (isNaN(d)) return dateString;
+        return d.toISOString().split('T')[0];
+    } catch (e) {
+        return dateString;
+    }
+}
+
+/**
  * Format a number as currency
  * @param {number} amount - The amount to format
  * @returns {string} - Formatted currency string
@@ -1609,12 +1625,26 @@ async function loadCarAvailability() {
             let blockInput = `<input type="text" class="form-control form-control-sm manual-block-input" id="${blockInputId}" placeholder="Add block..." data-car-id="${realCarId}" style="max-width:160px;display:inline-block;" readonly>`;
             let addBlockBtn = `<button class="btn btn-sm btn-outline-primary ms-1 add-block-btn" data-car-id="${realCarId}" data-input-id="${blockInputId}">Add</button>`;
 
-            // Manual blocks display with delete icons
+            // Manual blocks displayed in small table with delete icons
             let manualBlocksHtml = '';
-            if (car.manual_blocks && car.manual_blocks.length > 0) {
-                manualBlocksHtml = car.manual_blocks.map((b, i) =>
-                    `<span class="badge bg-warning text-dark me-1 mb-1">${b.start} to ${b.end} <span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;">🗑️</span></span>`
+            const blockCount = car.manual_blocks ? car.manual_blocks.length : 0;
+            if (blockCount > 0) {
+                const rows = car.manual_blocks.map((b, i) =>
+                    `<tr>
+                        <td>${formatDateISO(b.start)}</td>
+                        <td>${formatDateISO(b.end)}</td>
+                        <td><span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;" title="Remove this manual block">🗑️</span></td>
+                    </tr>`
                 ).join('');
+                manualBlocksHtml = `
+                    <div class="manual-blocks-title">📅 Manual Blocks (${blockCount} total)</div>
+                    <div class="manual-blocks-scroll">
+                        <table class="table table-sm table-bordered manual-blocks-table">
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>`;
+            } else {
+                manualBlocksHtml = '<div class="manual-blocks-title">No manual blocks yet</div>';
             }
 
             // Booked ranges display
@@ -1626,7 +1656,7 @@ async function loadCarAvailability() {
                 `).join('<br>') + '</div>';
             }
             if (car.manual_blocks && car.manual_blocks.length > 0) {
-                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' + car.manual_blocks.map(b => `${b.start} to ${b.end}`).join('<br>') + '</div>';
+                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' + car.manual_blocks.map(b => `${formatDateISO(b.start)} to ${formatDateISO(b.end)}`).join('<br>') + '</div>';
             }
             if (!calendarHtml) calendarHtml = '—';
 
