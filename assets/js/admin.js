@@ -2038,6 +2038,7 @@ function showCarCalendar(carId) {
         carCalendarInstance = null;
     }
     const blockedSet = new Set();
+ const blockedSet = new Set();
     const bookedSet = new Set();
     const dateInfo = {};
     (car.manual_blocks || []).forEach(b => {
@@ -2064,7 +2065,7 @@ function showCarCalendar(carId) {
             } else if (blockedSet.has(iso)) {
                 dayElem.classList.add('blocked-day');
             }
-            dayElem.addEventListener('click', function(ev) {
+                dayElem.addEventListener('click', function(ev) {
                 const info = dateInfo[iso] || { status: 'Available' };
                 showDateTooltip(dayElem, {
                     date: iso,
