@@ -1605,6 +1605,7 @@ async function loadCarAvailability() {
         const data = await response.json();
         if (!data.success) throw new Error(data.error || 'Failed to fetch cars');
         tableBody.innerHTML = '';
+        window.carAvailabilityData = data.cars || [];
         if (!data.cars || data.cars.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="5">No cars found.</td></tr>';
             return;
@@ -1648,20 +1649,18 @@ async function loadCarAvailability() {
                 manualBlocksHtml = '<div>No manual blocks yet</div>';
             }
 
-            // Booked ranges display
-            let calendarHtml = '';
-            if (car.booked_ranges && car.booked_ranges.length > 0) {
-                calendarHtml += '<div><b>Booked:</b><br>' + car.booked_ranges.map(r => `
-                    ${r.start} to ${r.end} <span class='badge bg-secondary ms-1'>${r.status}</span>
-                    <span class="delete-booking" data-booking-id="${r.id}" style="cursor:pointer;" title="Delete Booking">🗑️</span>
-                `).join('<br>') + '</div>';
-            }
-            if (car.manual_blocks && car.manual_blocks.length > 0) {
-                calendarHtml += '<div class="mt-1"><b>Manual Block:</b><br>' +
-                    car.manual_blocks.map(b => `${formatDateISO(b.start)} to ${formatDateISO(b.end)}`).join('<br>') +
-                    '</div>';
-            }
-            if (!calendarHtml) calendarHtml = '—';
+            // Calendar summary
+            const blockedDays = (car.manual_blocks || []).reduce((sum,b) => sum + getDaysDiff(b.start, b.end), 0);
+            const bookedDays = (car.booked_ranges || []).reduce((sum,b) => sum + getDaysDiff(b.start, b.end), 0);
+            const summary = `Blocked: ${blockedDays} day${blockedDays!==1?'s':''} | Booked: ${bookedDays} day${bookedDays!==1?'s':''}`;
+
+            const blockedSet = new Set();
+            (car.manual_blocks || []).forEach(b => getDatesBetween(b.start,b.end).forEach(d=>blockedSet.add(d)));
+            const bookedSet = new Set();
+            (car.booked_ranges || []).forEach(b => getDatesBetween(b.start,b.end).forEach(d=>bookedSet.add(d)));
+
+            calendarHtml = `<div>${summary}</div>` + generateMiniGrid(blockedSet, bookedSet) +
+                `<button class="btn btn-sm btn-outline-primary mt-1 view-calendar-btn" data-car-id="${realCarId}">🗓 View Calendar</button>`;
 
             // Determine status badge
             let statusBadge = '<span class="badge bg-success">Available</span>';
@@ -1798,6 +1797,14 @@ async function loadCarAvailability() {
                 } catch (err) {
                     showToast(err.message, 'danger');
                 }
+            });
+        });
+
+        // View calendar event
+        document.querySelectorAll('.view-calendar-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const carId = this.getAttribute('data-car-id');
+                showCarCalendar(carId);
             });
         });
 
@@ -1984,4 +1991,70 @@ async function loadAddons() {
     }
 }
 
-       
+// ---------------- Calendar Helpers ----------------
+function getDaysDiff(start, end) {
+    const s = new Date(start);
+    const e = new Date(end);
+    const diff = Math.round((e - s) / (1000 * 60 * 60 * 24));
+    return diff + 1;
+}
+
+function getDatesBetween(start, end) {
+    const dates = [];
+    let current = new Date(start);
+    const last = new Date(end);
+    while (current <= last) {
+        dates.push(current.toISOString().split('T')[0]);
+        current.setDate(current.getDate() + 1);
+    }
+    return dates;
+}
+
+function generateMiniGrid(blockedSet, bookedSet) {
+    let cells = '';
+    for (let i = 0; i < 30; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        const iso = d.toISOString().split('T')[0];
+        let cls = 'mini-day';
+        if (bookedSet.has(iso)) cls += ' booked';
+        else if (blockedSet.has(iso)) cls += ' blocked';
+        cells += `<span class="${cls}" title="${iso} ${bookedSet.has(iso) ? 'Booked' : blockedSet.has(iso) ? 'Blocked' : 'Available'}"></span>`;
+    }
+    return `<div class="mini-grid">${cells}</div>`;
+}
+
+let carCalendarInstance = null;
+function showCarCalendar(carId) {
+    const car = (window.carAvailabilityData || []).find(c => (c.car_id || c.id) == carId);
+    if (!car) return;
+    const modalEl = document.getElementById('carCalendarModal');
+    const container = document.getElementById('carCalendarContainer');
+    if (!modalEl || !container) return;
+    container.innerHTML = '';
+    if (carCalendarInstance) {
+        carCalendarInstance.destroy();
+        carCalendarInstance = null;
+    }
+    const blockedSet = new Set();
+    (car.manual_blocks || []).forEach(b => getDatesBetween(b.start, b.end).forEach(d => blockedSet.add(d)));
+    const bookedSet = new Set();
+    (car.booked_ranges || []).forEach(b => getDatesBetween(b.start, b.end).forEach(d => bookedSet.add(d)));
+
+    carCalendarInstance = flatpickr(container, {
+        inline: true,
+        defaultDate: new Date(),
+        locale: { firstDayOfWeek: 1 },
+        onDayCreate: function(dObj, dStr, fp, dayElem) {
+            const iso = dayElem.dateObj.toISOString().split('T')[0];
+            if (bookedSet.has(iso)) {
+                dayElem.classList.add('booked-day');
+            } else if (blockedSet.has(iso)) {
+                dayElem.classList.add('blocked-day');
+            }
+        }
+    });
+
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
