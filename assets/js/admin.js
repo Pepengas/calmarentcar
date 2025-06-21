@@ -830,10 +830,6 @@ function generateCalendarHtml(car, year = calendarYear, month = calendarMonth) {
         <span class="fw-bold">${monthName} ${year}</span>
         <button type="button" class="btn btn-sm btn-outline-secondary calendar-next">&gt;</button>
     </div>`;
-    html += '<div class="calendar-legend mb-2">';
-    html += '<span class="legend booked"></span> Booked ';
-    html += '<span class="legend blocked ms-2"></span> Blocked';
-    html += '</div>';
     const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
     html += '<table class="calendar-modal-table table table-bordered">';
     html += '<thead><tr>' + days.map(d=>`<th>${d}</th>`).join('') + '</tr></thead><tbody><tr>';
@@ -845,10 +841,16 @@ function generateCalendarHtml(car, year = calendarYear, month = calendarMonth) {
         let status = 'Available';
         if (bookedSet.has(ds)) { cls = 'booked'; status = 'Booked'; }
         else if (blockSet.has(ds)) { cls = 'blocked'; status = 'Blocked'; }
+        if (ds === formatDateISO(new Date())) cls += ' today';
         html += `<td class="calendar-day ${cls}" data-bs-toggle="tooltip" data-bs-placement="top" title="${ds} – ${status}">${day}</td>`;
         if ((offset + day) % 7 === 0 && day !== daysInMonth) html += '</tr><tr>';
     }
     html += '</tr></tbody></table>';
+    html += '<div class="calendar-legend mt-2">';
+    html += '<span class="legend booked"></span> Booked ';
+    html += '<span class="legend blocked ms-2"></span> Blocked ';
+    html += '<span class="legend available ms-2"></span> Available';
+    html += '</div>';
     return html;
 }
 
