@@ -830,9 +830,6 @@
                 margin-bottom: 0.6rem;
             }
 
-@@ -793,53 +834,50 @@
-                                padding: 0.5rem !important;
-            }
 
             .card, .card-stats, .card-revenue, .card-bookings, .card-cars {
                 font-size: 0.9rem !important;
@@ -908,15 +905,53 @@
         </ul>
     </div>
     <div class="loader" id="pageLoader"></div>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-@@ -1261,50 +1289,72 @@
-                    <small>Logout</small>
-                </button>
-            </div>
+<!-- Mobile Bottom Navigation -->
+<nav class="mobile-nav fixed-bottom bg-white border-top d-md-none">
+    <div class="row g-0 text-center">
+        <div class="col">
+            <button class="btn btn-link w-100 py-2 text-muted" data-section="dashboard">
+                <i class="fas fa-chart-line d-block"></i>
+                <small>Dashboard</small>
+            </button>
         </div>
-    </nav>
+        <div class="col">
+            <button class="btn btn-link w-100 py-2 text-muted" data-section="cars">
+                <i class="fas fa-car d-block"></i>
+                <small>Cars</small>
+            </button>
+        </div>
+        <div class="col">
+            <button class="btn btn-link w-100 py-2 text-muted" data-section="customers">
+                <i class="fas fa-users d-block"></i>
+                <small>Availability</small>
+            </button>
+        </div>
+        <div class="col">
+            <button class="btn btn-link w-100 py-2 text-muted" data-section="editCar">
+                <i class="fas fa-edit d-block"></i>
+                <small>Edit Car</small>
+            </button>
+        </div>
+        <div class="col">
+            <button class="btn btn-link w-100 py-2 text-muted" data-section="addons">
+                <i class="fas fa-puzzle-piece d-block"></i>
+                <small>Addons</small>
+            </button>
+        </div>
+        <div class="col">
+            <button class="btn btn-link w-100 py-2 text-muted" data-section="settings">
+                <i class="fas fa-cog d-block"></i>
+                <small>Settings</small>
+            </button>
+        </div>
+        <div class="col">
+            <button class="btn btn-link w-100 py-2 text-muted" id="logoutBtnMobile">
+                <i class="fas fa-sign-out-alt d-block"></i>
+                <small>Logout</small>
+            </button>
+        </div>
+    </div>
+</nav>
 
     <!-- Booking Details Modal -->
     <div class="modal fade" id="bookingDetailsModal" tabindex="-1" aria-labelledby="bookingDetailsModalLabel" aria-hidden="true">
