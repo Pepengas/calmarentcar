@@ -410,7 +410,7 @@ body.dark-mode .confirmation-message {
     
     .form-group {
         padding: 0 5px;
-        margin-bottom: 8px;
+        margin-bottom: 16px; /* extra spacing between inputs for mobile */
     }
     
     .btn {

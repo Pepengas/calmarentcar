@@ -37,16 +37,26 @@
   display: block;
   text-align: center;
   width: 100%;
-  font-size: 0.875rem;
+  font-size: 1rem; /* larger text for readability */
   line-height: 1.25;
 }
 
 /* Help with text-wrapping on mobile */
 @media (max-width: 480px) {
   .flex.flex-col.items-center.flex-1 span {
-    font-size: 0.75rem;
+    font-size: 0.875rem; /* maintain 14px minimum on small screens */
     hyphens: auto;
   }
+}
+
+/* Step indicator color & weight adjustments */
+.form-progress .text-blue-600 {
+  color: #0057a3 !important;
+  font-weight: 700;
+}
+.form-progress .text-gray-600 {
+  color: #666 !important;
+  font-weight: normal;
 }
 
 /* Version marker to ensure browser cache refresh */
