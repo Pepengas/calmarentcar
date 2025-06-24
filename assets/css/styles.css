@@ -1005,15 +1005,19 @@ footer {
         align-items: center;
     }
 
-    .logo {
-        padding: 10px 20px;
+.logo {
+        padding: 10px 15px;
     }
 
     .logo img {
         max-width: 100%;
         width: auto;
         height: auto;
-        max-height: 50px;
+        max-height: 40px;
+    }
+
+    .mobile-menu {
+        align-self: center;
     }
 
     .hero {
@@ -1141,7 +1145,7 @@ footer {
 
 @media (max-width: 480px) {
     .hero {
-        padding: 80px 0 40px;
+        padding: 100px 0 40px;
         min-height: 360px;
     }
 
