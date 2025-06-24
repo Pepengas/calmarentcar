@@ -13,6 +13,19 @@
     background-color: rgba(255, 255, 255, 0.9);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* subtle fade to keep background image from abruptly ending */
+.site-header::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 20px;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
 }
 
 .site-header.scrolled {
@@ -119,11 +132,12 @@
 
 @media (max-width: 768px) {
     .site-header {
-        padding: 10px 0;
+        padding: 12px;
     }
-    
+
     .logo img {
-        height: 40px;
+        max-height: 40px;
+        padding: 0;
     }
     
     .nav-container {
@@ -163,11 +177,12 @@
 
 @media (max-width: 480px) {
     .site-header {
-        padding: 8px 0;
+        padding: 12px;
     }
 
     .logo img {
-        height: 32px;
+        max-height: 40px;
+        padding: 0;
     }
 
     .nav-links li {
