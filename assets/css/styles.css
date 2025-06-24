@@ -999,8 +999,25 @@ footer {
 }
 
 @media (max-width: 768px) {
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo {
+        padding: 10px 20px;
+    }
+
+    .logo img {
+        max-width: 100%;
+        width: auto;
+        height: auto;
+        max-height: 50px;
+    }
+
     .hero {
-        padding: 100px 0 50px;
+        padding: 120px 0 50px;
         min-height: 420px;
     }
 
@@ -1032,6 +1049,7 @@ footer {
     
     .form-group {
         width: 100% !important;
+        margin-top: 15px !important;
         margin-bottom: 15px !important;
     }
     
