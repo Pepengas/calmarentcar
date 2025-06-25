@@ -29,7 +29,7 @@
 }
 
 .site-header.scrolled {
-    padding: 8px 0;
+    padding: 6px 0;
     background-color: rgba(255, 255, 255, 0.95);
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
 }
@@ -132,7 +132,7 @@
 
 @media (max-width: 768px) {
     .site-header {
-        padding: 12px;
+        padding: 10px;
     }
 
     .logo img {
@@ -177,7 +177,7 @@
 
 @media (max-width: 480px) {
     .site-header {
-        padding: 12px;
+        padding: 8px;
     }
 
     .logo img {
