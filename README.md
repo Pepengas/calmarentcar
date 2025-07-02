@@ -100,3 +100,6 @@ Set the following environment variables to enable emails:
 
 - `RESEND_API_KEY` – your Resend API key
 - `ADMIN_NOTIFICATION_EMAIL` – optional address that receives a copy of every booking confirmation
+
+## Favicon
+Place your favicon at `public/favicon.ico` after cloning. The repo does not include the icon file.
