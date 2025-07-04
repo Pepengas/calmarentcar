@@ -139,6 +139,10 @@ app.use('/public', express.static(path.join(__dirname, 'public'), {
   }
 }));
 app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
+// Serve the favicon for browsers and search engines
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'favicon.ico'));
+});
 
 // Serve main HTML files
 app.get('/', (req, res) => {
