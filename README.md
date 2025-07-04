@@ -100,3 +100,12 @@ Set the following environment variables to enable emails:
 
 - `RESEND_API_KEY` – your Resend API key
 - `ADMIN_NOTIFICATION_EMAIL` – optional address that receives a copy of every booking confirmation
+
+## Favicon
+Add your favicon images under `public/` after cloning:
+
+- `favicon.ico` for legacy browsers
+- `favicon-32.png` and `favicon-192.png` for modern devices
+- `site.webmanifest` references these icons for search engines and PWAs
+
+Google will fetch `/favicon.ico` and the icons declared in the HTML head. Ensure these files exist on your deployed site.

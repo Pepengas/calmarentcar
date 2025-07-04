@@ -123,6 +123,7 @@ app.get("/admin-login.html", (req, res) =>
 );
 
 // Serve static files with proper MIME types
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/assets', express.static(path.join(__dirname, 'assets'), {
   setHeaders: (res, path) => {
     if (path.endsWith('.css')) {
