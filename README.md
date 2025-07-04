@@ -102,4 +102,10 @@ Set the following environment variables to enable emails:
 - `ADMIN_NOTIFICATION_EMAIL` – optional address that receives a copy of every booking confirmation
 
 ## Favicon
-Place your favicon at `public/favicon.ico` after cloning. The repo does not include the icon file.
+Add your favicon images under `public/` after cloning:
+
+- `favicon.ico` for legacy browsers
+- `favicon-32.png` and `favicon-192.png` for modern devices
+- `site.webmanifest` references these icons for search engines and PWAs
+
+Google will fetch `/favicon.ico` and the icons declared in the HTML head. Ensure these files exist on your deployed site.
