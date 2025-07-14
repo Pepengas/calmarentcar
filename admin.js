@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         manageCarsTab.addEventListener('click', (e) => {
             e.preventDefault();
             showSection('manageCars');
-            loadManageCars();
+ loadManageCars();
         });
     }
 
