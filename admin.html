@@ -1331,6 +1331,41 @@
                     </div>
                 </div>
 
+                <!-- Manage Cars Panel -->
+                <div id="manageCarsPanel" class="content-section d-none">
+                    <div class="container-fluid">
+                        <div class="card shadow-sm p-4 mb-4 border border-blue-100">
+                            <h3 class="text-primary mb-4"><i class="fas fa-car me-2"></i>Manage Cars</h3>
+                            <form id="addCarForm" class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="carName" class="form-label">Car Name</label>
+                                    <input type="text" class="form-control" id="carName" name="name" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="carDescription" class="form-label">Description</label>
+                                    <textarea class="form-control" id="carDescription" name="description" rows="2"></textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="carPrice" class="form-label">Price per Day</label>
+                                    <input type="number" class="form-control" id="carPrice" name="price" required>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="carImageUrl" class="form-label">Image URL</label>
+                                    <input type="text" class="form-control" id="carImageUrl" name="image">
+                                </div>
+                                <div class="col-12">
+                                    <label for="carFeatures" class="form-label">Features (comma separated)</label>
+                                    <input type="text" class="form-control" id="carFeatures" name="features">
+                                </div>
+                                <div class="col-12 text-end">
+                                    <button type="button" class="btn btn-primary" id="addCarBtn">Add Car</button>
+                                </div>
+                            </form>
+                            <div id="carListContainer" class="mt-4"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Addons Content -->
                 <div id="addonsContent" class="content-section d-none">
                     <div class="card shadow-sm p-4 mb-4 border border-blue-100">
