@@ -114,6 +114,32 @@ const validate = (validations) => async (req, res, next) => {
     }
     next();
 };
+
+function slugify(text) {
+    return (text || '')
+        .toString()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+}
+
+function getDefaultMonthlyPricing(basePrice) {
+    const p = Math.round(parseFloat(basePrice) || 0);
+    return {
+        January: p,
+        February: p,
+        March: p,
+        April: p,
+        May: Math.round(p * 1.1),
+        June: Math.round(p * 1.2),
+        July: Math.round(p * 1.3),
+        August: Math.round(p * 1.4),
+        September: Math.round(p * 1.2),
+        October: p,
+        November: p,
+        December: p
+    };
+}
 app.get("/admin.html", requireAdminAuth, (req, res) =>
   res.sendFile(path.join(__dirname, "admin.html"))
 );
@@ -1702,6 +1728,31 @@ app.get('/payment.html', (req, res) => {
 // Booking confirmation page
 app.get('/booking-confirmation', (req, res) => {
     res.render('booking-confirmation');
+});
+
+// Admin: Add a new car
+app.post('/api/admin/car', requireAdminAuth, async (req, res) => {
+    const { name, description, pricePerDay, image, features } = req.body;
+    if (!name) {
+        return res.status(400).json({ success: false, error: 'Name is required' });
+    }
+    const car_id = slugify(name);
+    try {
+        const exists = await pool.query('SELECT 1 FROM cars WHERE car_id = $1', [car_id]);
+        if (exists.rows.length > 0) {
+            return res.status(409).json({ success: false, error: 'Car already exists' });
+        }
+        const monthly_pricing = getDefaultMonthlyPricing(pricePerDay);
+        await pool.query(
+            `INSERT INTO cars (car_id, name, description, image, features, monthly_pricing, available, manual_status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [car_id, name, description || null, image || null, JSON.stringify(features || []), JSON.stringify(monthly_pricing), true, 'automatic']
+        );
+        res.json({ success: true, car_id });
+    } catch (err) {
+        console.error('Error inserting car:', err);
+        res.status(500).json({ success: false, error: 'Failed to add car' });
+    }
 });
 
 // Admin: Get a single car by ID (with specs)

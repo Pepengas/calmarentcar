@@ -767,41 +767,28 @@ export const Booking = {
     },
     
     // Load available cars on choose-car page
-    loadAvailableCars(urlParams) {
-        const pickupDate = urlParams.get('pickup-date');
-        const dropoffDate = urlParams.get('dropoff-date');
+    async loadAvailableCars(urlParams) {
         const carsGrid = document.getElementById('available-cars');
-        
         if (!carsGrid) return;
-        
-        // In a real app, fetch from server
-        // For demo, we'll load mock data
-        setTimeout(() => {
-            // Clear loading indicator
+        carsGrid.innerHTML = '<div class="text-muted">Loading cars...</div>';
+
+        try {
+            const response = await fetch('/api/cars/availability/all');
+            const data = await response.json();
+            const cars = Array.isArray(data.cars) ? data.cars : [];
             carsGrid.innerHTML = '';
-            
-            // Add sample cars
-            const cars = this.getMockCars();
-            
+
             cars.forEach(car => {
                 const carCard = document.createElement('div');
                 carCard.className = 'car-card card-visible';
+                const features = Array.isArray(car.features) ? car.features.join(', ') : '';
                 carCard.innerHTML = `
                     <div class="car-image">
-                        <img src="${car.image}" alt="${car.name}" loading="lazy">
+                        <img src="${car.image || ''}" alt="${car.name}" loading="lazy">
                     </div>
                     <div class="car-details">
                         <h3>${car.name}</h3>
-                        <div class="car-features">
-                            <span><i class="fas fa-users"></i> ${car.seats} Seats</span>
-                            <span><i class="fas fa-suitcase"></i> ${car.luggage} Luggage</span>
-                            <span><i class="fas fa-cog"></i> ${car.transmission}</span>
-                            <span><i class="fas fa-snowflake"></i> ${car.ac}</span>
-                        </div>
-                        <p>${car.description}</p>
-                        <div class="car-pricing">
-                            <span class="price">€${car.pricePerDay}/day</span>
-                        </div>
+                        <p>${features}</p>
                         <div class="car-selection">
                             <input type="radio" id="car-${car.id}" name="car-selection" value="${car.id}">
                             <label for="car-${car.id}" class="btn btn-primary">Select</label>
@@ -834,16 +821,19 @@ export const Booking = {
                 continueButtonDiv.className = 'continue-button-container';
                 continueButtonDiv.style.textAlign = 'center';
                 continueButtonDiv.style.marginTop = '30px';
-                
+
                 const continueButton = document.createElement('button');
                 continueButton.className = 'btn btn-primary car-select-continue';
                 continueButton.textContent = 'Continue to Personal Information';
                 continueButton.disabled = true;
-                
+
                 continueButtonDiv.appendChild(continueButton);
                 carsGrid.parentNode.appendChild(continueButtonDiv);
             }
-        }, 1000);
+        } catch (err) {
+            console.error('Error loading cars:', err);
+            carsGrid.innerHTML = '<div class="text-danger">Failed to load cars</div>';
+        }
     },
     
     // Display booking summary on personal-info page
