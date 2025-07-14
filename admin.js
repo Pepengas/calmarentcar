@@ -20,6 +20,7 @@ const customersContent = document.getElementById('customersContent');
 const settingsContent = document.getElementById('settingsContent');
 const editCarContent = document.getElementById('editCarContent');
 const addonsContent = document.getElementById('addonsContent');
+const manageCarsPanel = document.getElementById('manageCarsPanel');
 
 // Initialize the dashboard when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -120,6 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             document.getElementById('addUserMsg').textContent = data.success ? 'User added.' : data.error;
             console.log('[DEBUG] Add user response:', data);
+        });
+    }
+
+    const manageCarsTab = document.getElementById('tab-manage-cars');
+    if (manageCarsTab) {
+        manageCarsTab.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection('manageCars');
         });
     }
 });
@@ -274,7 +283,8 @@ function showSection(sectionName) {
         'customersContent',
         'settingsContent',
         'editCarContent',
-        'addonsContent'
+        'addonsContent',
+        'manageCarsPanel'
     ];
     
     contentSections.forEach(id => {
@@ -285,7 +295,10 @@ function showSection(sectionName) {
     });
     
     // Show the selected section
-    const selectedSection = document.getElementById(`${sectionName}Content`);
+    let selectedSection = document.getElementById(`${sectionName}Content`);
+    if (!selectedSection) {
+        selectedSection = document.getElementById(`${sectionName}Panel`);
+    }
     if (selectedSection) {
         selectedSection.classList.remove('d-none');
     }
@@ -310,6 +323,8 @@ function showSection(sectionName) {
             break;
         case 'customers':
             loadCarAvailability();
+            break;
+        case 'manageCars':
             break;
         case 'addons':
             loadAddons();
