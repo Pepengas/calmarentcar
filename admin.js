@@ -20,6 +20,7 @@ const customersContent = document.getElementById('customersContent');
 const settingsContent = document.getElementById('settingsContent');
 const editCarContent = document.getElementById('editCarContent');
 const addonsContent = document.getElementById('addonsContent');
+const manageCarsPanel = document.getElementById('manageCarsPanel');
 
 // Initialize the dashboard when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -121,6 +122,20 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('addUserMsg').textContent = data.success ? 'User added.' : data.error;
             console.log('[DEBUG] Add user response:', data);
         });
+    }
+
+    const manageCarsTab = document.getElementById('tab-manage-cars');
+    if (manageCarsTab) {
+        manageCarsTab.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection('manageCars');
+            loadManageCars();
+        });
+    }
+
+    const addCarBtn = document.getElementById('addCarBtn');
+    if (addCarBtn) {
+        addCarBtn.addEventListener('click', handleAddCar);
     }
 });
 
@@ -274,7 +289,8 @@ function showSection(sectionName) {
         'customersContent',
         'settingsContent',
         'editCarContent',
-        'addonsContent'
+        'addonsContent',
+        'manageCarsPanel'
     ];
     
     contentSections.forEach(id => {
@@ -285,7 +301,10 @@ function showSection(sectionName) {
     });
     
     // Show the selected section
-    const selectedSection = document.getElementById(`${sectionName}Content`);
+    let selectedSection = document.getElementById(`${sectionName}Content`);
+    if (!selectedSection) {
+        selectedSection = document.getElementById(`${sectionName}Panel`);
+    }
     if (selectedSection) {
         selectedSection.classList.remove('d-none');
     }
@@ -310,6 +329,9 @@ function showSection(sectionName) {
             break;
         case 'customers':
             loadCarAvailability();
+            break;
+        case 'manageCars':
+            loadManageCars();
             break;
         case 'addons':
             loadAddons();
@@ -413,6 +435,39 @@ async function loadCarAvailability() {
 }
 
 /**
+ * Load all cars for Manage Cars panel
+ */
+async function loadManageCars() {
+    const container = document.getElementById('carListContainer');
+    if (!container) return;
+    container.innerHTML = '<div class="text-muted">Loading cars...</div>';
+    try {
+        const response = await fetch('/api/admin/cars/availability', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            }
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to fetch cars');
+        if (!Array.isArray(data.cars) || data.cars.length === 0) {
+            container.innerHTML = '<div class="text-muted">No cars found.</div>';
+            return;
+        }
+        container.innerHTML = data.cars.map(car => `
+            <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
+                <span>${car.name}</span>
+                <span class="badge ${car.available ? 'bg-success' : 'bg-secondary'}">${car.available ? 'Available' : 'Unavailable'}</span>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error('Error loading cars:', err);
+        container.innerHTML = '<div class="text-danger">Failed to load cars</div>';
+    }
+}
+
+/**
+
+/**
  * Load addons data
  */
 async function loadAddons() {
@@ -482,6 +537,36 @@ function showError(message) {
         setTimeout(() => {
             errorContainer.classList.add('d-none');
         }, 5000);
+    }
+}
+
+/**
+ * Handle Add Car form submission
+ */
+async function handleAddCar() {
+    const name = document.getElementById('carName').value.trim();
+    const description = document.getElementById('carDescription').value.trim();
+    const pricePerDay = parseFloat(document.getElementById('carPrice').value);
+    const image = document.getElementById('carImageUrl').value.trim();
+    const featuresStr = document.getElementById('carFeatures').value.trim();
+    const features = featuresStr ? featuresStr.split(',').map(f => f.trim()).filter(f => f) : [];
+
+    try {
+        const res = await fetch('/api/admin/car', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            body: JSON.stringify({ name, description, pricePerDay, image, features })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to add car');
+        document.getElementById('addCarForm').reset();
+        loadManageCars();
+    } catch (err) {
+        console.error('Error adding car:', err);
+        showError(err.message || 'Failed to add car');
     }
 }
 
