@@ -1835,6 +1835,22 @@ app.patch('/api/admin/car/:id',
     }
 });
 
+// Admin: Delete a car
+app.delete('/api/admin/car/:id',
+    requireAdminAuth,
+    validate([param('id').notEmpty()]),
+    async (req, res) => {
+    const carId = req.params.id;
+    try {
+        await pool.query('DELETE FROM cars WHERE car_id = $1', [carId]);
+        await pool.query('DELETE FROM manual_blocks WHERE car_id = $1', [carId]);
+        return res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting car:', err);
+        return res.status(500).json({ success: false, error: 'Failed to delete car' });
+    }
+});
+
 // Admin: Set manual status for a car
 app.post('/api/admin/car/:id/manual-status',
     requireAdminAuth,
