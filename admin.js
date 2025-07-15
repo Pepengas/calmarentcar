@@ -547,9 +547,33 @@ async function handleAddCar() {
     const name = document.getElementById('carName').value.trim();
     const description = document.getElementById('carDescription').value.trim();
     const pricePerDay = parseFloat(document.getElementById('carPrice').value);
-    const image = document.getElementById('carImageUrl').value.trim();
+    const imageUrl = document.getElementById('carImageUrl').value.trim();
+    const fileInput = document.getElementById('carImageFile');
     const featuresStr = document.getElementById('carFeatures').value.trim();
     const features = featuresStr ? featuresStr.split(',').map(f => f.trim()).filter(f => f) : [];
+
+    let image = imageUrl;
+
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        const formData = new FormData();
+        formData.append('image', fileInput.files[0]);
+        try {
+            const uploadRes = await fetch('/api/admin/upload-image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: formData
+            });
+            const uploadData = await uploadRes.json();
+            if (!uploadRes.ok) throw new Error(uploadData.error || 'Image upload failed');
+            image = uploadData.url;
+        } catch (err) {
+            console.error('Image upload failed:', err);
+            showError(err.message || 'Image upload failed');
+            return;
+        }
+    }
 
     try {
         const res = await fetch('/api/admin/car', {
