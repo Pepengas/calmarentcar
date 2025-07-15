@@ -236,6 +236,17 @@ document.addEventListener("DOMContentLoaded", async function() {
         });
     }
 
+  // Mobile bottom navigation
+    document.querySelectorAll('.mobile-nav [data-section]').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault();
+            const section = btn.getAttribute('data-section');
+            if (section) {
+                showSection(section);
+            }
+        });
+    });
+
     // Load bookings data
     loadBookings();
 

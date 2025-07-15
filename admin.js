@@ -264,13 +264,15 @@ function setupTabSwitching() {
         });
     });
     
-    // Setup mobile navigation
-    const mobileNavButtons = document.querySelectorAll('.mobile-nav .btn');
+    // Setup mobile bottom navigation
+    const mobileNavButtons = document.querySelectorAll('.mobile-nav [data-section]');
     mobileNavButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
-            const section = button.getAttribute('onclick').match(/'([^']+)'/)[1];
-            showSection(section);
+            const section = button.dataset.section || (button.getAttribute('onclick') || '').match(/'([^']+)'/)?.[1];
+            if (section) {
+                showSection(section);
+            }
         });
     });
     
