@@ -1791,9 +1791,12 @@ app.get('/api/admin/car/:id',
             return res.status(404).json({ success: false, error: 'Car not found' });
         }
         const car = result.rows[0];
-        // Parse unavailable_dates if present
+        // Parse JSON fields
         if (car.unavailable_dates && typeof car.unavailable_dates === 'string') {
             try { car.unavailable_dates = JSON.parse(car.unavailable_dates); } catch {}
+        }
+        if (car.specs && typeof car.specs === 'string') {
+            try { car.specs = JSON.parse(car.specs); } catch {}
         }
         return res.json({ success: true, car });
     } catch (error) {
@@ -1945,6 +1948,10 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
                 b.car_id && car.car_id && b.car_id === car.car_id
             );
             const bookedRanges = carBookings.map(b => ({ id: b.id, start: b.pickup_date, end: b.return_date, status: b.status }));
+            let specs = car.specs;
+            if (specs && typeof specs === 'string') {
+                try { specs = JSON.parse(specs); } catch {}
+            }
             return {
                 id: car.car_id,
                 name: car.name,
@@ -1952,7 +1959,7 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
                 manual_blocks: carManualBlocks,
                 booked_ranges: bookedRanges,
                 category: car.category,
-                specs: car.specs,
+                specs,
                 available: car.available
             };
         });
@@ -2008,6 +2015,10 @@ app.get('/api/cars/availability/all', async (req, res) => {
             // Match bookings by car_id
             const carBookings = bookings.filter(b => b.car_id && car.car_id && b.car_id === car.car_id);
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
+            let specs = car.specs;
+            if (specs && typeof specs === 'string') {
+                try { specs = JSON.parse(specs); } catch {}
+            }
             return {
                 id: car.car_id,
                 name: car.name,
@@ -2015,7 +2026,7 @@ app.get('/api/cars/availability/all', async (req, res) => {
                 manual_blocks: carManualBlocks,
                 booked_ranges: bookedRanges,
                 category: car.category,
-                specs: car.specs,
+                specs,
                 available: car.available,
                 image: car.image,
                 features: car.features
