@@ -456,7 +456,12 @@ async function loadManageCars() {
         container.innerHTML = data.cars.map(car => `
             <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
                 <span>${car.name}</span>
-                <span class="badge ${car.available ? 'bg-success' : 'bg-secondary'}">${car.available ? 'Available' : 'Unavailable'}</span>
+                <div>
+                    <span class="badge ${car.available ? 'bg-success' : 'bg-secondary'} me-2">${car.available ? 'Available' : 'Unavailable'}</span>
+                    <button class="btn btn-sm btn-danger" onclick="removeCar('${car.id}')">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
             </div>
         `).join('');
     } catch (err) {
@@ -785,4 +790,22 @@ function showBookingDetailsFromTable(bookingRef) {
     } else {
         alert('Booking not found!');
     }
-} 
+}
+
+async function removeCar(carId) {
+    if (!confirm('Are you sure you want to delete this car?')) return;
+    try {
+        const res = await fetch(`/api/admin/car/${carId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to delete car');
+        loadManageCars();
+    } catch (err) {
+        console.error('Error deleting car:', err);
+        showError(err.message || 'Failed to delete car');
+    }
+}
