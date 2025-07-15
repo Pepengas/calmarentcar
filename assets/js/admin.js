@@ -132,7 +132,8 @@ document.addEventListener("DOMContentLoaded", async function() {
         'settingsTab': 'settings',
         'editCarTab': 'editCar',
         'addonsTab': 'addons',
-        'tab-manage-cars': 'manageCars'
+        'tab-manage-cars': 'manageCars',
+        'mobileManageCarsTab': 'manageCars'
     };
 
     // Add click handlers for all tabs
@@ -449,7 +450,8 @@ document.addEventListener("DOMContentLoaded", async function() {
         { tab: 'settingsTab', content: 'settingsContent' },
         { tab: 'editCarTab', content: 'editCarContent' },
         { tab: 'addonsTab', content: 'addonsContent' },
-        { tab: 'tab-manage-cars', content: 'manageCars' }
+        { tab: 'tab-manage-cars', content: 'manageCars' },
+        { tab: 'mobileManageCarsTab', content: 'manageCars' }
     ];
     function showSection(section) {
         // Hide all sections
