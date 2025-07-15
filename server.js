@@ -6,6 +6,7 @@
 // Import required packages
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
@@ -26,6 +27,7 @@ esbuildRegister({ extensions: ['.jsx'] });
 const React = require('react');
 const { render } = require('@react-email/render');
 const BookingConfirmationEmail = require('./emails/BookingConfirmation.jsx').default;
+const multer = require('multer');
 
 // Ensure the Stripe secret key is provided
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -140,6 +142,19 @@ function getDefaultMonthlyPricing(basePrice) {
         December: p
     };
 }
+
+const uploadDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+const storage = multer.diskStorage({
+    destination: uploadDir,
+    filename: (req, file, cb) => {
+        const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, unique + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
 app.get("/admin.html", requireAdminAuth, (req, res) =>
   res.sendFile(path.join(__dirname, "admin.html"))
 );
@@ -1728,6 +1743,15 @@ app.get('/payment.html', (req, res) => {
 // Booking confirmation page
 app.get('/booking-confirmation', (req, res) => {
     res.render('booking-confirmation');
+});
+
+// Admin: Upload car image
+app.post('/api/admin/upload-image', requireAdminAuth, upload.single('image'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, error: 'No file uploaded' });
+    }
+    const url = `/uploads/${req.file.filename}`;
+    res.json({ success: true, url });
 });
 
 // Admin: Add a new car
