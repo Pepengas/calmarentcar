@@ -131,7 +131,8 @@ document.addEventListener("DOMContentLoaded", async function() {
         'reportsTab': 'reports',
         'settingsTab': 'settings',
         'editCarTab': 'editCar',
-        'addonsTab': 'addons'
+        'addonsTab': 'addons',
+        'tab-manage-cars': 'manageCars'
     };
 
     // Add click handlers for all tabs
@@ -218,6 +219,12 @@ document.addEventListener("DOMContentLoaded", async function() {
             textSearchFilter.value = '';
             applyFilters();
         });
+    }
+
+    // Add Car button handler
+    const addCarBtn = document.getElementById('addCarBtn');
+    if (addCarBtn) {
+        addCarBtn.addEventListener('click', handleAddCar);
     }
 
     // Load bookings data
@@ -420,14 +427,21 @@ document.addEventListener("DOMContentLoaded", async function() {
         { tab: 'reportsTab', content: 'reportsContent' },
         { tab: 'settingsTab', content: 'settingsContent' },
         { tab: 'editCarTab', content: 'editCarContent' },
-        { tab: 'addonsTab', content: 'addonsContent' }
+        { tab: 'addonsTab', content: 'addonsContent' },
+        { tab: 'tab-manage-cars', content: 'manageCars' }
     ];
     function showSection(section) {
         // Hide all sections
         document.querySelectorAll('.content-section').forEach(el => el.classList.add('d-none'));
-        
-        // Show selected section
-        const target = document.getElementById(section + 'Content');
+
+        // Show selected section (support both *Content and *Panel ids)
+        let target = document.getElementById(section + 'Content');
+        if (!target) {
+            target = document.getElementById(section + 'Panel');
+        }
+        if (!target) {
+            target = document.getElementById(section);
+        }
         if (target) target.classList.remove('d-none');
         
         // Scroll to top
@@ -442,6 +456,9 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
         if (section === 'addons' && typeof loadAddons === 'function') {
             loadAddons();
+        }
+        if (section === 'manageCars' && typeof loadManageCars === 'function') {
+            loadManageCars();
         }
     }
     // Attach click listeners
@@ -2135,3 +2152,59 @@ async function loadAddons() {
 }
 
        
+// ---- Manage Cars Panel ----
+async function loadManageCars() {
+    const container = document.getElementById('carListContainer');
+    if (!container) return;
+    container.innerHTML = '<div class="text-muted">Loading cars...</div>';
+    try {
+        const response = await fetch('/api/admin/cars/availability', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            }
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to fetch cars');
+        if (!Array.isArray(data.cars) || data.cars.length === 0) {
+            container.innerHTML = '<div class="text-muted">No cars found.</div>';
+            return;
+        }
+        container.innerHTML = data.cars.map(car => `
+            <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
+                <span>${car.name}</span>
+                <span class="badge ${car.available ? 'bg-success' : 'bg-secondary'}">${car.available ? 'Available' : 'Unavailable'}</span>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error('[Admin] Error loading cars:', err);
+        container.innerHTML = '<div class="text-danger">Failed to load cars</div>';
+    }
+}
+
+async function handleAddCar() {
+    const name = document.getElementById('carName').value.trim();
+    const description = document.getElementById('carDescription').value.trim();
+    const pricePerDay = parseFloat(document.getElementById('carPrice').value);
+    const image = document.getElementById('carImageUrl').value.trim();
+    const featuresStr = document.getElementById('carFeatures').value.trim();
+    const features = featuresStr ? featuresStr.split(',').map(f => f.trim()).filter(f => f) : [];
+
+    try {
+        const res = await fetch('/api/admin/car', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            body: JSON.stringify({ name, description, pricePerDay, image, features })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to add car');
+        document.getElementById('addCarForm').reset();
+        loadManageCars();
+        showToast('Car added successfully');
+    } catch (err) {
+        console.error('[Admin] Error adding car:', err);
+        showToast(err.message || 'Failed to add car', 'danger');
+    }
+}
