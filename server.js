@@ -1750,7 +1750,7 @@ app.post('/api/admin/upload-image', requireAdminAuth, upload.single('image'), (r
     if (!req.file) {
         return res.status(400).json({ success: false, error: 'No file uploaded' });
     }
-    const url = `/images/${req.file.filename}`;
+ const url = `/images/${req.file.filename}`;
     res.json({ success: true, url });
 });
 
