@@ -6,6 +6,7 @@
 // Import required packages
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
@@ -26,6 +27,7 @@ esbuildRegister({ extensions: ['.jsx'] });
 const React = require('react');
 const { render } = require('@react-email/render');
 const BookingConfirmationEmail = require('./emails/BookingConfirmation.jsx').default;
+const multer = require('multer');
 
 // Ensure the Stripe secret key is provided
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -140,6 +142,19 @@ function getDefaultMonthlyPricing(basePrice) {
         December: p
     };
 }
+
+const uploadDir = path.join(__dirname, 'public', 'images');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+const storage = multer.diskStorage({
+    destination: uploadDir,
+    filename: (req, file, cb) => {
+        const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, unique + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
 app.get("/admin.html", requireAdminAuth, (req, res) =>
   res.sendFile(path.join(__dirname, "admin.html"))
 );
@@ -1730,6 +1745,15 @@ app.get('/booking-confirmation', (req, res) => {
     res.render('booking-confirmation');
 });
 
+// Admin: Upload car image
+app.post('/api/admin/upload-image', requireAdminAuth, upload.single('image'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, error: 'No file uploaded' });
+    }
+    const url = `/images/${req.file.filename}`;
+    res.json({ success: true, url });
+});
+
 // Admin: Add a new car
 app.post('/api/admin/car', requireAdminAuth, async (req, res) => {
     const { name, description, pricePerDay, image, features } = req.body;
@@ -1767,9 +1791,12 @@ app.get('/api/admin/car/:id',
             return res.status(404).json({ success: false, error: 'Car not found' });
         }
         const car = result.rows[0];
-        // Parse unavailable_dates if present
+        // Parse JSON fields
         if (car.unavailable_dates && typeof car.unavailable_dates === 'string') {
             try { car.unavailable_dates = JSON.parse(car.unavailable_dates); } catch {}
+        }
+        if (car.specs && typeof car.specs === 'string') {
+            try { car.specs = JSON.parse(car.specs); } catch {}
         }
         return res.json({ success: true, car });
     } catch (error) {
@@ -1808,6 +1835,22 @@ app.patch('/api/admin/car/:id',
     } catch (error) {
         console.error(`[ADMIN] Error updating car ${carId}:`, error);
         return res.status(500).json({ success: false, error: 'Failed to update car' });
+    }
+});
+
+// Admin: Delete a car
+app.delete('/api/admin/car/:id',
+    requireAdminAuth,
+    validate([param('id').notEmpty()]),
+    async (req, res) => {
+    const carId = req.params.id;
+    try {
+        await pool.query('DELETE FROM cars WHERE car_id = $1', [carId]);
+        await pool.query('DELETE FROM manual_blocks WHERE car_id = $1', [carId]);
+        return res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting car:', err);
+        return res.status(500).json({ success: false, error: 'Failed to delete car' });
     }
 });
 
@@ -1905,6 +1948,10 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
                 b.car_id && car.car_id && b.car_id === car.car_id
             );
             const bookedRanges = carBookings.map(b => ({ id: b.id, start: b.pickup_date, end: b.return_date, status: b.status }));
+            let specs = car.specs;
+            if (specs && typeof specs === 'string') {
+                try { specs = JSON.parse(specs); } catch {}
+            }
             return {
                 id: car.car_id,
                 name: car.name,
@@ -1912,7 +1959,7 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
                 manual_blocks: carManualBlocks,
                 booked_ranges: bookedRanges,
                 category: car.category,
-                specs: car.specs,
+                specs,
                 available: car.available
             };
         });
@@ -1968,6 +2015,10 @@ app.get('/api/cars/availability/all', async (req, res) => {
             // Match bookings by car_id
             const carBookings = bookings.filter(b => b.car_id && car.car_id && b.car_id === car.car_id);
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
+            let specs = car.specs;
+            if (specs && typeof specs === 'string') {
+                try { specs = JSON.parse(specs); } catch {}
+            }
             return {
                 id: car.car_id,
                 name: car.name,
@@ -1975,7 +2026,7 @@ app.get('/api/cars/availability/all', async (req, res) => {
                 manual_blocks: carManualBlocks,
                 booked_ranges: bookedRanges,
                 category: car.category,
-                specs: car.specs,
+                specs,
                 available: car.available,
                 image: car.image,
                 features: car.features
