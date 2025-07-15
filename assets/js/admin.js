@@ -227,6 +227,26 @@ document.addEventListener("DOMContentLoaded", async function() {
         addCarBtn.addEventListener('click', handleAddCar);
     }
 
+    const autofillBtn = document.getElementById('autofillBtn');
+    if (autofillBtn) {
+        autofillBtn.addEventListener('click', () => {
+            document.querySelectorAll('#priceEditorTable tbody input[type="number"]').forEach(inp => {
+                inp.value = 40;
+            });
+        });
+    }
+
+    // Mobile bottom navigation
+    document.querySelectorAll('.mobile-nav [data-section]').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault();
+            const section = btn.getAttribute('data-section');
+            if (section) {
+                showSection(section);
+            }
+        });
+    });
+
     // Load bookings data
     loadBookings();
 
@@ -2172,7 +2192,10 @@ async function loadManageCars() {
         container.innerHTML = data.cars.map(car => `
             <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
                 <span>${car.name}</span>
-                <span class="badge ${car.available ? 'bg-success' : 'bg-secondary'}">${car.available ? 'Available' : 'Unavailable'}</span>
+                <div>
+                    <span class="badge ${car.available ? 'bg-success' : 'bg-secondary'} me-2">${car.available ? 'Available' : 'Unavailable'}</span>
+                    <button class="btn btn-sm btn-danger" onclick="removeCar('${car.id || car.car_id}')"><i class="fas fa-trash-alt"></i></button>
+                </div>
             </div>
         `).join('');
     } catch (err) {
@@ -2185,9 +2208,33 @@ async function handleAddCar() {
     const name = document.getElementById('carName').value.trim();
     const description = document.getElementById('carDescription').value.trim();
     const pricePerDay = parseFloat(document.getElementById('carPrice').value);
-    const image = document.getElementById('carImageUrl').value.trim();
+    const urlInput = document.getElementById('carImageUrl').value.trim();
+    const fileInput = document.getElementById('carImageFile');
     const featuresStr = document.getElementById('carFeatures').value.trim();
     const features = featuresStr ? featuresStr.split(',').map(f => f.trim()).filter(f => f) : [];
+
+    let image = urlInput;
+
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        const formData = new FormData();
+        formData.append('image', fileInput.files[0]);
+        try {
+            const uploadRes = await fetch('/api/admin/upload-image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: formData
+            });
+            const uploadData = await uploadRes.json();
+            if (!uploadRes.ok) throw new Error(uploadData.error || 'Image upload failed');
+            image = uploadData.url;
+        } catch (err) {
+            console.error('[Admin] Image upload failed:', err);
+            showToast(err.message || 'Image upload failed', 'danger');
+            return;
+        }
+    }
 
     try {
         const res = await fetch('/api/admin/car', {
@@ -2206,5 +2253,21 @@ async function handleAddCar() {
     } catch (err) {
         console.error('[Admin] Error adding car:', err);
         showToast(err.message || 'Failed to add car', 'danger');
+    }
+}
+async function removeCar(carId) {
+    if (!confirm('Are you sure you want to delete this car?')) return;
+    try {
+        const res = await fetch(`/api/admin/car/${carId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to delete car');
+        loadManageCars();
+        showToast('Car deleted');
+    } catch (err) {
+        console.error('[Admin] Error deleting car:', err);
+        showToast(err.message || 'Failed to delete car', 'danger');
     }
 }
