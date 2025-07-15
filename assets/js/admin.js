@@ -236,6 +236,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         });
     }
 
+    // Mobile bottom navigation
   // Mobile bottom navigation
     document.querySelectorAll('.mobile-nav [data-section]').forEach(btn => {
         btn.addEventListener('click', e => {

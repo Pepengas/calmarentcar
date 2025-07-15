@@ -143,7 +143,7 @@ function getDefaultMonthlyPricing(basePrice) {
     };
 }
 
-const uploadDir = path.join(__dirname, 'public', 'uploads');
+const uploadDir = path.join(__dirname, 'public', 'images');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -1750,7 +1750,7 @@ app.post('/api/admin/upload-image', requireAdminAuth, upload.single('image'), (r
     if (!req.file) {
         return res.status(400).json({ success: false, error: 'No file uploaded' });
     }
-    const url = `/uploads/${req.file.filename}`;
+ const url = `/images/${req.file.filename}`;
     res.json({ success: true, url });
 });
 
