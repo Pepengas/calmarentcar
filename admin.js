@@ -264,13 +264,15 @@ function setupTabSwitching() {
         });
     });
     
-    // Setup mobile navigation
-    const mobileNavButtons = document.querySelectorAll('.mobile-nav .btn');
+    // Setup mobile bottom navigation
+    const mobileNavButtons = document.querySelectorAll('.mobile-nav [data-section]');
     mobileNavButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
-            const section = button.getAttribute('onclick').match(/'([^']+)'/)[1];
-            showSection(section);
+            const section = button.dataset.section || (button.getAttribute('onclick') || '').match(/'([^']+)'/)?.[1];
+            if (section) {
+                showSection(section);
+            }
         });
     });
     
@@ -456,7 +458,12 @@ async function loadManageCars() {
         container.innerHTML = data.cars.map(car => `
             <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
                 <span>${car.name}</span>
-                <span class="badge ${car.available ? 'bg-success' : 'bg-secondary'}">${car.available ? 'Available' : 'Unavailable'}</span>
+                <div>
+                    <span class="badge ${car.available ? 'bg-success' : 'bg-secondary'} me-2">${car.available ? 'Available' : 'Unavailable'}</span>
+                    <button class="btn btn-sm btn-danger" onclick="removeCar('${car.id}')">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
             </div>
         `).join('');
     } catch (err) {
@@ -547,9 +554,33 @@ async function handleAddCar() {
     const name = document.getElementById('carName').value.trim();
     const description = document.getElementById('carDescription').value.trim();
     const pricePerDay = parseFloat(document.getElementById('carPrice').value);
-    const image = document.getElementById('carImageUrl').value.trim();
+    const imageUrl = document.getElementById('carImageUrl').value.trim();
+    const fileInput = document.getElementById('carImageFile');
     const featuresStr = document.getElementById('carFeatures').value.trim();
     const features = featuresStr ? featuresStr.split(',').map(f => f.trim()).filter(f => f) : [];
+
+    let image = imageUrl;
+
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        const formData = new FormData();
+        formData.append('image', fileInput.files[0]);
+        try {
+            const uploadRes = await fetch('/api/admin/upload-image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: formData
+            });
+            const uploadData = await uploadRes.json();
+            if (!uploadRes.ok) throw new Error(uploadData.error || 'Image upload failed');
+            image = uploadData.url;
+        } catch (err) {
+            console.error('Image upload failed:', err);
+            showError(err.message || 'Image upload failed');
+            return;
+        }
+    }
 
     try {
         const res = await fetch('/api/admin/car', {
@@ -761,4 +792,22 @@ function showBookingDetailsFromTable(bookingRef) {
     } else {
         alert('Booking not found!');
     }
-} 
+}
+
+async function removeCar(carId) {
+    if (!confirm('Are you sure you want to delete this car?')) return;
+    try {
+        const res = await fetch(`/api/admin/car/${carId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to delete car');
+        loadManageCars();
+    } catch (err) {
+        console.error('Error deleting car:', err);
+        showError(err.message || 'Failed to delete car');
+    }
+}
