@@ -133,8 +133,8 @@ document.addEventListener("DOMContentLoaded", async function() {
         'settingsTab': 'settings',
         'editCarTab': 'editCar',
         'addonsTab': 'addons',
-        'tab-manage-cars': 'manageCars',
-        'mobileManageCarsTab': 'manageCars'
+        'tab-manage-fleet': 'manageFleet',
+        'mobileManageFleetTab': 'manageFleet'
     };
 
     // Add click handlers for all tabs
@@ -458,8 +458,8 @@ document.addEventListener("DOMContentLoaded", async function() {
         { tab: 'settingsTab', content: 'settingsContent' },
         { tab: 'editCarTab', content: 'editCarContent' },
         { tab: 'addonsTab', content: 'addonsContent' },
-        { tab: 'tab-manage-cars', content: 'manageCars' },
-        { tab: 'mobileManageCarsTab', content: 'manageCars' }
+        { tab: 'tab-manage-fleet', content: 'manageFleet' },
+        { tab: 'mobileManageFleetTab', content: 'manageFleet' }
     ];
     function showSection(section) {
         // Hide all sections
@@ -488,7 +488,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         if (section === 'addons' && typeof loadAddons === 'function') {
             loadAddons();
         }
-        if (section === 'manageCars' && typeof loadManageCars === 'function') {
+        if (section === 'manageFleet' && typeof loadManageCars === 'function') {
             loadManageCars();
         }
     }
@@ -2183,7 +2183,7 @@ async function loadAddons() {
 }
 
        
-// ---- Manage Cars Panel ----
+// ---- Manage Fleet Panel ----
 async function loadManageCars() {
     const container = document.getElementById('carListContainer');
     if (!container) return;
