@@ -68,8 +68,8 @@ export const Fleet = {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            const cars = await response.json();
-            return cars;
+            const data = await response.json();
+            return data.cars || [];
         } catch (error) {
             console.error('Failed to fetch cars:', error);
             if (this.carGrid) this.carGrid.innerHTML = '<p class="error-message">Failed to load car fleet. Please try refreshing.</p>';

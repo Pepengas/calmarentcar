@@ -127,20 +127,24 @@ function slugify(text) {
 
 function getDefaultMonthlyPricing(basePrice) {
     const p = Math.round(parseFloat(basePrice) || 0);
-    return {
-        January: p,
-        February: p,
-        March: p,
-        April: p,
-        May: Math.round(p * 1.1),
-        June: Math.round(p * 1.2),
-        July: Math.round(p * 1.3),
-        August: Math.round(p * 1.4),
-        September: Math.round(p * 1.2),
-        October: p,
-        November: p,
-        December: p
-    };
+    const year = new Date().getFullYear();
+    const multipliers = [1,1,1,1,1.1,1.2,1.3,1.4,1.2,1,1,1];
+    const pricing = {};
+    for (let i = 0; i < 12; i++) {
+        const month = `${year}-${String(i + 1).padStart(2, '0')}`;
+        const price = Math.round(p * multipliers[i]);
+        pricing[month] = {
+            day_1: price,
+            day_2: price,
+            day_3: price,
+            day_4: price,
+            day_5: price,
+            day_6: price,
+            day_7: price,
+            extra_day: price
+        };
+    }
+    return pricing;
 }
 
 const uploadDir = path.join(__dirname, 'public', 'images');
