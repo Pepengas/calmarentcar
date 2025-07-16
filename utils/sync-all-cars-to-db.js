@@ -39,21 +39,25 @@ const REQUIRED_CARS = [
 
 // Default monthly pricing (if not specified)
 function getDefaultMonthlyPricing(basePrice) {
-  // Create seasonal pricing with base price for winter, higher for summer
-  return {
-    January: basePrice,
-    February: basePrice,
-    March: basePrice,
-    April: basePrice,
-    May: Math.round(basePrice * 1.1),
-    June: Math.round(basePrice * 1.2),
-    July: Math.round(basePrice * 1.3),
-    August: Math.round(basePrice * 1.4),
-    September: Math.round(basePrice * 1.2),
-    October: basePrice,
-    November: basePrice,
-    December: basePrice
-  };
+  const p = Math.round(parseFloat(basePrice) || 0);
+  const year = new Date().getFullYear();
+  const multipliers = [1,1,1,1,1.1,1.2,1.3,1.4,1.2,1,1,1];
+  const pricing = {};
+  for (let i = 0; i < 12; i++) {
+    const month = `${year}-${String(i + 1).padStart(2, '0')}`;
+    const price = Math.round(p * multipliers[i]);
+    pricing[month] = {
+      day_1: price,
+      day_2: price,
+      day_3: price,
+      day_4: price,
+      day_5: price,
+      day_6: price,
+      day_7: price,
+      extra_day: price
+    };
+  }
+  return pricing;
 }
 
 // Default images for cars - using consistent public directory paths
