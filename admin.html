@@ -945,7 +945,7 @@
             <li class="nav-item"><a class="nav-link" id="mobileReportsTab" data-section="reports" href="#"><i class="fas fa-chart-line me-2"></i>Reports</a></li>
             <li class="nav-item"><a class="nav-link" id="mobileSettingsTab" data-section="settings" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
             <li class="nav-item"><a class="nav-link" id="mobileEditCarTab" data-section="editCar" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a></li>
-            <li class="nav-item"><a class="nav-link" id="mobileManageCarsTab" data-section="manageCars" href="#"><i class="fas fa-car-side me-2"></i>Manage Cars</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileManageFleetTab" data-section="manageFleet" href="#"><i class="fas fa-car-side me-2"></i>Manage Fleet</a></li>
             <li class="nav-item mt-3"><a class="nav-link text-danger" id="mobileLogoutBtn" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
         </ul>
     </div>
@@ -981,9 +981,9 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="tab-manage-cars" href="#" data-section="manageCars" role="tab" aria-selected="false" tabindex="0">
+                            <a class="nav-link" id="tab-manage-fleet" href="#" data-section="manageFleet" role="tab" aria-selected="false" tabindex="0">
                                 <i class="fas fa-car me-2"></i>
-                                Manage Cars
+                                Manage Fleet
                             </a>
                         </li>
                         <li class="nav-item">
@@ -1333,11 +1333,11 @@
                     </div>
                 </div>
 
-                <!-- Manage Cars Panel -->
-                <div id="manageCarsPanel" class="content-section d-none">
+                <!-- Manage Fleet Panel -->
+                <div id="manageFleetPanel" class="content-section d-none">
                     <div class="container-fluid">
                         <div class="card shadow-sm p-4 mb-4 border border-blue-100">
-                            <h3 class="text-primary mb-4"><i class="fas fa-car me-2"></i>Manage Cars</h3>
+                            <h3 class="text-primary mb-4"><i class="fas fa-car me-2"></i>Manage Fleet</h3>
                             <form id="addCarForm" class="row g-3">
                                 <div class="col-md-6">
                                     <label for="carName" class="form-label">Car Name</label>
@@ -1410,9 +1410,9 @@
                 </button>
             </div>
             <div class="col">
-                <button class="btn btn-link w-100 py-2 text-muted" data-section="manageCars">
+                <button class="btn btn-link w-100 py-2 text-muted" data-section="manageFleet">
                     <i class="fas fa-car-side d-block"></i>
-                    <small>Manage</small>
+                    <small>Manage Fleet</small>
                 </button>
             </div>
             <div class="col">
