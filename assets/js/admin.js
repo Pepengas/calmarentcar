@@ -229,6 +229,13 @@ document.addEventListener("DOMContentLoaded", async function() {
         addCarBtn.addEventListener('click', handleAddCar);
     }
 
+    const carImageFileInput = document.getElementById('carImageFile');
+    if (carImageFileInput) {
+        carImageFileInput.addEventListener('change', () => {
+            showToast('Please name the image as CalmaCarName (e.g., CalmaFiatPanda.jpg)', 'info');
+        });
+    }
+
     const autofillBtn = document.getElementById('autofillBtn');
     if (autofillBtn) {
         autofillBtn.addEventListener('click', () => {
@@ -2212,12 +2219,11 @@ async function handleAddCar() {
     const name = document.getElementById('carName').value.trim();
     const description = document.getElementById('carDescription').value.trim();
     const pricePerDay = parseFloat(document.getElementById('carPrice').value);
-    const urlInput = document.getElementById('carImageUrl').value.trim();
     const fileInput = document.getElementById('carImageFile');
     const featuresStr = document.getElementById('carFeatures').value.trim();
     const features = featuresStr ? featuresStr.split(',').map(f => f.trim()).filter(f => f) : [];
 
-    let image = urlInput;
+    let image = null;
 
     if (fileInput && fileInput.files && fileInput.files[0]) {
         const formData = new FormData();

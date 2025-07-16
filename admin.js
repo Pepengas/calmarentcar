@@ -137,6 +137,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addCarBtn) {
         addCarBtn.addEventListener('click', handleAddCar);
     }
+
+    const carImageFileInput = document.getElementById('carImageFile');
+    if (carImageFileInput) {
+        carImageFileInput.addEventListener('change', () => {
+            showToast('Please name the image as CalmaCarName (e.g., CalmaFiatPanda.jpg)', 'info');
+        });
+    }
 });
 
 /**
@@ -554,12 +561,11 @@ async function handleAddCar() {
     const name = document.getElementById('carName').value.trim();
     const description = document.getElementById('carDescription').value.trim();
     const pricePerDay = parseFloat(document.getElementById('carPrice').value);
-    const imageUrl = document.getElementById('carImageUrl').value.trim();
     const fileInput = document.getElementById('carImageFile');
     const featuresStr = document.getElementById('carFeatures').value.trim();
     const features = featuresStr ? featuresStr.split(',').map(f => f.trim()).filter(f => f) : [];
 
-    let image = imageUrl;
+    let image = null;
 
     if (fileInput && fileInput.files && fileInput.files[0]) {
         const formData = new FormData();
