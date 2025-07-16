@@ -147,6 +147,29 @@ function getDefaultMonthlyPricing(basePrice) {
     return pricing;
 }
 
+function getMonthNumber(key) {
+    if (!key) return NaN;
+    if (key.includes('-')) {
+        const n = parseInt(key.split('-')[1], 10);
+        if (!isNaN(n)) return n;
+    }
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const idx = months.indexOf(key);
+    return idx >= 0 ? idx + 1 : NaN;
+}
+
+function getMonthPricing(pricing, monthKey) {
+    if (!pricing) return null;
+    if (pricing[monthKey]) return pricing[monthKey];
+    const target = getMonthNumber(monthKey);
+    if (isNaN(target)) return null;
+    for (const key of Object.keys(pricing)) {
+        if (getMonthNumber(key) === target) {
+            return pricing[key];
+        }
+    }
+    return null;
+}
 const uploadDir = path.join(__dirname, 'public', 'images');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -492,7 +515,7 @@ app.post('/api/bookings',
                 if (rateResult.rows.length === 0) {
                     console.error(`[Booking] No car found for car_id=${booking.car_id}`);
                 } else {
-                    daily_rate = rateResult.rows[0].monthly_pricing[pickup_month];
+                    daily_rate = getMonthPricing(rateResult.rows[0].monthly_pricing, pickup_month);
                     console.log(`[Booking] Fetched daily_rate for month ${pickup_month}:`, daily_rate);
                 }
             } catch (err) {
@@ -1519,7 +1542,7 @@ app.get('/api/get-price', async (req, res) => {
             });
         }
         const monthlyPricing = result.rows[0].monthly_pricing;
-        const monthPricing = monthlyPricing[month];
+        const monthPricing = getMonthPricing(monthlyPricing, month);
         if (!monthPricing) {
             return res.status(404).json({
                 success: false,
@@ -1612,7 +1635,7 @@ async function calculateTotalPrice(car_id, pickup_date, return_date) {
     // If rental is 1-7 days, use package price
     if (totalDays <= 7) {
         const month = pickup.toISOString().slice(0, 7);
-        const monthPricing = monthlyPricing[month];
+        const monthPricing = getMonthPricing(monthlyPricing, month);
         if (!monthPricing) {
             console.error(`[calculateTotalPrice] No pricing for month: ${month}`);
             throw new Error(`No price found for month ${month}`);
@@ -1626,7 +1649,7 @@ async function calculateTotalPrice(car_id, pickup_date, return_date) {
     } else {
         // For rentals >7 days, use day_7 + (N-7)*extra_day
         const month = pickup.toISOString().slice(0, 7);
-        const monthPricing = monthlyPricing[month];
+        const monthPricing = getMonthPricing(monthlyPricing, month);
         if (!monthPricing) {
             console.error(`[calculateTotalPrice] No pricing for month: ${month}`);
             throw new Error(`No price found for month ${month}`);
