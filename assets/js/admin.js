@@ -93,10 +93,11 @@ function getMonthNameFromKey(key) {
 }
 
 function getSortedMonthKeys(pricing) {
-    // Sort by month number
+    // Support keys like '2025-01' or month names
+    const monthOrder = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     return Object.keys(pricing).sort((a, b) => {
-        const ma = parseInt(a.split('-')[1], 10);
-        const mb = parseInt(b.split('-')[1], 10);
+        const ma = a.includes('-') ? parseInt(a.split('-')[1], 10) : monthOrder.indexOf(a) + 1;
+        const mb = b.includes('-') ? parseInt(b.split('-')[1], 10) : monthOrder.indexOf(b) + 1;
         return ma - mb;
     });
 }
