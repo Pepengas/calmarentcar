@@ -20,7 +20,7 @@ const customersContent = document.getElementById('customersContent');
 const settingsContent = document.getElementById('settingsContent');
 const editCarContent = document.getElementById('editCarContent');
 const addonsContent = document.getElementById('addonsContent');
-const manageCarsPanel = document.getElementById('manageCarsPanel');
+const manageFleetPanel = document.getElementById('manageFleetPanel');
 
 // Initialize the dashboard when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -124,12 +124,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const manageCarsTab = document.getElementById('tab-manage-cars');
-    if (manageCarsTab) {
-        manageCarsTab.addEventListener('click', (e) => {
+    const manageFleetTab = document.getElementById('tab-manage-fleet');
+    if (manageFleetTab) {
+        manageFleetTab.addEventListener('click', (e) => {
             e.preventDefault();
-            showSection('manageCars');
- loadManageCars();
+            showSection('manageFleet');
+            loadManageCars();
         });
     }
 
@@ -299,7 +299,7 @@ function showSection(sectionName) {
         'settingsContent',
         'editCarContent',
         'addonsContent',
-        'manageCarsPanel'
+        'manageFleetPanel'
     ];
     
     contentSections.forEach(id => {
@@ -339,7 +339,7 @@ function showSection(sectionName) {
         case 'customers':
             loadCarAvailability();
             break;
-        case 'manageCars':
+        case 'manageFleet':
             loadManageCars();
             break;
         case 'addons':
