@@ -170,7 +170,6 @@ function getMonthPricing(pricing, monthKey) {
     }
     return null;
 }
-
 const uploadDir = path.join(__dirname, 'public', 'images');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
