@@ -474,17 +474,22 @@ header {
     transform: scale(1.1);
 }
 
-.availability-block {
-    font-weight: 600;
-    font-size: 1.1rem;
-    margin: 16px 0;
-    text-align: center;
+.availability-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    min-height: 24px;
+    flex-wrap: nowrap;
 }
-.cancel-note {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: normal;
+.status.available {
+    color: #28a745;
+    font-weight: 600;
+}
+.note {
     color: #6c757d;
+    font-size: 0.9rem;
 }
 
 .price {
@@ -541,12 +546,17 @@ header {
 }
 
 .car-pricing {
-    margin-top: auto;
+    margin-top: 0;
+    margin-bottom: 16px;
     font-size: 0.95rem;
 }
 
 .btn.btn-primary {
     margin-top: 16px;
+}
+
+.book-from-grid {
+    margin-top: auto;
 }
 
 
@@ -1520,7 +1530,8 @@ footer {
 
 /* Car Cards Pricing */
 .car-pricing {
-    margin-top: auto;
+    margin-top: 0;
+    margin-bottom: 16px;
     font-size: 0.95rem;
 }
 
@@ -1530,6 +1541,7 @@ footer {
     width: 100%;
     padding: 12px;
     font-size: 1rem;
+    margin-top: auto;
 }
 
 /* Booking Form Note */
