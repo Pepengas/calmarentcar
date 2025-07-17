@@ -1969,6 +1969,15 @@ app.patch('/api/admin/car/:id/homepage',
         await pool.query('UPDATE cars SET show_on_homepage = $1 WHERE car_id = $2', [show_on_homepage, carId]);
         return res.json({ success: true });
     } catch (err) {
+ if (err.code === '42703') {
+            try {
+                await pool.query('ALTER TABLE cars ADD COLUMN IF NOT EXISTS show_on_homepage BOOLEAN DEFAULT false');
+                await pool.query('UPDATE cars SET show_on_homepage = $1 WHERE car_id = $2', [show_on_homepage, carId]);
+                return res.json({ success: true });
+            } catch (innerErr) {
+                console.error('Error adding show_on_homepage column:', innerErr);
+            }
+        }
         console.error('Error updating homepage flag:', err);
         return res.status(500).json({ success: false, error: 'Failed to update homepage flag' });
     }
@@ -2022,7 +2031,8 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
                 booked_ranges: bookedRanges,
                 category: car.category,
                 specs,
-                available: car.available
+                available: car.available,
+                show_on_homepage: car.show_on_homepage
             };
         });
         return res.json({
@@ -2091,7 +2101,8 @@ app.get('/api/cars/availability/all', async (req, res) => {
                 specs,
                 available: car.available,
                 image: car.image,
-                features: car.features
+                features: car.features,
+                show_on_homepage: car.show_on_homepage
             };
         });
         return res.json({
