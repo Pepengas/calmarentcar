@@ -1970,7 +1970,6 @@ app.patch('/api/admin/car/:id/homepage',
         return res.json({ success: true });
     } catch (err) {
         if (err.code === '42703') {
- if (err.code === '42703') {
             try {
                 await pool.query('ALTER TABLE cars ADD COLUMN IF NOT EXISTS show_on_homepage BOOLEAN DEFAULT false');
                 await pool.query('UPDATE cars SET show_on_homepage = $1 WHERE car_id = $2', [show_on_homepage, carId]);
@@ -2068,7 +2067,13 @@ app.get('/api/cars/availability/all', async (req, res) => {
         }
         // Get all cars
         const carsResult = await pool.query('SELECT * FROM cars');
-        const cars = carsResult.rows;
+        let cars = carsResult.rows;
+
+        // Optional: filter cars marked for homepage
+        const homepageOnly = req.query.homepage === 'true' || req.query.homepage === '1';
+        if (homepageOnly) {
+            cars = cars.filter(c => c.show_on_homepage);
+        }
         // Get all bookings with relevant statuses (by car_id)
         let bookingsResult;
         try {
