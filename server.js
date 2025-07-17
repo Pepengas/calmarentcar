@@ -1896,6 +1896,19 @@ app.patch('/api/admin/car/:id',
         console.log(`[ADMIN] Updated car ${carId}:`, fields.join(', '));
         return res.json({ success: true });
     } catch (error) {
+        if (error.code === '42703') {
+            try {
+                await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS show_on_homepage BOOLEAN DEFAULT false`);
+                await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS availability_status TEXT DEFAULT 'Available'`);
+                await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS homepage_note TEXT`);
+                const query = `UPDATE cars SET ${fields.join(', ')}, updated_at = NOW() WHERE car_id = $${fields.length + 1}`;
+                await pool.query(query, values);
+                console.log(`[ADMIN] Updated car ${carId} after adding missing columns.`);
+                return res.json({ success: true });
+            } catch (innerErr) {
+                console.error('[ADMIN] Error adding missing car columns:', innerErr);
+            }
+        }
         console.error(`[ADMIN] Error updating car ${carId}:`, error);
         return res.status(500).json({ success: false, error: 'Failed to update car' });
     }
