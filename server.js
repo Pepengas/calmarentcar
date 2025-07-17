@@ -405,6 +405,28 @@ async function migrateAddHomepageFieldsToCars() {
     }
 }
 
+// Migration: Ensure base car columns (name, description, etc)
+async function migrateEnsureBaseCarColumns() {
+    try {
+        if (!global.dbConnected) {
+            console.warn('⚠️ Cannot run migration: database not connected');
+            return;
+        }
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS name TEXT`);
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS description TEXT`);
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS image TEXT`);
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS category TEXT`);
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS features JSONB`);
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS specs JSONB`);
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS monthly_pricing JSONB DEFAULT '{}'`);
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS available BOOLEAN DEFAULT true`);
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS manual_status TEXT DEFAULT 'automatic'`);
+        console.log('✅ Migration: base car columns ensured in cars table.');
+    } catch (err) {
+        console.error('❌ Migration error (ensure base car columns):', err);
+    }
+}
+
 // Insert a default admin if none exist
 async function ensureDefaultAdmin() {
     try {
@@ -428,6 +450,7 @@ if (global.dbConnected) {
     migrateAddCarIdToBookings();
     migrateAddBoosterSeatToBookings();
     migrateAddConfirmationEmailSent();
+    migrateEnsureBaseCarColumns();
     migrateAddShowOnHomepageToCars();
     migrateAddHomepageFieldsToCars();
     ensureDefaultAdmin();
@@ -2323,6 +2346,7 @@ async function startServerWithMigrations() {
         await migrateAddCarIdToBookings();
         await migrateAddBoosterSeatToBookings();
         await migrateAddConfirmationEmailSent();
+        await migrateEnsureBaseCarColumns();
         await migrateAddShowOnHomepageToCars();
         await migrateAddHomepageFieldsToCars();
     }
