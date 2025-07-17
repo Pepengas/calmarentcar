@@ -78,7 +78,8 @@ export const UI = {
         const faqItems = document.querySelectorAll('.faq-item');
         if (faqItems.length > 0) {
             faqItems.forEach(item => {
-                const header = item.querySelector('.faq-header');
+                const header = item.querySelector('.faq-header') || item.querySelector('.faq-question');
+                if (!header) return;
                 header.addEventListener('click', () => {
                     // Close all other items
                     faqItems.forEach(otherItem => {
