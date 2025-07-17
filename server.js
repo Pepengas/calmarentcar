@@ -426,7 +426,6 @@ async function migrateEnsureBaseCarColumns() {
         console.error('❌ Migration error (ensure base car columns):', err);
     }
 }
-
 // Insert a default admin if none exist
 async function ensureDefaultAdmin() {
     try {
