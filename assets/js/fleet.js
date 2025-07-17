@@ -125,10 +125,7 @@ export const Fleet = {
             const card = document.createElement('div');
             card.className = 'car-card';
             const imageUrl = car.image.startsWith('http') ? car.image : `${API_BASE_URL}/${car.image}`;
-            let featuresHtml = '';
-            if (car.features && car.features.length > 0) {
-                featuresHtml = `<div class="car-features">${car.features.join(' \u00b7 ')}</div>`;
-            }
+            // features are not displayed on the homepage cards
             // --- Availability logic ---
             let isAvailable = true;
             let unavailableReason = '';
@@ -149,9 +146,10 @@ export const Fleet = {
                 }
             }
             const priceText = car.pricePerDay ? `From €${car.pricePerDay}/day` : '';
-            const priceHtml = priceText ? `<div class="price-area"><span class="price">${priceText}</span> <span class="price-note">${car.homepage_note || 'Free cancellation'}</span></div>` : '';
+const priceHtml = priceText ? `<div class="price-area"><span class="price">${priceText}</span></div>` : '';
             const statusText = isAvailable ? 'Available' : 'Not Available';
             const statusClass = isAvailable ? 'status-available' : 'status-unavailable';
+            const cancelNote = car.homepage_note || 'Free cancellation';
             card.innerHTML = `
                 <div class="car-image">
                     <img src="${imageUrl}" alt="${car.name}" loading="lazy" width="300" height="200">
@@ -159,8 +157,9 @@ export const Fleet = {
                 <div class="car-details">
                     <h3 class="car-name">${car.name}</h3>
                     <p class="car-desc">${car.description || ''}</p>
-                    <p class="availability-status ${statusClass}">${statusText}</p>
-                    ${featuresHtml}
+ <div class="availability-block ${statusClass}">
+                        ${statusText}<br><span class="cancel-note">${cancelNote}</span>
+                    </div>
                     ${priceHtml}
                     <button class="btn btn-primary book-from-grid" data-car-id="${car.id}" ${!isAvailable ? 'disabled' : ''}>BOOK NOW</button>
                 </div>`;
