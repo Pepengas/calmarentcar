@@ -474,6 +474,23 @@ header {
     transform: scale(1.1);
 }
 
+.car-features {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 12px;
+}
+
+.availability-status {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.price {
+    font-weight: 700;
+    color: var(--dark-color);
+    margin-bottom: 4px;
+}
+
 .car-details {
     padding: 25px;
     flex: 1 1 auto;
@@ -1482,10 +1499,6 @@ footer {
     font-size: 0.95rem;
 }
 
-.price {
-    font-weight: 700;
-    color: var(--dark-color);
-}
 
 .price-note {
     color: #6c757d;
