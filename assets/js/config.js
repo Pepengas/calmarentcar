@@ -4,7 +4,7 @@
 
 // Base URLs for different environments
 const ENV = {
-    production: 'https://calmarental.com',
+    production: window.location.origin,
     development: 'http://localhost:3000'
 };
 
