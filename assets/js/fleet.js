@@ -147,10 +147,11 @@ export const Fleet = {
                 <div class="car-details">
                     <h3>${car.name}</h3>
                     <p>${car.description}</p>
+                    <p class="availability-status">${car.availability_status || ''}</p>
                     ${featuresHtml}
                     <div class="car-pricing">
                         <span class="price">From €${car.pricePerDay}/day</span>
-                        <span class="price-note">· Free cancellation</span>
+                        <span class="price-note">${car.homepage_note || 'Free cancellation'}</span>
                     </div>
                     <button class="btn btn-primary book-from-grid" data-car-id="${car.id}" ${!isAvailable ? 'disabled' : ''}>${isAvailable ? 'Book Now' : unavailableReason}</button>
                 </div>

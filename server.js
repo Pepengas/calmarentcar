@@ -390,6 +390,21 @@ async function migrateAddShowOnHomepageToCars() {
     }
 }
 
+// Migration: Add availability_status and homepage_note columns
+async function migrateAddHomepageFieldsToCars() {
+    try {
+        if (!global.dbConnected) {
+            console.warn('⚠️ Cannot run migration: database not connected');
+            return;
+        }
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS availability_status TEXT DEFAULT 'Available'`);
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS homepage_note TEXT`);
+        console.log('✅ Migration: availability_status and homepage_note columns ensured in cars table.');
+    } catch (err) {
+        console.error('❌ Migration error (add homepage fields to cars):', err);
+    }
+}
+
 // Insert a default admin if none exist
 async function ensureDefaultAdmin() {
     try {
@@ -414,6 +429,7 @@ if (global.dbConnected) {
     migrateAddBoosterSeatToBookings();
     migrateAddConfirmationEmailSent();
     migrateAddShowOnHomepageToCars();
+    migrateAddHomepageFieldsToCars();
     ensureDefaultAdmin();
 }
 
@@ -1397,6 +1413,8 @@ app.get('/api/cars', async (req, res) => {
                 features: car.features,
                 monthly_pricing: car.monthly_pricing,
                 available: car.available,
+                availability_status: car.availability_status,
+                homepage_note: car.homepage_note,
                 specs: car.specs,
                 manual_status: car.manual_status,
                 unavailable_dates: unavailable_dates || []
@@ -1853,7 +1871,7 @@ app.patch('/api/admin/car/:id',
     validate([param('id').notEmpty()]),
     async (req, res) => {
     const carId = req.params.id;
-    const { name, description, image, category, features, specs, available, show_on_homepage } = req.body;
+    const { name, description, image, category, features, specs, available, show_on_homepage, availability_status, homepage_note } = req.body;
     try {
         // Build dynamic update query
         const fields = [];
@@ -1867,6 +1885,8 @@ app.patch('/api/admin/car/:id',
         if (specs !== undefined) { fields.push(`specs = $${idx++}`); values.push(JSON.stringify(specs)); }
         if (available !== undefined) { fields.push(`available = $${idx++}`); values.push(available); }
         if (show_on_homepage !== undefined) { fields.push(`show_on_homepage = $${idx++}`); values.push(show_on_homepage); }
+        if (availability_status !== undefined) { fields.push(`availability_status = $${idx++}`); values.push(availability_status); }
+        if (homepage_note !== undefined) { fields.push(`homepage_note = $${idx++}`); values.push(homepage_note); }
         if (fields.length === 0) {
             return res.status(400).json({ success: false, error: 'No fields to update' });
         }
@@ -1876,6 +1896,19 @@ app.patch('/api/admin/car/:id',
         console.log(`[ADMIN] Updated car ${carId}:`, fields.join(', '));
         return res.json({ success: true });
     } catch (error) {
+        if (error.code === '42703') {
+            try {
+                await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS show_on_homepage BOOLEAN DEFAULT false`);
+                await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS availability_status TEXT DEFAULT 'Available'`);
+                await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS homepage_note TEXT`);
+                const query = `UPDATE cars SET ${fields.join(', ')}, updated_at = NOW() WHERE car_id = $${fields.length + 1}`;
+                await pool.query(query, values);
+                console.log(`[ADMIN] Updated car ${carId} after adding missing columns.`);
+                return res.json({ success: true });
+            } catch (innerErr) {
+                console.error('[ADMIN] Error adding missing car columns:', innerErr);
+            }
+        }
         console.error(`[ADMIN] Error updating car ${carId}:`, error);
         return res.status(500).json({ success: false, error: 'Failed to update car' });
     }
@@ -2032,13 +2065,17 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
             return {
                 id: car.car_id,
                 name: car.name,
+                description: car.description,
+                image: car.image,
                 manual_status: car.manual_status,
                 manual_blocks: carManualBlocks,
                 booked_ranges: bookedRanges,
                 category: car.category,
                 specs,
                 available: car.available,
-                show_on_homepage: car.show_on_homepage
+                show_on_homepage: car.show_on_homepage,
+                availability_status: car.availability_status,
+                homepage_note: car.homepage_note
             };
         });
         return res.json({
@@ -2106,6 +2143,7 @@ app.get('/api/cars/availability/all', async (req, res) => {
             return {
                 id: car.car_id,
                 name: car.name,
+                description: car.description,
                 manual_status: car.manual_status,
                 manual_blocks: carManualBlocks,
                 booked_ranges: bookedRanges,
@@ -2114,7 +2152,9 @@ app.get('/api/cars/availability/all', async (req, res) => {
                 available: car.available,
                 image: car.image,
                 features: car.features,
-                show_on_homepage: car.show_on_homepage
+                show_on_homepage: car.show_on_homepage,
+                availability_status: car.availability_status,
+                homepage_note: car.homepage_note
             };
         });
         return res.json({
@@ -2284,6 +2324,7 @@ async function startServerWithMigrations() {
         await migrateAddBoosterSeatToBookings();
         await migrateAddConfirmationEmailSent();
         await migrateAddShowOnHomepageToCars();
+        await migrateAddHomepageFieldsToCars();
     }
 
     // Register all routes only after migrations are complete
