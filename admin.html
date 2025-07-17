@@ -946,6 +946,7 @@
             <li class="nav-item"><a class="nav-link" id="mobileSettingsTab" data-section="settings" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
             <li class="nav-item"><a class="nav-link" id="mobileEditCarTab" data-section="editCar" href="#"><i class="fas fa-edit me-2"></i>Edit Car</a></li>
             <li class="nav-item"><a class="nav-link" id="mobileManageFleetTab" data-section="manageFleet" href="#"><i class="fas fa-car-side me-2"></i>Manage Fleet</a></li>
+            <li class="nav-item"><a class="nav-link" id="mobileHomepageCarsTab" data-section="homepageCars" href="#"><i class="fas fa-home me-2"></i>Homepage Cars</a></li>
             <li class="nav-item mt-3"><a class="nav-link text-danger" id="mobileLogoutBtn" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
         </ul>
     </div>
@@ -984,6 +985,12 @@
                             <a class="nav-link" id="tab-manage-fleet" href="#" data-section="manageFleet" role="tab" aria-selected="false" tabindex="0">
                                 <i class="fas fa-car me-2"></i>
                                 Manage Fleet
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="tab-homepage-cars" href="#" data-section="homepageCars" role="tab" aria-selected="false" tabindex="0">
+                                <i class="fas fa-home me-2"></i>
+                                Homepage Cars
                             </a>
                         </li>
                         <li class="nav-item">
@@ -1369,6 +1376,14 @@
                     </div>
                 </div>
 
+                <!-- Homepage Cars Panel -->
+                <div id="homepageCarsPanel" class="content-section d-none">
+                    <div class="card shadow-sm p-4 mb-4 border border-blue-100">
+                        <h4 class="text-primary mb-3"><i class="fas fa-home me-2"></i>Homepage Cars</h4>
+                        <div id="homepageCarsList"></div>
+                    </div>
+                </div>
+
                 <!-- Addons Content -->
                 <div id="addonsContent" class="content-section d-none">
                     <div class="card shadow-sm p-4 mb-4 border border-blue-100">
@@ -1413,6 +1428,12 @@
                 <button class="btn btn-link w-100 py-2 text-muted" data-section="manageFleet">
                     <i class="fas fa-car-side d-block"></i>
                     <small>Manage Fleet</small>
+                </button>
+            </div>
+            <div class="col">
+                <button class="btn btn-link w-100 py-2 text-muted" data-section="homepageCars">
+                    <i class="fas fa-home d-block"></i>
+                    <small>Homepage Cars</small>
                 </button>
             </div>
             <div class="col">
@@ -1461,7 +1482,8 @@
             document.querySelectorAll('.content-section').forEach(el => el.classList.add('d-none'));
             
             // Show selected section
-            const target = document.getElementById(section + 'Content');
+            let target = document.getElementById(section + 'Content');
+            if (!target) target = document.getElementById(section + 'Panel');
             if (target) target.classList.remove('d-none');
             
             // Update active states in navigation
@@ -1491,6 +1513,9 @@
                     break;
                 case 'addons':
                     if (typeof loadAddons === 'function') loadAddons();
+                    break;
+                case 'homepageCars':
+                    if (typeof loadHomepageCars === 'function') loadHomepageCars();
                     break;
             }
             

@@ -54,6 +54,7 @@ async function createTables() {
                 category TEXT,
                 specifications JSONB,
                 monthly_pricing JSONB DEFAULT '{}',
+                show_on_homepage BOOLEAN DEFAULT false,
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             )
