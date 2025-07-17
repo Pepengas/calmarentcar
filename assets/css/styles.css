@@ -478,7 +478,7 @@ header {
     font-weight: 600;
     font-size: 1.1rem;
     margin: 16px 0;
-    text-align: center;
+    text-align: left;
 }
 .cancel-note {
     display: block;
@@ -541,12 +541,17 @@ header {
 }
 
 .car-pricing {
-    margin-top: auto;
+    margin-top: 0;
+    margin-bottom: 16px;
     font-size: 0.95rem;
 }
 
 .btn.btn-primary {
     margin-top: 16px;
+}
+
+.book-from-grid {
+    margin-top: auto;
 }
 
 
@@ -1520,7 +1525,8 @@ footer {
 
 /* Car Cards Pricing */
 .car-pricing {
-    margin-top: auto;
+    margin-top: 0;
+    margin-bottom: 16px;
     font-size: 0.95rem;
 }
 
@@ -1530,6 +1536,7 @@ footer {
     width: 100%;
     padding: 12px;
     font-size: 1rem;
+    margin-top: auto;
 }
 
 /* Booking Form Note */
