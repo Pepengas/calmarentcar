@@ -376,6 +376,20 @@ async function migrateAddConfirmationEmailSent() {
     }
 }
 
+// Migration: Add show_on_homepage column
+async function migrateAddShowOnHomepageToCars() {
+    try {
+        if (!global.dbConnected) {
+            console.warn('⚠️ Cannot run migration: database not connected');
+            return;
+        }
+        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS show_on_homepage BOOLEAN DEFAULT false`);
+        console.log('✅ Migration: show_on_homepage column ensured in cars table.');
+    } catch (err) {
+        console.error('❌ Migration error (add show_on_homepage to cars):', err);
+    }
+}
+
 // Insert a default admin if none exist
 async function ensureDefaultAdmin() {
     try {
@@ -399,6 +413,7 @@ if (global.dbConnected) {
     migrateAddCarIdToBookings();
     migrateAddBoosterSeatToBookings();
     migrateAddConfirmationEmailSent();
+    migrateAddShowOnHomepageToCars();
     ensureDefaultAdmin();
 }
 
@@ -1795,9 +1810,9 @@ app.post('/api/admin/car', requireAdminAuth, async (req, res) => {
         }
         const monthly_pricing = getDefaultMonthlyPricing(pricePerDay);
         await pool.query(
-            `INSERT INTO cars (car_id, name, description, image, features, monthly_pricing, available, manual_status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [car_id, name, description || null, image || null, JSON.stringify(features || []), JSON.stringify(monthly_pricing), true, 'automatic']
+            `INSERT INTO cars (car_id, name, description, image, features, monthly_pricing, available, manual_status, show_on_homepage)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [car_id, name, description || null, image || null, JSON.stringify(features || []), JSON.stringify(monthly_pricing), true, 'automatic', false]
         );
         res.json({ success: true, car_id });
     } catch (err) {
@@ -1838,7 +1853,7 @@ app.patch('/api/admin/car/:id',
     validate([param('id').notEmpty()]),
     async (req, res) => {
     const carId = req.params.id;
-    const { name, description, image, category, features, specs, available } = req.body;
+    const { name, description, image, category, features, specs, available, show_on_homepage } = req.body;
     try {
         // Build dynamic update query
         const fields = [];
@@ -1851,6 +1866,7 @@ app.patch('/api/admin/car/:id',
         if (features !== undefined) { fields.push(`features = $${idx++}`); values.push(JSON.stringify(features)); }
         if (specs !== undefined) { fields.push(`specs = $${idx++}`); values.push(JSON.stringify(specs)); }
         if (available !== undefined) { fields.push(`available = $${idx++}`); values.push(available); }
+        if (show_on_homepage !== undefined) { fields.push(`show_on_homepage = $${idx++}`); values.push(show_on_homepage); }
         if (fields.length === 0) {
             return res.status(400).json({ success: false, error: 'No fields to update' });
         }
@@ -1939,6 +1955,34 @@ app.patch('/api/admin/car/:carId/pricing',
     }
 });
 
+// Admin: Update homepage visibility
+app.patch('/api/admin/car/:id/homepage',
+    requireAdminAuth,
+    validate([
+        param('id').notEmpty(),
+        body('show_on_homepage').isBoolean()
+    ]),
+    async (req, res) => {
+    const carId = req.params.id;
+    const { show_on_homepage } = req.body;
+    try {
+        await pool.query('UPDATE cars SET show_on_homepage = $1 WHERE car_id = $2', [show_on_homepage, carId]);
+        return res.json({ success: true });
+    } catch (err) {
+        if (err.code === '42703') {
+            try {
+                await pool.query('ALTER TABLE cars ADD COLUMN IF NOT EXISTS show_on_homepage BOOLEAN DEFAULT false');
+                await pool.query('UPDATE cars SET show_on_homepage = $1 WHERE car_id = $2', [show_on_homepage, carId]);
+                return res.json({ success: true });
+            } catch (innerErr) {
+                console.error('Error adding show_on_homepage column:', innerErr);
+            }
+        }
+        console.error('Error updating homepage flag:', err);
+        return res.status(500).json({ success: false, error: 'Failed to update homepage flag' });
+    }
+});
+
 // Admin: Get car availability with booked and manual blocks
 app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
     try {
@@ -1987,7 +2031,8 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
                 booked_ranges: bookedRanges,
                 category: car.category,
                 specs,
-                available: car.available
+                available: car.available,
+                show_on_homepage: car.show_on_homepage
             };
         });
         return res.json({
@@ -2056,7 +2101,8 @@ app.get('/api/cars/availability/all', async (req, res) => {
                 specs,
                 available: car.available,
                 image: car.image,
-                features: car.features
+                features: car.features,
+                show_on_homepage: car.show_on_homepage
             };
         });
         return res.json({
@@ -2225,6 +2271,7 @@ async function startServerWithMigrations() {
         await migrateAddCarIdToBookings();
         await migrateAddBoosterSeatToBookings();
         await migrateAddConfirmationEmailSent();
+        await migrateAddShowOnHomepageToCars();
     }
 
     // Register all routes only after migrations are complete

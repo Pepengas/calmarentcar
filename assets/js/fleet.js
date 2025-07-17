@@ -64,12 +64,12 @@ export const Fleet = {
     
     async fetchCars() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/cars`);
+            const response = await fetch(`${API_BASE_URL}/api/cars/availability/all`);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const data = await response.json();
-            return data.cars || [];
+            return (data.cars || []).filter(c => c.show_on_homepage);
         } catch (error) {
             console.error('Failed to fetch cars:', error);
             if (this.carGrid) this.carGrid.innerHTML = '<p class="error-message">Failed to load car fleet. Please try refreshing.</p>';
