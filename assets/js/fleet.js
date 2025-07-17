@@ -145,14 +145,14 @@ export const Fleet = {
                     }
                 }
             }
-            const priceText = car.pricePerDay ? `From €${car.pricePerDay}/day` : '';
+const priceText = car.pricePerDay ? `From €${car.pricePerDay}/day` : '';
             const priceHtml = priceText ? `<span class="price">${priceText}</span>` : '';
             card.innerHTML = `
                 <div class="car-image">
                     <img src="${imageUrl}" alt="${car.name}" loading="lazy" width="300" height="200">
                 </div>
                 <div class="car-details">
-                    <h3 class="car-name">${car.name}</h3>
+<h3 class="car-name">${car.name}</h3>
                     <p class="car-desc">${car.description || ''}</p>
                     <p class="availability-status ${car.availability_status === 'Available' ? 'status-available' : 'status-unavailable'}">${car.availability_status || ''}</p>
                     ${featuresHtml}
