@@ -491,6 +491,9 @@ document.addEventListener("DOMContentLoaded", async function() {
         if (section === 'manageFleet' && typeof loadManageCars === 'function') {
             loadManageCars();
         }
+        if (section === 'homepageCars' && typeof loadHomepageCars === 'function') {
+            loadHomepageCars();
+        }
     }
     // Attach click listeners
     tabSectionMap.forEach(({ tab, content }) => {
@@ -2279,5 +2282,52 @@ async function removeCar(carId) {
     } catch (err) {
         console.error('[Admin] Error deleting car:', err);
         showToast(err.message || 'Failed to delete car', 'danger');
+    }
+}
+
+async function loadHomepageCars() {
+    const container = document.getElementById('homepageCarsList');
+    if (!container) return;
+    container.innerHTML = '<div class="text-muted">Loading...</div>';
+    try {
+        const res = await fetch('/api/admin/cars/availability', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load cars');
+        container.innerHTML = '';
+        data.cars.forEach(car => {
+            const div = document.createElement('div');
+            div.className = 'form-check form-switch mb-2';
+            div.innerHTML = `
+                <input class="form-check-input homepage-toggle" type="checkbox" id="hp-${car.id}" data-id="${car.id}" ${car.show_on_homepage ? 'checked' : ''}>
+                <label class="form-check-label ms-2" for="hp-${car.id}">${car.name}</label>`;
+            container.appendChild(div);
+        });
+        document.querySelectorAll('.homepage-toggle').forEach(toggle => {
+            toggle.addEventListener('change', async function() {
+                const carId = this.getAttribute('data-id');
+                const checked = this.checked;
+                try {
+                    const resp = await fetch(`/api/admin/car/${carId}/homepage`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                        },
+                        body: JSON.stringify({ show_on_homepage: checked })
+                    });
+                    const result = await resp.json();
+                    if (!resp.ok || !result.success) throw new Error(result.error || 'Update failed');
+                    showToast('Updated', 'success');
+                } catch (err) {
+                    console.error('[Admin] update homepage error:', err);
+                    showToast(err.message || 'Update failed', 'danger');
+                }
+            });
+        });
+    } catch (err) {
+        console.error('[Admin] Error loading homepage cars:', err);
+        container.innerHTML = '<div class="text-danger">Failed to load cars</div>';
     }
 }
