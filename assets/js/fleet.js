@@ -111,7 +111,10 @@ export const Fleet = {
         if (pickupDate && dropoffDate) {
             userRange = [parseDateUTC(pickupDate), parseDateUTC(dropoffDate)];
         }
+        const seen = new Set();
         cars.forEach(car => {
+            if (seen.has(car.id)) return;
+            seen.add(car.id);
             console.log('Rendering car:', car);
             console.log('Manual blocks for this car:', car.manual_blocks);
             const card = document.createElement('div');
@@ -119,7 +122,7 @@ export const Fleet = {
             const imageUrl = car.image.startsWith('http') ? car.image : `${API_BASE_URL}/${car.image}`;
             let featuresHtml = '';
             if (car.features && car.features.length > 0) {
-                featuresHtml = `<ul class="car-features"><li>${car.features.join('</li><li>')}</li></ul>`;
+                featuresHtml = `<div class="car-features">${car.features.join(' · ')}</div>`;
             }
             // --- Availability logic ---
             let isAvailable = true;
@@ -140,21 +143,20 @@ export const Fleet = {
                     }
                 }
             }
+            const priceHtml = car.pricePerDay ? `<div class="price">From €${car.pricePerDay}/day</div>` : '';
             card.innerHTML = `
                 <div class="car-image">
                     <img src="${imageUrl}" alt="${car.name}" loading="lazy" width="300" height="200">
                 </div>
                 <div class="car-details">
-                    <h3>${car.name}</h3>
-                    <p>${car.description}</p>
+                    <h3 class="car-name">${car.name}</h3>
+                    <p class="car-desc">${car.description || ''}</p>
+                    <p class="availability-status">${car.availability_status || ''}</p>
                     ${featuresHtml}
-                    <div class="car-pricing">
-                        <span class="price">From €${car.pricePerDay}/day</span>
-                        <span class="price-note">· Free cancellation</span>
-                    </div>
-                    <button class="btn btn-primary book-from-grid" data-car-id="${car.id}" ${!isAvailable ? 'disabled' : ''}>${isAvailable ? 'Book Now' : unavailableReason}</button>
-                </div>
-            `;
+                    ${priceHtml}
+                    <div class="price-note">${car.homepage_note || 'Free cancellation'}</div>
+                    <button class="btn btn-primary book-from-grid" data-car-id="${car.id}" ${!isAvailable ? 'disabled' : ''}>${isAvailable ? 'BOOK NOW' : unavailableReason}</button>
+                </div>`;
             this.carGrid.appendChild(card);
         });
         this.addGridBookNowListeners();
