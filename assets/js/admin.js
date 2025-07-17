@@ -2297,31 +2297,88 @@ async function loadHomepageCars() {
         if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load cars');
         container.innerHTML = '';
         data.cars.forEach(car => {
-            const div = document.createElement('div');
-            div.className = 'form-check form-switch mb-2';
-            div.innerHTML = `
-                <input class="form-check-input homepage-toggle" type="checkbox" id="hp-${car.id}" data-id="${car.id}" ${car.show_on_homepage ? 'checked' : ''}>
-                <label class="form-check-label ms-2" for="hp-${car.id}">${car.name}</label>`;
-            container.appendChild(div);
+            const card = document.createElement('div');
+            card.className = 'card mb-3 p-3 homepage-car';
+            card.dataset.id = car.id;
+            card.innerHTML = `
+                <div class="row g-2 align-items-center">
+                    <div class="col-3 col-md-2 text-center">
+                        <img src="${car.image}" class="img-fluid rounded mb-2 car-thumb" style="max-height:80px;">
+                        <input type="file" class="form-control form-control-sm car-image-input">
+                    </div>
+                    <div class="col-9 col-md-10">
+                        <input type="text" class="form-control form-control-sm mb-2 car-name" value="${car.name}">
+                        <textarea class="form-control form-control-sm mb-2 car-desc" rows="2">${car.description || ''}</textarea>
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-4 col-6">
+                                <select class="form-select form-select-sm car-status">
+                                    <option value="Available" ${car.availability_status === 'Available' ? 'selected' : ''}>Available</option>
+                                    <option value="Not Available" ${car.availability_status === 'Not Available' ? 'selected' : ''}>Not Available</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input car-show" type="checkbox" ${car.show_on_homepage ? 'checked' : ''}>
+                                    <label class="form-check-label">Show on homepage</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <input type="text" class="form-control form-control-sm car-note" placeholder="Extra label" value="${car.homepage_note || ''}">
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button class="btn btn-sm btn-primary save-homepage-car">Save</button>
+                        </div>
+                    </div>
+                </div>`;
+            container.appendChild(card);
         });
-        document.querySelectorAll('.homepage-toggle').forEach(toggle => {
-            toggle.addEventListener('change', async function() {
-                const carId = this.getAttribute('data-id');
-                const checked = this.checked;
+
+        container.querySelectorAll('.save-homepage-car').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const card = this.closest('.homepage-car');
+                if (!card) return;
+                const id = card.dataset.id;
+                const name = card.querySelector('.car-name').value.trim();
+                const description = card.querySelector('.car-desc').value.trim();
+                const availability_status = card.querySelector('.car-status').value;
+                const show_on_homepage = card.querySelector('.car-show').checked;
+                const homepage_note = card.querySelector('.car-note').value.trim();
+                let image = card.querySelector('.car-thumb').getAttribute('src');
+                const fileInput = card.querySelector('.car-image-input');
+                if (fileInput && fileInput.files && fileInput.files[0]) {
+                    const formData = new FormData();
+                    formData.append('image', fileInput.files[0]);
+                    try {
+                        const uploadRes = await fetch('/api/admin/upload-image', {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+                            body: formData
+                        });
+                        const uploadData = await uploadRes.json();
+                        if (!uploadRes.ok) throw new Error(uploadData.error || 'Image upload failed');
+                        image = uploadData.url;
+                        card.querySelector('.car-thumb').src = image;
+                        fileInput.value = '';
+                    } catch (err) {
+                        showToast(err.message || 'Image upload failed', 'danger');
+                        return;
+                    }
+                }
                 try {
-                    const resp = await fetch(`/api/admin/car/${carId}/homepage`, {
+                    const resp = await fetch(`/api/admin/car/${id}`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                         },
-                        body: JSON.stringify({ show_on_homepage: checked })
+                        body: JSON.stringify({ name, description, availability_status, show_on_homepage, homepage_note, image })
                     });
                     const result = await resp.json();
                     if (!resp.ok || !result.success) throw new Error(result.error || 'Update failed');
-                    showToast('Updated', 'success');
+                    showToast('Saved', 'success');
                 } catch (err) {
-                    console.error('[Admin] update homepage error:', err);
+                    console.error('[Admin] save homepage car error:', err);
                     showToast(err.message || 'Update failed', 'danger');
                 }
             });
