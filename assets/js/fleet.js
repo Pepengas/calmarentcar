@@ -64,7 +64,7 @@ export const Fleet = {
     
     async fetchCars() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/cars/availability/all`);
+            const response = await fetch(`${API_BASE_URL}/api/cars/availability/all?homepage=true`);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
