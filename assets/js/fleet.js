@@ -147,8 +147,6 @@ export const Fleet = {
             }
             const priceText = car.pricePerDay ? `From €${car.pricePerDay}/day` : '';
 const priceHtml = priceText ? `<div class="price-area"><span class="price">${priceText}</span></div>` : '';
-            const statusText = isAvailable ? 'Available' : 'Not Available';
-            const statusClass = isAvailable ? 'status-available' : 'status-unavailable';
             const cancelNote = car.homepage_note || 'Free cancellation';
             card.innerHTML = `
                 <div class="car-image">
@@ -157,8 +155,9 @@ const priceHtml = priceText ? `<div class="price-area"><span class="price">${pri
                 <div class="car-details">
                     <h3 class="car-name">${car.name}</h3>
                     <p class="car-desc">${car.description || ''}</p>
- <div class="availability-block ${statusClass}">
-                        ${statusText}<br><span class="cancel-note">${cancelNote}</span>
+                    <div class="availability-box">
+                        <span class="status available">✅ Available</span>
+                        <span class="note">• ${cancelNote}</span>
                     </div>
                     ${priceHtml}
                     <button class="btn btn-primary book-from-grid" data-car-id="${car.id}" ${!isAvailable ? 'disabled' : ''}>BOOK NOW</button>
