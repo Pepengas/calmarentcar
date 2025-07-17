@@ -474,15 +474,17 @@ header {
     transform: scale(1.1);
 }
 
-.car-features {
-    font-size: 0.9rem;
-    color: #555;
-    margin-bottom: 12px;
-}
-
-.availability-status {
+.availability-block {
     font-weight: 600;
-    margin-bottom: 8px;
+    font-size: 1.1rem;
+    margin: 16px 0;
+    text-align: center;
+}
+.cancel-note {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: normal;
+    color: #6c757d;
 }
 
 .price {
@@ -520,13 +522,14 @@ header {
 .car-bottom {
     margin-top: auto;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
     gap: 10px;
 }
 
 .price-area {
     font-size: 1rem;
+    text-align: center;
 }
 
 .status-available {
@@ -534,7 +537,7 @@ header {
 }
 
 .status-unavailable {
-    color: #6c757d;
+    color: #dc3545;
 }
 
 .car-pricing {
@@ -546,19 +549,7 @@ header {
     margin-top: 16px;
 }
 
-@media (min-width: 768px) {
-    .car-card {
-        flex-direction: row;
-        height: 220px;
-    }
-    .car-image {
-        flex: 0 0 40%;
-        height: 100%;
-    }
-    .car-details {
-        padding: 20px;
-    }
-}
+
 
 /* About/Additional Sections */
 .about-section, 
@@ -1534,9 +1525,6 @@ footer {
 }
 
 
-.price-note {
-    color: #6c757d;
-}
 
 .car-details .btn-primary {
     width: 100%;
