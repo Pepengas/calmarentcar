@@ -1970,6 +1970,7 @@ app.patch('/api/admin/car/:id/homepage',
         return res.json({ success: true });
     } catch (err) {
         if (err.code === '42703') {
+ if (err.code === '42703') {
             try {
                 await pool.query('ALTER TABLE cars ADD COLUMN IF NOT EXISTS show_on_homepage BOOLEAN DEFAULT false');
                 await pool.query('UPDATE cars SET show_on_homepage = $1 WHERE car_id = $2', [show_on_homepage, carId]);
