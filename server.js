@@ -13,6 +13,7 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const { body, param, query, validationResult } = require('express-validator');
 const xss = require('xss');
+const XLSX = require('xlsx');
 require('dotenv').config();
 
 const { Resend } = require('resend');
@@ -2041,6 +2042,47 @@ app.delete('/api/admin/manual-block/:id',
             return res.status(500).json({ success: false, error: 'Failed to delete manual block' });
         }
     });
+
+// Export all manual blocks to Excel (admin only)
+app.get('/api/admin/manual-blocks/export', requireAdminAuth, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT c.name AS car_name, mb.start_date, mb.end_date
+             FROM manual_blocks mb
+             JOIN cars c ON mb.car_id = c.car_id
+             ORDER BY c.name ASC, mb.start_date ASC`
+        );
+        const blocks = result.rows || [];
+
+        const sheetData = [
+            ['Manual Blocked Dates Export'],
+            ['Car Name', 'Block Start', 'Block End']
+        ];
+        blocks.forEach(b => {
+            sheetData.push([
+                b.car_name,
+                b.start_date ? b.start_date.toISOString().split('T')[0] : '',
+                b.end_date ? b.end_date.toISOString().split('T')[0] : ''
+            ]);
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+        ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }];
+        ws['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 15 }];
+
+        XLSX.utils.book_append_sheet(wb, ws, 'Manual Blocks');
+        const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        const filename = `manual_blocks_${new Date().toISOString().slice(0,10)}.xlsx`;
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.send(buffer);
+    } catch (error) {
+        console.error('[ADMIN] Error exporting manual blocks:', error);
+        res.status(500).json({ success: false, error: 'Failed to export manual blocks' });
+    }
+});
 
 // Stripe checkout session endpoint
 app.post('/api/create-checkout-session', async (req, res) => {
