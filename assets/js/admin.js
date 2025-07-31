@@ -1713,6 +1713,7 @@ window.saveMonthlyPricingMonth = async function(carId, monthKey, btn) {
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed to update pricing');
+        car.monthly_pricing = pricing;
         btn.textContent = 'Saved!';
         setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 1200);
         alert('Pricing updated successfully!');
