@@ -1813,7 +1813,7 @@ async function loadCarAvailability() {
             }
 
             const manualBlocksHtml = `
-                <div class="manual-blocks-container">
+                    <div class="manual-blocks-container">
                     <div class="manual-blocks-header">
                         <span class="manual-blocks-toggle-icon">\u25B6</span>
                         <span class="manual-blocks-title">Manual Blocks (${blockCount} total)</span>
@@ -1944,7 +1944,7 @@ async function loadCarAvailability() {
             });
         });
 
-        // Toggle manual blocks visibility
+      // Toggle manual blocks visibility
         document.querySelectorAll('.manual-blocks-header').forEach(header => {
             header.addEventListener('click', function () {
                 const container = this.closest('.manual-blocks-container');
