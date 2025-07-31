@@ -20,7 +20,6 @@ const customersContent = document.getElementById('customersContent');
 const settingsContent = document.getElementById('settingsContent');
 const editCarContent = document.getElementById('editCarContent');
 const addonsContent = document.getElementById('addonsContent');
-const manageFleetPanel = document.getElementById('manageFleetPanel');
 
 // Initialize the dashboard when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -121,27 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             document.getElementById('addUserMsg').textContent = data.success ? 'User added.' : data.error;
             console.log('[DEBUG] Add user response:', data);
-        });
-    }
-
-    const manageFleetTab = document.getElementById('tab-manage-fleet');
-    if (manageFleetTab) {
-        manageFleetTab.addEventListener('click', (e) => {
-            e.preventDefault();
-            showSection('manageFleet');
-            loadManageCars();
-        });
-    }
-
-    const addCarBtn = document.getElementById('addCarBtn');
-    if (addCarBtn) {
-        addCarBtn.addEventListener('click', handleAddCar);
-    }
-
-    const carImageFileInput = document.getElementById('carImageFile');
-    if (carImageFileInput) {
-        carImageFileInput.addEventListener('change', () => {
-            showToast('Please name the image as CalmaCarName (e.g., CalmaFiatPanda.jpg)', 'info');
         });
     }
 });
@@ -271,15 +249,13 @@ function setupTabSwitching() {
         });
     });
     
-    // Setup mobile bottom navigation
-    const mobileNavButtons = document.querySelectorAll('.mobile-nav [data-section]');
+    // Setup mobile navigation
+    const mobileNavButtons = document.querySelectorAll('.mobile-nav .btn');
     mobileNavButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
-            const section = button.dataset.section || (button.getAttribute('onclick') || '').match(/'([^']+)'/)?.[1];
-            if (section) {
-                showSection(section);
-            }
+            const section = button.getAttribute('onclick').match(/'([^']+)'/)[1];
+            showSection(section);
         });
     });
     
@@ -298,8 +274,7 @@ function showSection(sectionName) {
         'customersContent',
         'settingsContent',
         'editCarContent',
-        'addonsContent',
-        'manageFleetPanel'
+        'addonsContent'
     ];
     
     contentSections.forEach(id => {
@@ -310,10 +285,7 @@ function showSection(sectionName) {
     });
     
     // Show the selected section
-    let selectedSection = document.getElementById(`${sectionName}Content`);
-    if (!selectedSection) {
-        selectedSection = document.getElementById(`${sectionName}Panel`);
-    }
+    const selectedSection = document.getElementById(`${sectionName}Content`);
     if (selectedSection) {
         selectedSection.classList.remove('d-none');
     }
@@ -338,9 +310,6 @@ function showSection(sectionName) {
             break;
         case 'customers':
             loadCarAvailability();
-            break;
-        case 'manageFleet':
-            loadManageCars();
             break;
         case 'addons':
             loadAddons();
@@ -444,44 +413,6 @@ async function loadCarAvailability() {
 }
 
 /**
- * Load all cars for Manage Cars panel
- */
-async function loadManageCars() {
-    const container = document.getElementById('carListContainer');
-    if (!container) return;
-    container.innerHTML = '<div class="text-muted">Loading cars...</div>';
-    try {
-        const response = await fetch('/api/admin/cars/availability', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            }
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Failed to fetch cars');
-        if (!Array.isArray(data.cars) || data.cars.length === 0) {
-            container.innerHTML = '<div class="text-muted">No cars found.</div>';
-            return;
-        }
-        container.innerHTML = data.cars.map(car => `
-            <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
-                <span>${car.name}</span>
-                <div>
-                    <span class="badge ${car.available ? 'bg-success' : 'bg-secondary'} me-2">${car.available ? 'Available' : 'Unavailable'}</span>
-                    <button class="btn btn-sm btn-danger" onclick="removeCar('${car.id}')">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-            </div>
-        `).join('');
-    } catch (err) {
-        console.error('Error loading cars:', err);
-        container.innerHTML = '<div class="text-danger">Failed to load cars</div>';
-    }
-}
-
-/**
-
-/**
  * Load addons data
  */
 async function loadAddons() {
@@ -551,59 +482,6 @@ function showError(message) {
         setTimeout(() => {
             errorContainer.classList.add('d-none');
         }, 5000);
-    }
-}
-
-/**
- * Handle Add Car form submission
- */
-async function handleAddCar() {
-    const name = document.getElementById('carName').value.trim();
-    const description = document.getElementById('carDescription').value.trim();
-    const pricePerDay = parseFloat(document.getElementById('carPrice').value);
-    const fileInput = document.getElementById('carImageFile');
-    const featuresStr = document.getElementById('carFeatures').value.trim();
-    const features = featuresStr ? featuresStr.split(',').map(f => f.trim()).filter(f => f) : [];
-
-    let image = null;
-
-    if (fileInput && fileInput.files && fileInput.files[0]) {
-        const formData = new FormData();
-        formData.append('image', fileInput.files[0]);
-        try {
-            const uploadRes = await fetch('/api/admin/upload-image', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                },
-                body: formData
-            });
-            const uploadData = await uploadRes.json();
-            if (!uploadRes.ok) throw new Error(uploadData.error || 'Image upload failed');
-            image = uploadData.url;
-        } catch (err) {
-            console.error('Image upload failed:', err);
-            showError(err.message || 'Image upload failed');
-            return;
-        }
-    }
-
-    try {
-        const res = await fetch('/api/admin/car', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            },
-            body: JSON.stringify({ name, description, pricePerDay, image, features })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to add car');
-        document.getElementById('addCarForm').reset();
-        loadManageCars();
-    } catch (err) {
-        console.error('Error adding car:', err);
-        showError(err.message || 'Failed to add car');
     }
 }
 
@@ -798,22 +676,4 @@ function showBookingDetailsFromTable(bookingRef) {
     } else {
         alert('Booking not found!');
     }
-}
-
-async function removeCar(carId) {
-    if (!confirm('Are you sure you want to delete this car?')) return;
-    try {
-        const res = await fetch(`/api/admin/car/${carId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            }
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to delete car');
-        loadManageCars();
-    } catch (err) {
-        console.error('Error deleting car:', err);
-        showError(err.message || 'Failed to delete car');
-    }
-}
+} 

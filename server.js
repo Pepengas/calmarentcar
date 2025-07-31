@@ -6,7 +6,6 @@
 // Import required packages
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
@@ -27,7 +26,6 @@ esbuildRegister({ extensions: ['.jsx'] });
 const React = require('react');
 const { render } = require('@react-email/render');
 const BookingConfirmationEmail = require('./emails/BookingConfirmation.jsx').default;
-const multer = require('multer');
 
 // Ensure the Stripe secret key is provided
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -116,72 +114,6 @@ const validate = (validations) => async (req, res, next) => {
     }
     next();
 };
-
-function slugify(text) {
-    return (text || '')
-        .toString()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
-}
-
-function getDefaultMonthlyPricing(basePrice) {
-    const p = Math.round(parseFloat(basePrice) || 0);
-    const year = new Date().getFullYear();
-    const multipliers = [1,1,1,1,1.1,1.2,1.3,1.4,1.2,1,1,1];
-    const pricing = {};
-    for (let i = 0; i < 12; i++) {
-        const month = `${year}-${String(i + 1).padStart(2, '0')}`;
-        const price = Math.round(p * multipliers[i]);
-        pricing[month] = {
-            day_1: price,
-            day_2: price,
-            day_3: price,
-            day_4: price,
-            day_5: price,
-            day_6: price,
-            day_7: price,
-            extra_day: price
-        };
-    }
-    return pricing;
-}
-
-function getMonthNumber(key) {
-    if (!key) return NaN;
-    if (key.includes('-')) {
-        const n = parseInt(key.split('-')[1], 10);
-        if (!isNaN(n)) return n;
-    }
-    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const idx = months.indexOf(key);
-    return idx >= 0 ? idx + 1 : NaN;
-}
-
-function getMonthPricing(pricing, monthKey) {
-    if (!pricing) return null;
-    if (pricing[monthKey]) return pricing[monthKey];
-    const target = getMonthNumber(monthKey);
-    if (isNaN(target)) return null;
-    for (const key of Object.keys(pricing)) {
-        if (getMonthNumber(key) === target) {
-            return pricing[key];
-        }
-    }
-    return null;
-}
-const uploadDir = path.join(__dirname, 'public', 'images');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-const storage = multer.diskStorage({
-    destination: uploadDir,
-    filename: (req, file, cb) => {
-        const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, unique + path.extname(file.originalname));
-    }
-});
-const upload = multer({ storage });
 app.get("/admin.html", requireAdminAuth, (req, res) =>
   res.sendFile(path.join(__dirname, "admin.html"))
 );
@@ -376,56 +308,6 @@ async function migrateAddConfirmationEmailSent() {
     }
 }
 
-// Migration: Add show_on_homepage column
-async function migrateAddShowOnHomepageToCars() {
-    try {
-        if (!global.dbConnected) {
-            console.warn('⚠️ Cannot run migration: database not connected');
-            return;
-        }
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS show_on_homepage BOOLEAN DEFAULT false`);
-        console.log('✅ Migration: show_on_homepage column ensured in cars table.');
-    } catch (err) {
-        console.error('❌ Migration error (add show_on_homepage to cars):', err);
-    }
-}
-
-// Migration: Add availability_status and homepage_note columns
-async function migrateAddHomepageFieldsToCars() {
-    try {
-        if (!global.dbConnected) {
-            console.warn('⚠️ Cannot run migration: database not connected');
-            return;
-        }
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS availability_status TEXT DEFAULT 'Available'`);
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS homepage_note TEXT`);
-        console.log('✅ Migration: availability_status and homepage_note columns ensured in cars table.');
-    } catch (err) {
-        console.error('❌ Migration error (add homepage fields to cars):', err);
-    }
-}
-
-// Migration: Ensure base car columns (name, description, etc)
-async function migrateEnsureBaseCarColumns() {
-    try {
-        if (!global.dbConnected) {
-            console.warn('⚠️ Cannot run migration: database not connected');
-            return;
-        }
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS name TEXT`);
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS description TEXT`);
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS image TEXT`);
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS category TEXT`);
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS features JSONB`);
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS specs JSONB`);
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS monthly_pricing JSONB DEFAULT '{}'`);
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS available BOOLEAN DEFAULT true`);
-        await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS manual_status TEXT DEFAULT 'automatic'`);
-        console.log('✅ Migration: base car columns ensured in cars table.');
-    } catch (err) {
-        console.error('❌ Migration error (ensure base car columns):', err);
-    }
-}
 // Insert a default admin if none exist
 async function ensureDefaultAdmin() {
     try {
@@ -449,9 +331,6 @@ if (global.dbConnected) {
     migrateAddCarIdToBookings();
     migrateAddBoosterSeatToBookings();
     migrateAddConfirmationEmailSent();
-    migrateEnsureBaseCarColumns();
-    migrateAddShowOnHomepageToCars();
-    migrateAddHomepageFieldsToCars();
     ensureDefaultAdmin();
 }
 
@@ -568,7 +447,7 @@ app.post('/api/bookings',
                 if (rateResult.rows.length === 0) {
                     console.error(`[Booking] No car found for car_id=${booking.car_id}`);
                 } else {
-                    daily_rate = getMonthPricing(rateResult.rows[0].monthly_pricing, pickup_month);
+                    daily_rate = rateResult.rows[0].monthly_pricing[pickup_month];
                     console.log(`[Booking] Fetched daily_rate for month ${pickup_month}:`, daily_rate);
                 }
             } catch (err) {
@@ -1435,8 +1314,6 @@ app.get('/api/cars', async (req, res) => {
                 features: car.features,
                 monthly_pricing: car.monthly_pricing,
                 available: car.available,
-                availability_status: car.availability_status,
-                homepage_note: car.homepage_note,
                 specs: car.specs,
                 manual_status: car.manual_status,
                 unavailable_dates: unavailable_dates || []
@@ -1597,7 +1474,7 @@ app.get('/api/get-price', async (req, res) => {
             });
         }
         const monthlyPricing = result.rows[0].monthly_pricing;
-        const monthPricing = getMonthPricing(monthlyPricing, month);
+        const monthPricing = monthlyPricing[month];
         if (!monthPricing) {
             return res.status(404).json({
                 success: false,
@@ -1690,7 +1567,7 @@ async function calculateTotalPrice(car_id, pickup_date, return_date) {
     // If rental is 1-7 days, use package price
     if (totalDays <= 7) {
         const month = pickup.toISOString().slice(0, 7);
-        const monthPricing = getMonthPricing(monthlyPricing, month);
+        const monthPricing = monthlyPricing[month];
         if (!monthPricing) {
             console.error(`[calculateTotalPrice] No pricing for month: ${month}`);
             throw new Error(`No price found for month ${month}`);
@@ -1704,7 +1581,7 @@ async function calculateTotalPrice(car_id, pickup_date, return_date) {
     } else {
         // For rentals >7 days, use day_7 + (N-7)*extra_day
         const month = pickup.toISOString().slice(0, 7);
-        const monthPricing = getMonthPricing(monthlyPricing, month);
+        const monthPricing = monthlyPricing[month];
         if (!monthPricing) {
             console.error(`[calculateTotalPrice] No pricing for month: ${month}`);
             throw new Error(`No price found for month ${month}`);
@@ -1827,40 +1704,6 @@ app.get('/booking-confirmation', (req, res) => {
     res.render('booking-confirmation');
 });
 
-// Admin: Upload car image
-app.post('/api/admin/upload-image', requireAdminAuth, upload.single('image'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ success: false, error: 'No file uploaded' });
-    }
- const url = `/images/${req.file.filename}`;
-    res.json({ success: true, url });
-});
-
-// Admin: Add a new car
-app.post('/api/admin/car', requireAdminAuth, async (req, res) => {
-    const { name, description, pricePerDay, image, features } = req.body;
-    if (!name) {
-        return res.status(400).json({ success: false, error: 'Name is required' });
-    }
-    const car_id = slugify(name);
-    try {
-        const exists = await pool.query('SELECT 1 FROM cars WHERE car_id = $1', [car_id]);
-        if (exists.rows.length > 0) {
-            return res.status(409).json({ success: false, error: 'Car already exists' });
-        }
-        const monthly_pricing = getDefaultMonthlyPricing(pricePerDay);
-        await pool.query(
-            `INSERT INTO cars (car_id, name, description, image, features, monthly_pricing, available, manual_status, show_on_homepage)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [car_id, name, description || null, image || null, JSON.stringify(features || []), JSON.stringify(monthly_pricing), true, 'automatic', false]
-        );
-        res.json({ success: true, car_id });
-    } catch (err) {
-        console.error('Error inserting car:', err);
-        res.status(500).json({ success: false, error: 'Failed to add car' });
-    }
-});
-
 // Admin: Get a single car by ID (with specs)
 app.get('/api/admin/car/:id',
     requireAdminAuth,
@@ -1873,12 +1716,9 @@ app.get('/api/admin/car/:id',
             return res.status(404).json({ success: false, error: 'Car not found' });
         }
         const car = result.rows[0];
-        // Parse JSON fields
+        // Parse unavailable_dates if present
         if (car.unavailable_dates && typeof car.unavailable_dates === 'string') {
             try { car.unavailable_dates = JSON.parse(car.unavailable_dates); } catch {}
-        }
-        if (car.specs && typeof car.specs === 'string') {
-            try { car.specs = JSON.parse(car.specs); } catch {}
         }
         return res.json({ success: true, car });
     } catch (error) {
@@ -1893,7 +1733,7 @@ app.patch('/api/admin/car/:id',
     validate([param('id').notEmpty()]),
     async (req, res) => {
     const carId = req.params.id;
-    const { name, description, image, category, features, specs, available, show_on_homepage, availability_status, homepage_note } = req.body;
+    const { name, description, image, category, features, specs, available } = req.body;
     try {
         // Build dynamic update query
         const fields = [];
@@ -1906,9 +1746,6 @@ app.patch('/api/admin/car/:id',
         if (features !== undefined) { fields.push(`features = $${idx++}`); values.push(JSON.stringify(features)); }
         if (specs !== undefined) { fields.push(`specs = $${idx++}`); values.push(JSON.stringify(specs)); }
         if (available !== undefined) { fields.push(`available = $${idx++}`); values.push(available); }
-        if (show_on_homepage !== undefined) { fields.push(`show_on_homepage = $${idx++}`); values.push(show_on_homepage); }
-        if (availability_status !== undefined) { fields.push(`availability_status = $${idx++}`); values.push(availability_status); }
-        if (homepage_note !== undefined) { fields.push(`homepage_note = $${idx++}`); values.push(homepage_note); }
         if (fields.length === 0) {
             return res.status(400).json({ success: false, error: 'No fields to update' });
         }
@@ -1918,37 +1755,8 @@ app.patch('/api/admin/car/:id',
         console.log(`[ADMIN] Updated car ${carId}:`, fields.join(', '));
         return res.json({ success: true });
     } catch (error) {
-        if (error.code === '42703') {
-            try {
-                await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS show_on_homepage BOOLEAN DEFAULT false`);
-                await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS availability_status TEXT DEFAULT 'Available'`);
-                await pool.query(`ALTER TABLE cars ADD COLUMN IF NOT EXISTS homepage_note TEXT`);
-                const query = `UPDATE cars SET ${fields.join(', ')}, updated_at = NOW() WHERE car_id = $${fields.length + 1}`;
-                await pool.query(query, values);
-                console.log(`[ADMIN] Updated car ${carId} after adding missing columns.`);
-                return res.json({ success: true });
-            } catch (innerErr) {
-                console.error('[ADMIN] Error adding missing car columns:', innerErr);
-            }
-        }
         console.error(`[ADMIN] Error updating car ${carId}:`, error);
         return res.status(500).json({ success: false, error: 'Failed to update car' });
-    }
-});
-
-// Admin: Delete a car
-app.delete('/api/admin/car/:id',
-    requireAdminAuth,
-    validate([param('id').notEmpty()]),
-    async (req, res) => {
-    const carId = req.params.id;
-    try {
-        await pool.query('DELETE FROM cars WHERE car_id = $1', [carId]);
-        await pool.query('DELETE FROM manual_blocks WHERE car_id = $1', [carId]);
-        return res.json({ success: true });
-    } catch (err) {
-        console.error('Error deleting car:', err);
-        return res.status(500).json({ success: false, error: 'Failed to delete car' });
     }
 });
 
@@ -2010,34 +1818,6 @@ app.patch('/api/admin/car/:carId/pricing',
     }
 });
 
-// Admin: Update homepage visibility
-app.patch('/api/admin/car/:id/homepage',
-    requireAdminAuth,
-    validate([
-        param('id').notEmpty(),
-        body('show_on_homepage').isBoolean()
-    ]),
-    async (req, res) => {
-    const carId = req.params.id;
-    const { show_on_homepage } = req.body;
-    try {
-        await pool.query('UPDATE cars SET show_on_homepage = $1 WHERE car_id = $2', [show_on_homepage, carId]);
-        return res.json({ success: true });
-    } catch (err) {
-        if (err.code === '42703') {
-            try {
-                await pool.query('ALTER TABLE cars ADD COLUMN IF NOT EXISTS show_on_homepage BOOLEAN DEFAULT false');
-                await pool.query('UPDATE cars SET show_on_homepage = $1 WHERE car_id = $2', [show_on_homepage, carId]);
-                return res.json({ success: true });
-            } catch (innerErr) {
-                console.error('Error adding show_on_homepage column:', innerErr);
-            }
-        }
-        console.error('Error updating homepage flag:', err);
-        return res.status(500).json({ success: false, error: 'Failed to update homepage flag' });
-    }
-});
-
 // Admin: Get car availability with booked and manual blocks
 app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
     try {
@@ -2050,13 +1830,7 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
         }
         // Get all cars
         const carsResult = await pool.query('SELECT * FROM cars');
-        let cars = carsResult.rows;
-
-        // Optional: filter only cars marked for homepage
-        const homepageOnly = req.query.homepage === 'true' || req.query.homepage === '1';
-        if (homepageOnly) {
-            cars = cars.filter(c => c.show_on_homepage);
-        }
+        const cars = carsResult.rows;
         console.log('[DEBUG] Cars from database:', cars.map(c => ({ id: c.id, car_id: c.car_id, name: c.name })));
         
         // Get all bookings with relevant statuses
@@ -2080,24 +1854,15 @@ app.get('/api/admin/cars/availability', requireAdminAuth, async (req, res) => {
                 b.car_id && car.car_id && b.car_id === car.car_id
             );
             const bookedRanges = carBookings.map(b => ({ id: b.id, start: b.pickup_date, end: b.return_date, status: b.status }));
-            let specs = car.specs;
-            if (specs && typeof specs === 'string') {
-                try { specs = JSON.parse(specs); } catch {}
-            }
             return {
                 id: car.car_id,
                 name: car.name,
-                description: car.description,
-                image: car.image,
                 manual_status: car.manual_status,
                 manual_blocks: carManualBlocks,
                 booked_ranges: bookedRanges,
                 category: car.category,
-                specs,
-                available: car.available,
-                show_on_homepage: car.show_on_homepage,
-                availability_status: car.availability_status,
-                homepage_note: car.homepage_note
+                specs: car.specs,
+                available: car.available
             };
         });
         return res.json({
@@ -2126,13 +1891,7 @@ app.get('/api/cars/availability/all', async (req, res) => {
         }
         // Get all cars
         const carsResult = await pool.query('SELECT * FROM cars');
-        let cars = carsResult.rows;
-
-        // Optional: filter cars marked for homepage
-        const homepageOnly = req.query.homepage === 'true' || req.query.homepage === '1';
-        if (homepageOnly) {
-            cars = cars.filter(c => c.show_on_homepage);
-        }
+        const cars = carsResult.rows;
         // Get all bookings with relevant statuses (by car_id)
         let bookingsResult;
         try {
@@ -2158,25 +1917,17 @@ app.get('/api/cars/availability/all', async (req, res) => {
             // Match bookings by car_id
             const carBookings = bookings.filter(b => b.car_id && car.car_id && b.car_id === car.car_id);
             const bookedRanges = carBookings.map(b => ({ start: b.pickup_date, end: b.return_date, status: b.status }));
-            let specs = car.specs;
-            if (specs && typeof specs === 'string') {
-                try { specs = JSON.parse(specs); } catch {}
-            }
             return {
                 id: car.car_id,
                 name: car.name,
-                description: car.description,
                 manual_status: car.manual_status,
                 manual_blocks: carManualBlocks,
                 booked_ranges: bookedRanges,
                 category: car.category,
-                specs,
+                specs: car.specs,
                 available: car.available,
                 image: car.image,
-                features: car.features,
-                show_on_homepage: car.show_on_homepage,
-                availability_status: car.availability_status,
-                homepage_note: car.homepage_note
+                features: car.features
             };
         });
         return res.json({
@@ -2345,9 +2096,6 @@ async function startServerWithMigrations() {
         await migrateAddCarIdToBookings();
         await migrateAddBoosterSeatToBookings();
         await migrateAddConfirmationEmailSent();
-        await migrateEnsureBaseCarColumns();
-        await migrateAddShowOnHomepageToCars();
-        await migrateAddHomepageFieldsToCars();
     }
 
     // Register all routes only after migrations are complete

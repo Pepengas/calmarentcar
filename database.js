@@ -49,20 +49,11 @@ async function createTables() {
             CREATE TABLE IF NOT EXISTS cars (
                 id SERIAL PRIMARY KEY,
                 car_id TEXT UNIQUE,
-                name TEXT,
-                description TEXT,
-                image TEXT,
                 make TEXT,
                 model TEXT,
                 category TEXT,
-                features JSONB,
-                specs JSONB,
+                specifications JSONB,
                 monthly_pricing JSONB DEFAULT '{}',
-                available BOOLEAN DEFAULT true,
-                manual_status TEXT DEFAULT 'automatic',
-                show_on_homepage BOOLEAN DEFAULT false,
-                availability_status TEXT DEFAULT 'Available',
-                homepage_note TEXT,
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             )
