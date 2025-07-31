@@ -148,6 +148,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     carFilter = document.getElementById('carFilter');
     textSearchFilter = document.getElementById('textSearchFilter');
     clearSearchBtn = document.getElementById('clearSearchBtn');
+    const exportManualBlocksBtn = document.getElementById('exportManualBlocksBtn');
     
     // Tab click handlers
     const tabHandlers = {
@@ -244,6 +245,10 @@ document.addEventListener("DOMContentLoaded", async function() {
             textSearchFilter.value = '';
             applyFilters();
         });
+    }
+
+    if (exportManualBlocksBtn) {
+        exportManualBlocksBtn.addEventListener('click', exportManualBlocks);
     }
 
     // Load bookings data
@@ -2104,6 +2109,32 @@ async function deleteManualBlock(blockId) {
         }
     } catch (err) {
         showToast(err.message, 'danger');
+    }
+}
+
+// Trigger manual block export and download file
+async function exportManualBlocks() {
+    try {
+        const res = await fetch('/api/admin/manual-blocks/export', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        if (!res.ok) throw new Error('Failed to export manual blocks');
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const disposition = res.headers.get('Content-Disposition');
+        let filename = `manual_blocks_${new Date().toISOString().slice(0,10)}.xlsx`;
+        if (disposition && disposition.includes('filename=')) {
+            filename = disposition.split('filename=')[1].replace(/"/g, '');
+        }
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (err) {
+        showToast(err.message || 'Export failed', 'danger');
     }
 }
 
