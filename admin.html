@@ -292,9 +292,19 @@
                 background: var(--primary-color);
                 z-index: 2000;
                 box-shadow: 2px 0 12px #0002;
-                padding: 1.5rem 1rem;
+                padding: 3rem 1rem 1rem; /* extra top padding for close button */
                 transition: transform 0.3s ease;
                 transform: translateX(-100%);
+            }
+            .close-sidebar-btn {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.75rem;
+                background: none;
+                border: none;
+                color: #fff;
+                font-size: 2rem;
+                z-index: 2100;
             }
             .mobile-sidebar.active {
                 display: block;
@@ -889,7 +899,11 @@
 
             .mobile-sidebar {
                 width: 85vw;
-                padding: 1rem 0.8rem;
+                padding: 3rem 0.8rem 1rem; /* match top padding for close button */
+            }
+            .close-sidebar-btn {
+                top: 0.5rem;
+                right: 0.5rem;
             }
 
             .mobile-sidebar .nav-link {
@@ -937,7 +951,7 @@
         <span class="navbar-title">Calma Car Rental Admin</span>
     </div>
     <div class="mobile-sidebar" id="mobileSidebar">
-        <button class="close-sidebar-btn" id="closeSidebarBtn" style="background:none;border:none;color:#fff;font-size:2rem;position:absolute;top:10px;right:16px;z-index:2100;" aria-label="Close sidebar">&times;</button>
+        <button class="close-sidebar-btn" id="closeSidebarBtn" aria-label="Close sidebar">&times;</button>
         <ul class="nav flex-column">
             <li class="nav-item"><a class="nav-link" id="mobileDashboardTab" data-section="dashboard" href="#"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" id="mobileCarsTab" data-section="cars" href="#"><i class="fas fa-car me-2"></i>Cars Pricing</a></li>
