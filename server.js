@@ -13,7 +13,7 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const { body, param, query, validationResult } = require('express-validator');
 const xss = require('xss');
-const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 require('dotenv').config();
 
 const { Resend } = require('resend');
@@ -2054,26 +2054,72 @@ app.get('/api/admin/manual-blocks/export', requireAdminAuth, async (req, res) =>
         );
         const blocks = result.rows || [];
 
-        const sheetData = [
-            ['Manual Blocked Dates Export'],
-            ['Car Name', 'Block Start', 'Block End']
-        ];
-        blocks.forEach(b => {
-            sheetData.push([
-                b.car_name,
-                b.start_date ? b.start_date.toISOString().split('T')[0] : '',
-                b.end_date ? b.end_date.toISOString().split('T')[0] : ''
-            ]);
+        blocks.sort((a, b) => {
+            if (a.car_name < b.car_name) return -1;
+            if (a.car_name > b.car_name) return 1;
+            return new Date(a.start_date) - new Date(b.start_date);
         });
 
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(sheetData);
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Manual Blocks');
 
-        ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }];
-        ws['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 15 }];
+        worksheet.mergeCells('A1:C1');
+        const titleCell = worksheet.getCell('A1');
+        titleCell.value = 'Manual Blocked Dates Export';
+        titleCell.font = { name: 'Calibri', size: 16, bold: true, color: { argb: 'FF1F4E78' } };
+        titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
-        XLSX.utils.book_append_sheet(wb, ws, 'Manual Blocks');
-        const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        const headerRow = worksheet.getRow(2);
+        headerRow.values = ['Car Name', 'Block Start', 'Block End'];
+        headerRow.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F81BD' } };
+        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+
+        blocks.forEach(b => {
+            worksheet.addRow({
+                car_name: b.car_name,
+                start_date: b.start_date ? b.start_date.toISOString().split('T')[0] : '',
+                end_date: b.end_date ? b.end_date.toISOString().split('T')[0] : ''
+            });
+        });
+
+        worksheet.columns = [
+            { key: 'car_name' },
+            { key: 'start_date' },
+            { key: 'end_date' }
+        ];
+
+        worksheet.columns.forEach(column => {
+            let maxLength = 0;
+            column.eachCell({ includeEmpty: true }, cell => {
+                const value = cell.value ? cell.value.toString() : '';
+                if (value.length > maxLength) maxLength = value.length;
+            });
+            column.width = maxLength + 2;
+        });
+
+        worksheet.getColumn('start_date').numFmt = 'yyyy-mm-dd';
+        worksheet.getColumn('end_date').numFmt = 'yyyy-mm-dd';
+
+        worksheet.eachRow((row, rowNumber) => {
+            row.eachCell(cell => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                cell.font = { name: 'Calibri', size: 11 };
+            });
+            if (rowNumber >= 3 && rowNumber % 2 === 1) {
+                row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } };
+            }
+        });
+
+        worksheet.views = [{ state: 'frozen', ySplit: 2 }];
+
+        const buffer = await workbook.xlsx.writeBuffer();
         const filename = `manual_blocks_${new Date().toISOString().slice(0,10)}.xlsx`;
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
