@@ -793,7 +793,10 @@ function formatDateISO(dateString) {
     try {
         const d = new Date(dateString);
         if (isNaN(d)) return dateString;
-        return d.toISOString().split('T')[0];
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     } catch (e) {
         return dateString;
     }
@@ -809,7 +812,10 @@ function formatDateISO(dateString) {
     try {
         const d = new Date(dateString);
         if (isNaN(d)) return dateString;
-        return d.toISOString().split('T')[0];
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     } catch (e) {
         return dateString;
     }
