@@ -2028,23 +2028,8 @@ app.get('/api/manual-blocks', async (req, res) => {
     }
 });
 
-// Delete a manual block by ID (admin only)
-app.delete('/api/admin/manual-block/:id',
-    requireAdminAuth,
-    validate([param('id').isInt()]),
-    async (req, res) => {
-        const { id } = req.params;
-        try {
-            await pool.query('DELETE FROM manual_blocks WHERE id = $1', [id]);
-            return res.json({ success: true });
-        } catch (error) {
-            console.error('[ADMIN] Error deleting manual block:', error);
-            return res.status(500).json({ success: false, error: 'Failed to delete manual block' });
-        }
-    });
-
-// Export all manual blocks to Excel (admin only)
-app.get('/api/admin/manual-blocks/export', requireAdminAuth, async (req, res) => {
+// Common handler to export manual blocks to Excel
+async function exportManualBlocksXlsx(req, res) {
     try {
         const result = await pool.query(
             `SELECT c.name AS car_name, mb.start_date, mb.end_date
@@ -2075,19 +2060,28 @@ app.get('/api/admin/manual-blocks/export', requireAdminAuth, async (req, res) =>
         headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F81BD' } };
         headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
 
-        blocks.forEach(b => {
-            worksheet.addRow({
-                car_name: b.car_name,
-                start_date: b.start_date ? b.start_date.toISOString().split('T')[0] : '',
-                end_date: b.end_date ? b.end_date.toISOString().split('T')[0] : ''
-            });
-        });
-
+        // Define worksheet columns before adding data so object keys map correctly
         worksheet.columns = [
             { key: 'car_name' },
             { key: 'start_date' },
             { key: 'end_date' }
         ];
+
+        if (blocks.length) {
+            blocks.forEach(b => {
+                worksheet.addRow({
+                    car_name: b.car_name,
+                    start_date: b.start_date ? b.start_date.toISOString().split('T')[0] : '',
+                    end_date: b.end_date ? b.end_date.toISOString().split('T')[0] : ''
+                });
+            });
+        } else {
+            worksheet.mergeCells('A3:C3');
+            const noData = worksheet.getCell('A3');
+            noData.value = 'No manual blocks found';
+            noData.font = { name: 'Calibri', size: 11, italic: true, color: { argb: 'FF666666' } };
+            noData.alignment = { vertical: 'middle', horizontal: 'center' };
+        }
 
         worksheet.columns.forEach(column => {
             let maxLength = 0;
@@ -2125,10 +2119,31 @@ app.get('/api/admin/manual-blocks/export', requireAdminAuth, async (req, res) =>
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.send(buffer);
     } catch (error) {
-        console.error('[ADMIN] Error exporting manual blocks:', error);
+        console.error('[MANUAL BLOCK EXPORT] Error exporting manual blocks:', error);
         res.status(500).json({ success: false, error: 'Failed to export manual blocks' });
     }
-});
+}
+
+// Delete a manual block by ID (admin only)
+app.delete('/api/admin/manual-block/:id',
+    requireAdminAuth,
+    validate([param('id').isInt()]),
+    async (req, res) => {
+        const { id } = req.params;
+        try {
+            await pool.query('DELETE FROM manual_blocks WHERE id = $1', [id]);
+            return res.json({ success: true });
+        } catch (error) {
+            console.error('[ADMIN] Error deleting manual block:', error);
+            return res.status(500).json({ success: false, error: 'Failed to delete manual block' });
+        }
+    });
+
+// Export all manual blocks to Excel (admin only)
+app.get('/api/admin/manual-blocks/export', requireAdminAuth, exportManualBlocksXlsx);
+
+// Export manual blocks to Excel (public route)
+app.get('/api/manual-blocks/export', exportManualBlocksXlsx);
 
 // Stripe checkout session endpoint
 app.post('/api/create-checkout-session', async (req, res) => {
