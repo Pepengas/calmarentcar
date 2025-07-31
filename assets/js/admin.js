@@ -83,21 +83,47 @@ let calendarYear = new Date().getFullYear();
 let calendarMonth = new Date().getMonth();
 
 function getMonthNameFromKey(key) {
-    // key is like '2025-01', '2025-02', ...
-    const monthNum = parseInt(key.split('-')[1], 10);
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
-    return months[monthNum - 1] || key;
+
+    // Handle keys like '2025-01' or '01'
+    const numericMatch = key.match(/(?:^|-)0?(\d{1,2})$/);
+    if (numericMatch) {
+        const idx = parseInt(numericMatch[1], 10) - 1;
+        return months[idx] || key;
+    }
+
+    // Handle keys that contain month names, e.g. 'May' or 'May 2025'
+    const nameMatch = key.match(/[A-Za-z]+/);
+    if (nameMatch) {
+        const idx = months.findIndex(m => m.toLowerCase() === nameMatch[0].toLowerCase());
+        if (idx !== -1) return months[idx];
+    }
+
+    return key;
 }
 
 function getSortedMonthKeys(pricing) {
-    // Sort by month number
+    const months = [
+        'january', 'february', 'march', 'april', 'may', 'june',
+        'july', 'august', 'september', 'october', 'november', 'december'
+    ];
+
     return Object.keys(pricing).sort((a, b) => {
-        const ma = parseInt(a.split('-')[1], 10);
-        const mb = parseInt(b.split('-')[1], 10);
-        return ma - mb;
+        const getIndex = (key) => {
+            const numeric = key.match(/(?:^|-)0?(\d{1,2})$/);
+            if (numeric) {
+                return parseInt(numeric[1], 10) - 1;
+            }
+            const name = key.match(/[A-Za-z]+/);
+            if (name) {
+                return months.indexOf(name[0].toLowerCase());
+            }
+            return 13; // put unknown months at the end
+        };
+        return getIndex(a) - getIndex(b);
     });
 }
 
