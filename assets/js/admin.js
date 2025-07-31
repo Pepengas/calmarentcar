@@ -1788,11 +1788,11 @@ async function loadCarAvailability() {
 
             // Manual block date range picker
             const blockInputId = `blockInput-${realCarId}`;
-            let blockInput = `<input type="text" class="form-control form-control-sm manual-block-input" id="${blockInputId}" placeholder="Add block..." data-car-id="${realCarId}" style="max-width:160px;display:inline-block;" readonly>`;
-            let addBlockBtn = `<button class="btn btn-sm btn-outline-primary ms-1 add-block-btn" data-car-id="${realCarId}" data-input-id="${blockInputId}">Add</button>`;
+            const blockInput = `<input type="text" class="form-control form-control-sm manual-block-input" id="${blockInputId}" placeholder="Add block..." data-car-id="${realCarId}" style="max-width:160px;display:inline-block;" readonly>`;
+            const addBlockBtn = `<button class="btn btn-sm btn-outline-primary ms-1 add-block-btn" data-car-id="${realCarId}" data-input-id="${blockInputId}">Add</button>`;
 
-            // Manual blocks displayed in small table with delete icons
-            let manualBlocksHtml = '';
+            // Manual blocks displayed in small table with delete icons inside collapsible container
+            let manualBlocksBody = '';
             const blockCount = car.manual_blocks ? car.manual_blocks.length : 0;
             if (blockCount > 0) {
                 const rows = car.manual_blocks.map((b, i) =>
@@ -1802,16 +1802,27 @@ async function loadCarAvailability() {
                         <td><span class="delete-block" data-car-id="${realCarId}" data-block-idx="${i}" data-block-id="${b.id}" style="cursor:pointer;" title="Remove this manual block">🗑️</span></td>
                     </tr>`
                 ).join('');
-                manualBlocksHtml = `
-                    <div class="manual-blocks-title">📅 Manual Blocks (${blockCount} total)</div>
+                manualBlocksBody = `
                     <div class="manual-blocks-scroll">
                         <table class="table table-sm table-bordered manual-blocks-table">
                             <tbody>${rows}</tbody>
                         </table>
                     </div>`;
             } else {
-                manualBlocksHtml = '<div class="manual-blocks-title">No manual blocks yet</div>';
+                manualBlocksBody = '<div class="no-blocks-msg">No manual blocks yet</div>';
             }
+
+            const manualBlocksHtml = `
+                <div class="manual-blocks-container">
+                    <div class="manual-blocks-header">
+                        <span class="manual-blocks-toggle-icon">\u25B6</span>
+                        <span class="manual-blocks-title">Manual Blocks (${blockCount} total)</span>
+                    </div>
+                    <div class="manual-blocks-body">
+                        ${manualBlocksBody}
+                        <div class="mt-2">${blockInput}${addBlockBtn}</div>
+                    </div>
+                </div>`;
 
             // Calendar summary and view button
             const bookedDays = car.booked_ranges ? car.booked_ranges.reduce((s, r) => s + diffDays(r.start, r.end), 0) : 0;
@@ -1837,7 +1848,7 @@ async function loadCarAvailability() {
                     <td>${statusBadge}</td>
                     <td>${statusDropdown}</td>
                     <td>${calendarHtml}</td>
-                    <td>${manualBlocksHtml}<div class="mt-2">${blockInput}${addBlockBtn}</div></td>
+                    <td>${manualBlocksHtml}</td>
                 </tr>
             `;
         });
@@ -1930,6 +1941,16 @@ async function loadCarAvailability() {
                 if (!blockId) return;
                 await deleteManualBlock(blockId);
                 loadCarAvailability();
+            });
+        });
+
+        // Toggle manual blocks visibility
+        document.querySelectorAll('.manual-blocks-header').forEach(header => {
+            header.addEventListener('click', function () {
+                const container = this.closest('.manual-blocks-container');
+                if (container) {
+                    container.classList.toggle('expanded');
+                }
             });
         });
 
