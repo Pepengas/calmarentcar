@@ -2028,23 +2028,8 @@ app.get('/api/manual-blocks', async (req, res) => {
     }
 });
 
-// Delete a manual block by ID (admin only)
-app.delete('/api/admin/manual-block/:id',
-    requireAdminAuth,
-    validate([param('id').isInt()]),
-    async (req, res) => {
-        const { id } = req.params;
-        try {
-            await pool.query('DELETE FROM manual_blocks WHERE id = $1', [id]);
-            return res.json({ success: true });
-        } catch (error) {
-            console.error('[ADMIN] Error deleting manual block:', error);
-            return res.status(500).json({ success: false, error: 'Failed to delete manual block' });
-        }
-    });
-
-// Export all manual blocks to Excel (admin only)
-app.get('/api/admin/manual-blocks/export', requireAdminAuth, async (req, res) => {
+// Common handler to export manual blocks to Excel
+async function exportManualBlocksXlsx(req, res) {
     try {
         const result = await pool.query(
             `SELECT c.name AS car_name, mb.start_date, mb.end_date
@@ -2125,10 +2110,31 @@ app.get('/api/admin/manual-blocks/export', requireAdminAuth, async (req, res) =>
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.send(buffer);
     } catch (error) {
-        console.error('[ADMIN] Error exporting manual blocks:', error);
+        console.error('[MANUAL BLOCK EXPORT] Error exporting manual blocks:', error);
         res.status(500).json({ success: false, error: 'Failed to export manual blocks' });
     }
-});
+}
+
+// Delete a manual block by ID (admin only)
+app.delete('/api/admin/manual-block/:id',
+    requireAdminAuth,
+    validate([param('id').isInt()]),
+    async (req, res) => {
+        const { id } = req.params;
+        try {
+            await pool.query('DELETE FROM manual_blocks WHERE id = $1', [id]);
+            return res.json({ success: true });
+        } catch (error) {
+            console.error('[ADMIN] Error deleting manual block:', error);
+            return res.status(500).json({ success: false, error: 'Failed to delete manual block' });
+        }
+    });
+
+// Export all manual blocks to Excel (admin only)
+app.get('/api/admin/manual-blocks/export', requireAdminAuth, exportManualBlocksXlsx);
+
+// Export manual blocks to Excel (public route)
+app.get('/api/manual-blocks/export', exportManualBlocksXlsx);
 
 // Stripe checkout session endpoint
 app.post('/api/create-checkout-session', async (req, res) => {
