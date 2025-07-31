@@ -2060,19 +2060,28 @@ async function exportManualBlocksXlsx(req, res) {
         headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F81BD' } };
         headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
 
-        blocks.forEach(b => {
-            worksheet.addRow({
-                car_name: b.car_name,
-                start_date: b.start_date ? b.start_date.toISOString().split('T')[0] : '',
-                end_date: b.end_date ? b.end_date.toISOString().split('T')[0] : ''
-            });
-        });
-
+        // Define worksheet columns before adding data so object keys map correctly
         worksheet.columns = [
             { key: 'car_name' },
             { key: 'start_date' },
             { key: 'end_date' }
         ];
+
+        if (blocks.length) {
+            blocks.forEach(b => {
+                worksheet.addRow({
+                    car_name: b.car_name,
+                    start_date: b.start_date ? b.start_date.toISOString().split('T')[0] : '',
+                    end_date: b.end_date ? b.end_date.toISOString().split('T')[0] : ''
+                });
+            });
+        } else {
+            worksheet.mergeCells('A3:C3');
+            const noData = worksheet.getCell('A3');
+            noData.value = 'No manual blocks found';
+            noData.font = { name: 'Calibri', size: 11, italic: true, color: { argb: 'FF666666' } };
+            noData.alignment = { vertical: 'middle', horizontal: 'center' };
+        }
 
         worksheet.columns.forEach(column => {
             let maxLength = 0;
