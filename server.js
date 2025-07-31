@@ -1473,8 +1473,27 @@ app.get('/api/get-price', async (req, res) => {
                 error: 'Car not found'
             });
         }
-        const monthlyPricing = result.rows[0].monthly_pricing;
-        const monthPricing = monthlyPricing[month];
+        let monthlyPricing = result.rows[0].monthly_pricing;
+        // PG can return JSON as a string in some cases
+        if (typeof monthlyPricing === 'string') {
+            try {
+                monthlyPricing = JSON.parse(monthlyPricing);
+            } catch (e) {
+                monthlyPricing = {};
+            }
+        }
+        let monthPricing = monthlyPricing[month];
+        if (!monthPricing) {
+            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const parts = month.split('-');
+            if (parts.length === 2) {
+                const mIndex = parseInt(parts[1],10) - 1;
+                const nameKey = months[mIndex];
+                if (nameKey) {
+                    monthPricing = monthlyPricing[nameKey];
+                }
+            }
+        }
         if (!monthPricing) {
             return res.status(404).json({
                 success: false,
