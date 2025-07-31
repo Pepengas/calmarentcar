@@ -2115,9 +2115,7 @@ async function deleteManualBlock(blockId) {
 // Trigger manual block export and download file
 async function exportManualBlocks() {
     try {
-        const res = await fetch('/api/admin/manual-blocks/export', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-        });
+        const res = await fetch('/api/manual-blocks/export');
         if (!res.ok) throw new Error('Failed to export manual blocks');
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
