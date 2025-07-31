@@ -64,14 +64,12 @@ export const Fleet = {
     
     async fetchCars() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/cars/availability/all?homepage=true`);
+            const response = await fetch(`${API_BASE_URL}/api/cars`);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            const data = await response.json();
-            return (data.cars || []).filter(c =>
-                c.show_on_homepage && c.available && c.name && c.image
-            );
+            const cars = await response.json();
+            return cars;
         } catch (error) {
             console.error('Failed to fetch cars:', error);
             if (this.carGrid) this.carGrid.innerHTML = '<p class="error-message">Failed to load car fleet. Please try refreshing.</p>';
@@ -113,19 +111,16 @@ export const Fleet = {
         if (pickupDate && dropoffDate) {
             userRange = [parseDateUTC(pickupDate), parseDateUTC(dropoffDate)];
         }
-        const seen = new Set();
         cars.forEach(car => {
-            const uniqueId = car.car_id || car.id;
-            if (!car.show_on_homepage || !car.name || !car.image) return;
-            if (seen.has(uniqueId)) return;
-            seen.add(uniqueId);
-
             console.log('Rendering car:', car);
             console.log('Manual blocks for this car:', car.manual_blocks);
             const card = document.createElement('div');
             card.className = 'car-card';
             const imageUrl = car.image.startsWith('http') ? car.image : `${API_BASE_URL}/${car.image}`;
-            // features are not displayed on the homepage cards
+            let featuresHtml = '';
+            if (car.features && car.features.length > 0) {
+                featuresHtml = `<ul class="car-features"><li>${car.features.join('</li><li>')}</li></ul>`;
+            }
             // --- Availability logic ---
             let isAvailable = true;
             let unavailableReason = '';
@@ -145,24 +140,21 @@ export const Fleet = {
                     }
                 }
             }
-            const priceText = car.pricePerDay ? `From €${car.pricePerDay}/day` : '';
-const priceHtml = priceText ? `<div class="price-area"><span class="price">${priceText}</span></div>` : '';
-            const statusText = isAvailable ? 'Available' : 'Not Available';
-            const statusClass = isAvailable ? 'status-available' : 'status-unavailable';
-            const cancelNote = car.homepage_note || 'Free cancellation';
             card.innerHTML = `
                 <div class="car-image">
                     <img src="${imageUrl}" alt="${car.name}" loading="lazy" width="300" height="200">
                 </div>
                 <div class="car-details">
-                    <h3 class="car-name">${car.name}</h3>
-                    <p class="car-desc">${car.description || ''}</p>
- <div class="availability-block ${statusClass}">
-                        ${statusText}<br><span class="cancel-note">${cancelNote}</span>
+                    <h3>${car.name}</h3>
+                    <p>${car.description}</p>
+                    ${featuresHtml}
+                    <div class="car-pricing">
+                        <span class="price">From €${car.pricePerDay}/day</span>
+                        <span class="price-note">· Free cancellation</span>
                     </div>
-                    ${priceHtml}
-                    <button class="btn btn-primary book-from-grid" data-car-id="${car.id}" ${!isAvailable ? 'disabled' : ''}>BOOK NOW</button>
-                </div>`;
+                    <button class="btn btn-primary book-from-grid" data-car-id="${car.id}" ${!isAvailable ? 'disabled' : ''}>${isAvailable ? 'Book Now' : unavailableReason}</button>
+                </div>
+            `;
             this.carGrid.appendChild(card);
         });
         this.addGridBookNowListeners();

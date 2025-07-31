@@ -93,11 +93,10 @@ function getMonthNameFromKey(key) {
 }
 
 function getSortedMonthKeys(pricing) {
-    // Support keys like '2025-01' or month names
-    const monthOrder = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    // Sort by month number
     return Object.keys(pricing).sort((a, b) => {
-        const ma = a.includes('-') ? parseInt(a.split('-')[1], 10) : monthOrder.indexOf(a) + 1;
-        const mb = b.includes('-') ? parseInt(b.split('-')[1], 10) : monthOrder.indexOf(b) + 1;
+        const ma = parseInt(a.split('-')[1], 10);
+        const mb = parseInt(b.split('-')[1], 10);
         return ma - mb;
     });
 }
@@ -132,9 +131,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         'reportsTab': 'reports',
         'settingsTab': 'settings',
         'editCarTab': 'editCar',
-        'addonsTab': 'addons',
-        'tab-manage-fleet': 'manageFleet',
-        'mobileManageFleetTab': 'manageFleet'
+        'addonsTab': 'addons'
     };
 
     // Add click handlers for all tabs
@@ -222,40 +219,6 @@ document.addEventListener("DOMContentLoaded", async function() {
             applyFilters();
         });
     }
-
-    // Add Car button handler
-    const addCarBtn = document.getElementById('addCarBtn');
-    if (addCarBtn) {
-        addCarBtn.addEventListener('click', handleAddCar);
-    }
-
-    const carImageFileInput = document.getElementById('carImageFile');
-    if (carImageFileInput) {
-        carImageFileInput.addEventListener('change', () => {
-            showToast('Please name the image as CalmaCarName (e.g., CalmaFiatPanda.jpg)', 'info');
-        });
-    }
-
-    const autofillBtn = document.getElementById('autofillBtn');
-    if (autofillBtn) {
-        autofillBtn.addEventListener('click', () => {
-            document.querySelectorAll('#priceEditorTable tbody input[type="number"]').forEach(inp => {
-                inp.value = 40;
-            });
-        });
-    }
-
-    // Mobile bottom navigation
-  // Mobile bottom navigation
-    document.querySelectorAll('.mobile-nav [data-section]').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.preventDefault();
-            const section = btn.getAttribute('data-section');
-            if (section) {
-                showSection(section);
-            }
-        });
-    });
 
     // Load bookings data
     loadBookings();
@@ -457,22 +420,14 @@ document.addEventListener("DOMContentLoaded", async function() {
         { tab: 'reportsTab', content: 'reportsContent' },
         { tab: 'settingsTab', content: 'settingsContent' },
         { tab: 'editCarTab', content: 'editCarContent' },
-        { tab: 'addonsTab', content: 'addonsContent' },
-        { tab: 'tab-manage-fleet', content: 'manageFleet' },
-        { tab: 'mobileManageFleetTab', content: 'manageFleet' }
+        { tab: 'addonsTab', content: 'addonsContent' }
     ];
     function showSection(section) {
         // Hide all sections
         document.querySelectorAll('.content-section').forEach(el => el.classList.add('d-none'));
-
-        // Show selected section (support both *Content and *Panel ids)
-        let target = document.getElementById(section + 'Content');
-        if (!target) {
-            target = document.getElementById(section + 'Panel');
-        }
-        if (!target) {
-            target = document.getElementById(section);
-        }
+        
+        // Show selected section
+        const target = document.getElementById(section + 'Content');
         if (target) target.classList.remove('d-none');
         
         // Scroll to top
@@ -487,12 +442,6 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
         if (section === 'addons' && typeof loadAddons === 'function') {
             loadAddons();
-        }
-        if (section === 'manageFleet' && typeof loadManageCars === 'function') {
-            loadManageCars();
-        }
-        if (section === 'homepageCars' && typeof loadHomepageCars === 'function') {
-            loadHomepageCars();
         }
     }
     // Attach click listeners
@@ -2186,205 +2135,3 @@ async function loadAddons() {
 }
 
        
-// ---- Manage Fleet Panel ----
-async function loadManageCars() {
-    const container = document.getElementById('carListContainer');
-    if (!container) return;
-    container.innerHTML = '<div class="text-muted">Loading cars...</div>';
-    try {
-        const response = await fetch('/api/admin/cars/availability', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            }
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Failed to fetch cars');
-        if (!Array.isArray(data.cars) || data.cars.length === 0) {
-            container.innerHTML = '<div class="text-muted">No cars found.</div>';
-            return;
-        }
-        container.innerHTML = data.cars.map(car => `
-            <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
-                <span>${car.name}</span>
-                <div>
-                    <span class="badge ${car.available ? 'bg-success' : 'bg-secondary'} me-2">${car.available ? 'Available' : 'Unavailable'}</span>
-                    <button class="btn btn-sm btn-danger" onclick="removeCar('${car.id || car.car_id}')"><i class="fas fa-trash-alt"></i></button>
-                </div>
-            </div>
-        `).join('');
-    } catch (err) {
-        console.error('[Admin] Error loading cars:', err);
-        container.innerHTML = '<div class="text-danger">Failed to load cars</div>';
-    }
-}
-
-async function handleAddCar() {
-    const name = document.getElementById('carName').value.trim();
-    const description = document.getElementById('carDescription').value.trim();
-    const pricePerDay = parseFloat(document.getElementById('carPrice').value);
-    const fileInput = document.getElementById('carImageFile');
-    const featuresStr = document.getElementById('carFeatures').value.trim();
-    const features = featuresStr ? featuresStr.split(',').map(f => f.trim()).filter(f => f) : [];
-
-    let image = null;
-
-    if (fileInput && fileInput.files && fileInput.files[0]) {
-        const formData = new FormData();
-        formData.append('image', fileInput.files[0]);
-        try {
-            const uploadRes = await fetch('/api/admin/upload-image', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                },
-                body: formData
-            });
-            const uploadData = await uploadRes.json();
-            if (!uploadRes.ok) throw new Error(uploadData.error || 'Image upload failed');
-            image = uploadData.url;
-        } catch (err) {
-            console.error('[Admin] Image upload failed:', err);
-            showToast(err.message || 'Image upload failed', 'danger');
-            return;
-        }
-    }
-
-    try {
-        const res = await fetch('/api/admin/car', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            },
-            body: JSON.stringify({ name, description, pricePerDay, image, features })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to add car');
-        document.getElementById('addCarForm').reset();
-        loadManageCars();
-        showToast('Car added successfully');
-    } catch (err) {
-        console.error('[Admin] Error adding car:', err);
-        showToast(err.message || 'Failed to add car', 'danger');
-    }
-}
-async function removeCar(carId) {
-    if (!confirm('Are you sure you want to delete this car?')) return;
-    try {
-        const res = await fetch(`/api/admin/car/${carId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to delete car');
-        loadManageCars();
-        showToast('Car deleted');
-    } catch (err) {
-        console.error('[Admin] Error deleting car:', err);
-        showToast(err.message || 'Failed to delete car', 'danger');
-    }
-}
-
-async function loadHomepageCars() {
-    const container = document.getElementById('homepageCarsList');
-    if (!container) return;
-    container.innerHTML = '<div class="text-muted">Loading...</div>';
-    try {
-        const res = await fetch('/api/admin/cars/availability', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load cars');
-        container.innerHTML = '';
-        data.cars.forEach(car => {
-            const card = document.createElement('div');
-            card.className = 'card mb-3 p-3 homepage-car';
-            card.dataset.id = car.id;
-            card.innerHTML = `
-                <div class="row g-2 align-items-center">
-                    <div class="col-3 col-md-2 text-center">
-                        <img src="${car.image}" class="img-fluid rounded mb-2 car-thumb" style="max-height:80px;">
-                        <input type="file" class="form-control form-control-sm car-image-input">
-                    </div>
-                    <div class="col-9 col-md-10">
-                        <input type="text" class="form-control form-control-sm mb-2 car-name" value="${car.name}">
-                        <textarea class="form-control form-control-sm mb-2 car-desc" rows="2">${car.description || ''}</textarea>
-                        <div class="row g-2 align-items-center mb-2">
-                            <div class="col-md-4 col-6">
-                                <select class="form-select form-select-sm car-status">
-                                    <option value="Available" ${car.availability_status === 'Available' ? 'selected' : ''}>Available</option>
-                                    <option value="Not Available" ${car.availability_status === 'Not Available' ? 'selected' : ''}>Not Available</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 col-6">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input car-show" type="checkbox" ${car.show_on_homepage ? 'checked' : ''}>
-                                    <label class="form-check-label">Show on homepage</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <input type="text" class="form-control form-control-sm car-note" placeholder="Extra label" value="${car.homepage_note || ''}">
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <button class="btn btn-sm btn-primary save-homepage-car">Save</button>
-                        </div>
-                    </div>
-                </div>`;
-            container.appendChild(card);
-        });
-
-        container.querySelectorAll('.save-homepage-car').forEach(btn => {
-            btn.addEventListener('click', async function() {
-                const card = this.closest('.homepage-car');
-                if (!card) return;
-                const id = card.dataset.id;
-                const name = card.querySelector('.car-name').value.trim();
-                const description = card.querySelector('.car-desc').value.trim();
-                const availability_status = card.querySelector('.car-status').value;
-                const show_on_homepage = card.querySelector('.car-show').checked;
-                const homepage_note = card.querySelector('.car-note').value.trim();
-                let image = card.querySelector('.car-thumb').getAttribute('src');
-                const fileInput = card.querySelector('.car-image-input');
-                if (fileInput && fileInput.files && fileInput.files[0]) {
-                    const formData = new FormData();
-                    formData.append('image', fileInput.files[0]);
-                    try {
-                        const uploadRes = await fetch('/api/admin/upload-image', {
-                            method: 'POST',
-                            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
-                            body: formData
-                        });
-                        const uploadData = await uploadRes.json();
-                        if (!uploadRes.ok) throw new Error(uploadData.error || 'Image upload failed');
-                        image = uploadData.url;
-                        card.querySelector('.car-thumb').src = image;
-                        fileInput.value = '';
-                    } catch (err) {
-                        showToast(err.message || 'Image upload failed', 'danger');
-                        return;
-                    }
-                }
-                try {
-                    const resp = await fetch(`/api/admin/car/${id}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                        },
-                        body: JSON.stringify({ name, description, availability_status, show_on_homepage, homepage_note, image })
-                    });
-                    const result = await resp.json();
-                    if (!resp.ok || !result.success) throw new Error(result.error || 'Update failed');
-                    showToast('Saved', 'success');
-                } catch (err) {
-                    console.error('[Admin] save homepage car error:', err);
-                    showToast(err.message || 'Update failed', 'danger');
-                }
-            });
-        });
-    } catch (err) {
-        console.error('[Admin] Error loading homepage cars:', err);
-        container.innerHTML = '<div class="text-danger">Failed to load cars</div>';
-    }
-}

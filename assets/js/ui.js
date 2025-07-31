@@ -78,15 +78,14 @@ export const UI = {
         const faqItems = document.querySelectorAll('.faq-item');
         if (faqItems.length > 0) {
             faqItems.forEach(item => {
-                const header = item.querySelector('.faq-header') || item.querySelector('.faq-question');
-                if (!header) return;
+                const header = item.querySelector('.faq-header');
                 header.addEventListener('click', () => {
                     // Close all other items
                     faqItems.forEach(otherItem => {
                         if (otherItem !== item && otherItem.classList.contains('active')) {
                             otherItem.classList.remove('active');
-                            const otherContent = otherItem.querySelector('.faq-answer');
-                            if (otherContent) otherContent.style.maxHeight = null;
+                            const otherContent = otherItem.querySelector('.faq-content');
+                            otherContent.style.maxHeight = null;
                             
                             // Update ARIA state
                             const otherBtn = otherItem.querySelector('.faq-toggle');
@@ -96,13 +95,13 @@ export const UI = {
                     
                     // Toggle current item
                     item.classList.toggle('active');
-                    const content = item.querySelector('.faq-answer');
+                    const content = item.querySelector('.faq-content');
                     
                     if (item.classList.contains('active')) {
-                        if (content) content.style.maxHeight = content.scrollHeight + 'px';
+                        content.style.maxHeight = content.scrollHeight + 'px';
                         header.querySelector('.faq-toggle').setAttribute('aria-expanded', 'true');
                     } else {
-                        if (content) content.style.maxHeight = null;
+                        content.style.maxHeight = null;
                         header.querySelector('.faq-toggle').setAttribute('aria-expanded', 'false');
                     }
                 });
@@ -110,11 +109,11 @@ export const UI = {
             
             // Auto-expand first FAQ item
             const firstItem = faqItems[0];
-            const firstContent = firstItem.querySelector('.faq-answer');
+            const firstContent = firstItem.querySelector('.faq-content');
             const firstToggle = firstItem.querySelector('.faq-toggle');
             
             firstItem.classList.add('active');
-            if (firstContent) firstContent.style.maxHeight = firstContent.scrollHeight + 'px';
+            firstContent.style.maxHeight = firstContent.scrollHeight + 'px';
             if (firstToggle) firstToggle.setAttribute('aria-expanded', 'true');
         }
     },
