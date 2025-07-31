@@ -1320,13 +1320,13 @@ window.saveMonthlyPricingMonth = async function(carId, monthKey, btn) {
         const car = allCarsForPricing.find(c => c.id === carId);
         let pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
         pricing[monthKey] = month_pricing;
-        const res = await fetch(`/api/admin/car/${carId}/pricing`, {
-            method: 'PATCH',
+        const res = await fetch('/api/update-prices', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             },
-            body: JSON.stringify({ monthly_pricing: pricing })
+            body: JSON.stringify({ car_id: carId, prices: pricing })
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed to update pricing');
