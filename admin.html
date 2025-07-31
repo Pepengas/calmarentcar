@@ -705,13 +705,45 @@
                 margin-left: 0.3rem;
             }
 
-             .manual-blocks-scroll {
+            .manual-blocks-scroll {
                 max-height: 150px;
                 overflow-y: auto;
             }
 
-            .manual-blocks-title {
+            .manual-blocks-container {
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                padding: 0.25rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .manual-blocks-header {
+                cursor: pointer;
+                display: flex;
+                align-items: center;
                 font-weight: 600;
+            }
+
+            .manual-blocks-title {
+                flex-grow: 1;
+            }
+
+            .manual-blocks-toggle-icon {
+                margin-right: 4px;
+            }
+
+            .manual-blocks-body {
+                overflow: hidden;
+                max-height: 0;
+                transition: max-height 0.3s ease;
+            }
+
+            .manual-blocks-container.expanded .manual-blocks-body {
+                max-height: 500px;
+            }
+
+            .no-blocks-msg {
+                font-size: 0.85rem;
                 margin-bottom: 0.25rem;
             }
 
