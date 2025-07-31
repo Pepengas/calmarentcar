@@ -659,6 +659,43 @@
             background-color: #17a2b8 !important;
         }
 
+        /* Manual Blocks Dropdown */
+        .manual-blocks-scroll {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .manual-blocks-container {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+        .manual-blocks-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+        }
+        .manual-blocks-title {
+            flex-grow: 1;
+        }
+        .manual-blocks-toggle-icon {
+            margin-right: 4px;
+            transition: transform 0.2s ease;
+            display: inline-block;
+        }
+        .manual-blocks-body {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease;
+        }
+        .manual-blocks-container.expanded .manual-blocks-body {
+            max-height: 500px;
+        }
+        .manual-blocks-container.expanded .manual-blocks-toggle-icon {
+            transform: rotate(90deg);
+        }
+
         /* Mobile Responsiveness Improvements */
         @media (max-width: 768px) {
             #carAvailabilityTable td {
@@ -703,53 +740,6 @@
 
             .delete-block {
                 margin-left: 0.3rem;
-            }
-
-            .manual-blocks-scroll {
-                max-height: 150px;
-                overflow-y: auto;
-            }
-
-            .manual-blocks-container {
-                border: 1px solid #dee2e6;
-                border-radius: 4px;
-                padding: 0.25rem;
-                margin-bottom: 0.25rem;
-            }
-
-            .manual-blocks-header {
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                font-weight: 600;
-            }
-
-            .manual-blocks-title {
-                flex-grow: 1;
-            }
-
-            .manual-blocks-toggle-icon {
-                margin-right: 4px;
-            }
-
-            .manual-blocks-body {
-                overflow: hidden;
-                max-height: 0;
-                transition: max-height 0.3s ease;
-            }
-
-            .manual-blocks-container.expanded .manual-blocks-body {
-                max-height: 500px;
-            }
-
-            .no-blocks-msg {
-                font-size: 0.85rem;
-                margin-bottom: 0.25rem;
-            }
-
-            .manual-blocks-table td {
-                font-size: 0.85rem;
-                padding: 0.25rem;
             }
 
             .calendar-summary {
