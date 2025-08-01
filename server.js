@@ -9,6 +9,8 @@ const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const helmet = require('helmet');
+const permissionsPolicy = require('permissions-policy');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const { body, param, query, validationResult } = require('express-validator');
@@ -82,6 +84,55 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
+
+// Security headers
+app.use(helmet());
+app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true }));
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        'https:',
+        'maps.googleapis.com',
+        'maps.gstatic.com',
+        'cdn.jsdelivr.net',
+        'unpkg.com'
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        'https:',
+        'fonts.googleapis.com',
+        'cdn.jsdelivr.net',
+        'unpkg.com'
+      ],
+      fontSrc: ["'self'", 'https:', 'fonts.gstatic.com', 'data:'],
+      imgSrc: [
+        "'self'",
+        'data:',
+        'https:',
+        'maps.googleapis.com',
+        'maps.gstatic.com'
+      ]
+    }
+  })
+);
+app.use(helmet.frameguard({ action: 'sameorigin' }));
+app.use(helmet.noSniff());
+app.use(helmet.referrerPolicy({ policy: 'no-referrer-when-downgrade' }));
+app.use(
+  permissionsPolicy({
+    features: {
+      geolocation: ['none'],
+      microphone: ['none'],
+      camera: ['none']
+    }
+  })
+);
 
 // Simple recursive sanitizer for all incoming values
 function sanitizeObject(obj) {
