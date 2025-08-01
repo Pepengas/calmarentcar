@@ -1799,6 +1799,7 @@ async function loadCarAvailability() {
 
             // Manual block date range picker
             const blockInputId = `blockInput-${realCarId}`;
+            console.log('[DEBUG] Generated block input ID:', blockInputId, 'for car', realCarId);
             const blockInput = `<input type="text" class="form-control form-control-sm manual-block-input" id="${blockInputId}" placeholder="Add block..." data-car-id="${realCarId}" style="max-width:160px;display:inline-block;" readonly>`;
             const addBlockBtn = `<button class="btn btn-sm btn-outline-primary ms-1 add-block-btn" data-car-id="${realCarId}" data-input-id="${blockInputId}">Add</button>`;
 
@@ -1891,10 +1892,14 @@ async function loadCarAvailability() {
                 // Always use the real car.id from the cars table for car_id
                 const carId = this.getAttribute('data-car-id');
                 const inputId = this.getAttribute('data-input-id');
-                const input = document.getElementById(inputId);
-                
-                console.log('[DEBUG] Add block button clicked');
-                console.log('[DEBUG] Car ID:', carId); // This should be the real car.id
+                const selector = `#${inputId}`;
+                const input = document.querySelector(selector);
+
+                console.log('[DEBUG] Manual block add clicked');
+                console.log('[DEBUG] carId:', carId, '| selector:', selector, '| found:', input !== null);
+                if (input && input.offsetParent === null) {
+                    console.warn('[DEBUG] Input element is hidden or removed before use');
+                }
                 console.log('[DEBUG] Input value:', input?.value);
                 
                 if (!input || !input.value) {
