@@ -788,7 +788,7 @@ export const Booking = {
                 carCard.className = 'car-card card-visible';
                 carCard.innerHTML = `
                     <div class="car-image">
-                        <img src="${car.image}" alt="${car.name}" loading="lazy">
+                        <img src="${car.image}" alt="${car.name}" title="Photo of ${car.name}" loading="lazy">
                     </div>
                     <div class="car-details">
                         <h3>${car.name}</h3>
@@ -860,7 +860,7 @@ export const Booking = {
                 selectedCarDetails.innerHTML = `
                     <div class="selected-car">
                         <h4>${car.name}</h4>
-                        <img src="${car.image}" alt="${car.name}" style="max-width: 100%; height: auto; margin: 10px 0;">
+                        <img src="${car.image}" alt="${car.name}" title="Photo of ${car.name}" style="max-width: 100%; height: auto; margin: 10px 0;">
                         <div class="car-features">
                             <span><i class="fas fa-users"></i> ${car.seats} Seats</span>
                             <span><i class="fas fa-suitcase"></i> ${car.luggage} Luggage</span>
@@ -974,7 +974,7 @@ export const Booking = {
                     carDetailsElement.innerHTML = `
                         <div class="car-info">
                             <h4>${car.name}</h4>
-                            <img src="${car.image}" alt="${car.name}" style="max-width: 100%; border-radius: 8px; margin: 10px 0;">
+                            <img src="${car.image}" alt="${car.name}" title="Photo of ${car.name}" style="max-width: 100%; border-radius: 8px; margin: 10px 0;">
                             <div class="car-specs">
                                 <p><strong>Category:</strong> ${car.category}</p>
                                 <p><strong>Seats:</strong> ${car.seats}</p>

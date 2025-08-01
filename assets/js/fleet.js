@@ -142,7 +142,7 @@ export const Fleet = {
             }
             card.innerHTML = `
                 <div class="car-image">
-                    <img src="${imageUrl}" alt="${car.name}" loading="lazy" width="300" height="200">
+                    <img src="${imageUrl}" alt="${car.name}" title="Photo of ${car.name}" loading="lazy" width="300" height="200">
                 </div>
                 <div class="car-details">
                     <h3>${car.name}</h3>

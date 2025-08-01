@@ -219,7 +219,7 @@ const BookingConfirmation = {
             this.elements.carDetails.innerHTML = `
                 <div class="car-info" style="display: flex; align-items: center;">
                     <div class="car-image" style="width: 100px; margin-right: 15px;">
-                        <img src="${car.image || 'images/car-placeholder.jpg'}" alt="${car.make} ${car.model}" 
+                        <img src="${car.image || 'images/car-placeholder.jpg'}" alt="${car.make} ${car.model}" title="Photo of ${car.make} ${car.model}"
                              style="width: 100%; height: auto; border-radius: 4px;">
                     </div>
                     <div class="car-specs">
