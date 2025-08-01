@@ -117,7 +117,8 @@ app.use(
         'https:',
         'maps.googleapis.com',
         'maps.gstatic.com'
-      ]
+  ],
+      frameSrc: ["'self'", 'https://www.google.com']
     }
   })
 );
