@@ -1929,6 +1929,7 @@ async function loadCarAvailability() {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                         },
+                        credentials: 'include',
                         body: JSON.stringify(payload)
                     });
                     
@@ -2104,7 +2105,8 @@ async function deleteManualBlock(blockId) {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            }
+            },
+            credentials: 'include'
         });
         const data = await res.json();
         if (data.success) {
