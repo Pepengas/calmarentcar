@@ -71,6 +71,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 // Trust the first proxy when behind load balancers or reverse proxies
 app.set('trust proxy', 1);
+// Redirect www requests to the non-www domain in production
+if (process.env.NODE_ENV !== 'development') {
+  app.use((req, res, next) => {
+    const host = req.headers.host;
+    if (host && host.startsWith('www.')) {
+      const target = `https://calmarental.com${req.originalUrl}`;
+      return res.redirect(301, target);
+    }
+    next();
+  });
+}
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
