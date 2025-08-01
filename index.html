@@ -274,11 +274,13 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.7);
             z-index: 1000;
+            justify-content: center;
+            align-items: center;
         }
 
         #privacy-modal .modal-content {
             background: white;
-            margin: 10% auto;
+            margin: 0;
             padding: 2rem;
             width: 80%;
             max-width: 700px;
@@ -340,7 +342,7 @@
         @media (max-width: 768px) {
             #privacy-modal .modal-content {
                 padding: 1.5rem;
-                margin: 15% auto;
+                margin: 0;
                 width: 90%;
             }
         }
@@ -355,11 +357,13 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.7);
             z-index: 1000;
+            justify-content: center;
+            align-items: center;
         }
 
         #terms-modal .modal-content {
             background: white;
-            margin: 10% auto;
+            margin: 0;
             padding: 2rem;
             width: 80%;
             max-width: 700px;
@@ -417,7 +421,7 @@
         @media (max-width: 768px) {
             #terms-modal .modal-content {
                 padding: 1.5rem;
-                margin: 15% auto;
+                margin: 0;
                 width: 90%;
             }
         }
@@ -1541,7 +1545,7 @@
             // Helper to show a modal
             function openModal(modal) {
                 if (modal) {
-                    modal.style.display = 'block';
+                    modal.style.display = 'flex';
                 }
             }
 
@@ -1557,6 +1561,12 @@
                     e.preventDefault();
                     openModal(privacyModal);
                 });
+                const closeBtn = privacyModal.querySelector('.close-modal');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function () {
+                        closeModal(privacyModal);
+                    });
+                }
             }
 
             if (termsLink) {
@@ -1564,15 +1574,13 @@
                     e.preventDefault();
                     openModal(termsModal);
                 });
+                const closeBtn = termsModal.querySelector('.close-modal');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function () {
+                        closeModal(termsModal);
+                    });
+                }
             }
-
-            // Close modal when X button is clicked
-            document.querySelectorAll('.close-modal').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    const modal = btn.closest('.modal');
-                    closeModal(modal);
-                });
-            });
 
             // Close modal when clicking outside the content
             window.addEventListener('click', function (event) {
