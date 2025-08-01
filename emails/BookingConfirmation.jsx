@@ -12,7 +12,7 @@ export default function BookingConfirmation({ data }) {
         <table width="100%" cellPadding="0" cellSpacing="0" style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: '#ffffff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }}>
           <tr>
             <td style={{ backgroundColor: '#4b125c', padding: '20px', textAlign: 'center' }}>
-              <img src="https://calmarental.com/images/CalmaLogo.jpg" alt="Calma Logo" style={{ maxWidth: '160px' }} />
+              <img src="https://calmarental.com/images/CalmaLogo.jpg" alt="Calma Logo" title="Calma logo" style={{ maxWidth: '160px' }} />
             </td>
           </tr>
           <tr>

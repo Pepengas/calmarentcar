@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
       html += `
         <div class="car-card" data-car-id="${car.id}">
           <div class="car-image">
-            <img src="${imageUrl}" alt="${car.name}" onerror="this.src='images/CalmaLogo.jpg'">
+            <img src="${imageUrl}" alt="${car.name}" title="Photo of ${car.name}" onerror="this.src='images/CalmaLogo.jpg'">
             <div class="car-category">${car.category}</div>
           </div>
           <div class="car-details">
