@@ -71,6 +71,13 @@ const corsOptions = {
 app.use(cors(corsOptions));
 // Trust the first proxy when behind load balancers or reverse proxies
 app.set('trust proxy', 1);
+// Redirect requests for /index.html to the root URL
+app.use((req, res, next) => {
+  if (req.path === '/index.html') {
+    return res.redirect(301, '/');
+  }
+  next();
+});
 // Redirect www requests to the non-www domain in production
 if (process.env.NODE_ENV !== 'development') {
   app.use((req, res, next) => {
