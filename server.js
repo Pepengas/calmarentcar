@@ -88,15 +88,39 @@ app.use(session({
 // Security headers
 app.use(helmet());
 app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true }));
-app.use(helmet.contentSecurityPolicy({
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", 'https:'],
-    styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
-    fontSrc: ["'self'", 'https:'],
-    imgSrc: ["'self'", 'https:']
-  }
-}));
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        'https:',
+        'maps.googleapis.com',
+        'maps.gstatic.com',
+        'cdn.jsdelivr.net',
+        'unpkg.com'
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        'https:',
+        'fonts.googleapis.com',
+        'cdn.jsdelivr.net',
+        'unpkg.com'
+      ],
+      fontSrc: ["'self'", 'https:', 'fonts.gstatic.com', 'data:'],
+      imgSrc: [
+        "'self'",
+        'data:',
+        'https:',
+        'maps.googleapis.com',
+        'maps.gstatic.com'
+      ]
+    }
+  })
+);
 app.use(helmet.frameguard({ action: 'sameorigin' }));
 app.use(helmet.noSniff());
 app.use(helmet.referrerPolicy({ policy: 'no-referrer-when-downgrade' }));
