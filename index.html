@@ -1531,47 +1531,56 @@
 
     <!-- Privacy Policy Modal Script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const privacyLink = document.getElementById('privacy-policy-link');
             const privacyModal = document.getElementById('privacy-modal');
-            const privacyClose = privacyModal.querySelector('.close-modal');
 
             const termsLink = document.getElementById('terms-link');
             const termsModal = document.getElementById('terms-modal');
-            const termsClose = termsModal.querySelector('.close-modal');
 
-            if (privacyLink) {
-                privacyLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    privacyModal.style.display = 'block';
-                });
+            // Helper to show a modal
+            function openModal(modal) {
+                if (modal) {
+                    modal.style.display = 'block';
+                }
             }
 
-            if (privacyClose) {
-                privacyClose.addEventListener('click', function() {
-                    privacyModal.style.display = 'none';
+            // Helper to hide a modal
+            function closeModal(modal) {
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            }
+
+            if (privacyLink) {
+                privacyLink.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    openModal(privacyModal);
                 });
             }
 
             if (termsLink) {
-                termsLink.addEventListener('click', function(e) {
+                termsLink.addEventListener('click', function (e) {
                     e.preventDefault();
-                    termsModal.style.display = 'block';
+                    openModal(termsModal);
                 });
             }
 
-            if (termsClose) {
-                termsClose.addEventListener('click', function() {
-                    termsModal.style.display = 'none';
+            // Close modal when X button is clicked
+            document.querySelectorAll('.close-modal').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const modal = btn.closest('.modal');
+                    closeModal(modal);
                 });
-            }
+            });
 
-            window.addEventListener('click', function(event) {
+            // Close modal when clicking outside the content
+            window.addEventListener('click', function (event) {
                 if (event.target === privacyModal) {
-                    privacyModal.style.display = 'none';
+                    closeModal(privacyModal);
                 }
                 if (event.target === termsModal) {
-                    termsModal.style.display = 'none';
+                    closeModal(termsModal);
                 }
             });
         });
