@@ -289,6 +289,7 @@
             overflow-y: auto;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             animation: modalFadeIn 0.3s ease;
+            position: relative;
         }
 
         @keyframes modalFadeIn {
@@ -297,7 +298,9 @@
         }
 
         #privacy-modal .close-modal {
-            float: right;
+            position: absolute;
+            top: 10px;
+            right: 10px;
             font-size: 28px;
             cursor: pointer;
             color: #999;
@@ -372,10 +375,13 @@
             overflow-y: auto;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             animation: modalFadeIn 0.3s ease;
+            position: relative;
         }
 
         #terms-modal .close-modal {
-            float: right;
+            position: absolute;
+            top: 10px;
+            right: 10px;
             font-size: 28px;
             cursor: pointer;
             color: #999;
@@ -1294,7 +1300,7 @@
     <!-- Privacy Policy Modal -->
     <div id="privacy-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal">&times;</span>
+            <span class="close-modal" role="button" aria-label="Close">&times;</span>
             <h2>Privacy Policy</h2>
             <div class="privacy-content">
                 <h3>1. Introduction</h3>
@@ -1364,7 +1370,7 @@
     <!-- Terms & Conditions Modal -->
     <div id="terms-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal">&times;</span>
+            <span class="close-modal" role="button" aria-label="Close">&times;</span>
             <h2>Terms & Conditions</h2>
             <div class="terms-content">
                 <h3>1. Introduction</h3>
