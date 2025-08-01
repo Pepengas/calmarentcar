@@ -102,6 +102,7 @@ app.use(
         'cdn.jsdelivr.net',
         'unpkg.com'
       ],
+      scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: [
         "'self'",
         "'unsafe-inline'",
