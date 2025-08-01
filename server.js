@@ -121,7 +121,9 @@ app.use(
     }
   })
 );
-app.use(helmet.frameguard({ action: 'sameorigin' }));
+// Disable X-Frame-Options temporarily to allow Google Maps iframe
+// app.use(helmet.frameguard({ action: 'allow-from', domain: 'https://www.google.com' }));
+// app.use(helmet.frameguard());
 app.use(helmet.noSniff());
 app.use(helmet.referrerPolicy({ policy: 'no-referrer-when-downgrade' }));
 app.use(
