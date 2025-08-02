@@ -66,6 +66,18 @@ body {
     background-color: var(--light-color);
 }
 
+/* Ensure checkboxes show a visible checkmark when selected */
+.form-check-input {
+    appearance: auto;
+    -webkit-appearance: auto;
+    accent-color: var(--primary-color);
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
 .container {
     width: 100%;
     max-width: 1200px;
