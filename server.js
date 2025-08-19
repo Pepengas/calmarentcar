@@ -35,6 +35,17 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing STRIPE_SECRET_KEY environment variable');
 }
 
+// Ensure the session secret is provided
+if (!process.env.SESSION_SECRET) {
+  throw new Error('Missing SESSION_SECRET environment variable');
+}
+
+// Support rotation by accepting previous secret
+const sessionSecrets = [process.env.SESSION_SECRET];
+if (process.env.SESSION_SECRET_PREVIOUS) {
+  sessionSecrets.push(process.env.SESSION_SECRET_PREVIOUS);
+}
+
 // Initialize Stripe with error handling
 let stripe;
 try {
@@ -107,7 +118,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(session({
-  secret: process.env.SESSION_SECRET || "supersecret",
+  secret: sessionSecrets,
   resave: false,
   saveUninitialized: false,
   cookie: {

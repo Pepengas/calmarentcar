@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "echo \"No build step required\""
+    "build": "echo \"No build step required\"",
+    "generate-session-secret": "node utils/generate-session-secret.js"
   },
   "keywords": [
     "car rental",
