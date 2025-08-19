@@ -312,9 +312,28 @@ document.addEventListener("DOMContentLoaded", async function() {
                 loadCarDetails(data.cars[0].id);
             }
         } catch (err) {
-            editCarMsg.textContent = 'Error loading cars: ' + err.message;
-            editCarMsg.className = 'alert alert-danger';
-            console.error('[DEBUG] Error in loadEditCarDropdown:', err);
+            console.warn('[DEBUG] /api/cars failed, falling back to local cars.json');
+            try {
+                const res = await fetch('/cars.json');
+                const cars = await res.json();
+                if (!editCarDropdown) return;
+                editCarDropdown.innerHTML = '';
+                cars.forEach(car => {
+                    const opt = document.createElement('option');
+                    opt.value = car.id;
+                    opt.textContent = car.name;
+                    editCarDropdown.appendChild(opt);
+                });
+                if (cars.length > 0) {
+                    loadCarDetails(cars[0].id);
+                }
+                editCarMsg.textContent = 'Loaded cars from local file.';
+                editCarMsg.className = 'alert alert-info';
+            } catch (err2) {
+                editCarMsg.textContent = 'Error loading cars: ' + err2.message;
+                editCarMsg.className = 'alert alert-danger';
+                console.error('[DEBUG] Error in loadEditCarDropdown:', err2);
+            }
         }
     }
 
@@ -1661,9 +1680,34 @@ async function loadCarsForPricing() {
             priceEditorTable.querySelector('tbody').innerHTML = '<tr><td colspan="10" class="text-danger">No cars found.</td></tr>';
         }
     } catch (err) {
-        const tbody = priceEditorTable.querySelector('tbody');
-        if (tbody) tbody.innerHTML = `<tr><td colspan="10" class="text-danger">Error loading cars: ${err.message}</td></tr>`;
-        console.error('[Cars Tab] Error loading cars for pricing:', err);
+        console.warn('[Cars Tab] API failed, loading local data');
+        try {
+            const res = await fetch('/cars.json');
+            const cars = await res.json();
+            const pricingRes = await fetch('/assets/js/pricing.json');
+            const pricing = await pricingRes.json();
+            allCarsForPricing = cars.map(car => ({
+                id: car.id,
+                name: car.name,
+                monthly_pricing: (pricing.cars[car.name] || pricing.cars[car.id] || {})
+            }));
+            carDropdown.innerHTML = '';
+            allCarsForPricing.forEach(car => {
+                const opt = document.createElement('option');
+                opt.value = car.id;
+                opt.textContent = car.name;
+                carDropdown.appendChild(opt);
+            });
+            if (allCarsForPricing.length > 0) {
+                renderCarPricingTable(allCarsForPricing[0].id);
+            } else {
+                priceEditorTable.querySelector('tbody').innerHTML = '<tr><td colspan="10" class="text-danger">No cars found.</td></tr>';
+            }
+        } catch (err2) {
+            const tbody = priceEditorTable.querySelector('tbody');
+            if (tbody) tbody.innerHTML = `<tr><td colspan="10" class="text-danger">Error loading cars: ${err2.message}</td></tr>`;
+            console.error('[Cars Tab] Error loading cars for pricing:', err2);
+        }
     }
 }
 
@@ -1770,6 +1814,7 @@ async function loadCarAvailability() {
         return;
     }
     tableBody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+    let data;
     try {
         const response = await fetch('/api/admin/cars/availability', {
             headers: {
@@ -1777,20 +1822,40 @@ async function loadCarAvailability() {
             },
             credentials: 'include'
         });
-        const data = await response.json();
+        data = await response.json();
         if (!data.success) throw new Error(data.error || 'Failed to fetch cars');
-        tableBody.innerHTML = '';
-        if (!data.cars || data.cars.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5">No cars found.</td></tr>';
+    } catch (err) {
+        console.warn('[DEBUG] loadCarAvailability falling back to local cars.json');
+        try {
+            const res = await fetch('/cars.json');
+            const cars = await res.json();
+            data = {
+                cars: cars.map(c => ({
+                    car_id: c.id,
+                    name: c.name,
+                    manual_status: 'automatic',
+                    manual_blocks: [],
+                    booked_ranges: []
+                }))
+            };
+        } catch (fallbackErr) {
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-danger">Error: ${fallbackErr.message}</td></tr>`;
+            console.log('[DEBUG] Error in loadCarAvailability:', fallbackErr);
             return;
         }
-        carAvailabilityMap = {};
-        data.cars.forEach((car, idx) => {
-            // Use car.car_id everywhere for data-car-id
-            const realCarId = car.car_id || car.id;
-            carAvailabilityMap[realCarId] = car;
-            // Manual status dropdown
-            const statusOptions = ['automatic', 'available', 'unavailable'];
+    }
+    tableBody.innerHTML = '';
+    if (!data.cars || data.cars.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5">No cars found.</td></tr>';
+        return;
+    }
+    carAvailabilityMap = {};
+    data.cars.forEach((car, idx) => {
+        // Use car.car_id everywhere for data-car-id
+        const realCarId = car.car_id || car.id;
+        carAvailabilityMap[realCarId] = car;
+        // Manual status dropdown
+        const statusOptions = ['automatic', 'available', 'unavailable'];
             let statusDropdown = `<select class="form-select form-select-sm manual-status-dropdown" data-car-id="${realCarId}">`;
             statusOptions.forEach(opt => {
                 statusDropdown += `<option value="${opt}"${car.manual_status === opt ? ' selected' : ''}>${opt.charAt(0).toUpperCase() + opt.slice(1)}</option>`;
