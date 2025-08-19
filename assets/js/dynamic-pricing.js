@@ -8,21 +8,12 @@ let pricingData = null;
 // Function to load pricing data from API
 async function loadPricingData() {
   try {
-    // First attempt to fetch from API
+    // Fetch pricing data directly from API
     const response = await fetch('/api/pricing');
-    
     if (!response.ok) {
-      console.warn('API pricing not available, falling back to local file');
-      // Fall back to local file
-      const fallbackResponse = await fetch('/assets/js/pricing.json');
-      if (!fallbackResponse.ok) {
-        throw new Error('Failed to load pricing data from any source');
-      }
-      pricingData = await fallbackResponse.json();
-    } else {
-      pricingData = await response.json();
+      throw new Error('Failed to load pricing data from API');
     }
-    
+    pricingData = await response.json();
     console.log('Pricing data loaded successfully');
     return pricingData;
   } catch (error) {

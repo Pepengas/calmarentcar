@@ -61,9 +61,23 @@ console.log(`FRONTEND_URL set to: ${FRONTEND_URL}`);
 const MIN_CHARGE_AMOUNT = 0.5;
 
 // CORS configuration
-const ALLOWED_ORIGIN = 'https://calmarental.com';
+// Allow both production and development origins while keeping credentials support
+const ADMIN_ORIGIN = process.env.ADMIN_ORIGIN;
+const allowedOrigins = [
+    'https://calmarental.com',
+    FRONTEND_URL,
+    ADMIN_ORIGIN,
+    'http://localhost:3000'
+].filter(Boolean);
+
 const corsOptions = {
-    origin: ALLOWED_ORIGIN,
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
 };
 
@@ -254,7 +268,27 @@ async function createTables() {
             console.warn('⚠️ Cannot create tables: database not connected');
             return;
         }
-        
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS cars (
+                id SERIAL PRIMARY KEY,
+                car_id TEXT UNIQUE,
+                name TEXT,
+                description TEXT,
+                image TEXT,
+                category TEXT,
+                features JSONB DEFAULT '[]',
+                specs JSONB DEFAULT '{}'::jsonb,
+                monthly_pricing JSONB DEFAULT '{}'::jsonb,
+                manual_status TEXT DEFAULT 'automatic',
+                unavailable_dates JSONB DEFAULT '[]',
+                available BOOLEAN DEFAULT true,
+                display_order INT DEFAULT 0,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        console.log('✅ Cars table created successfully.');
+
         await pool.query(`
             CREATE TABLE IF NOT EXISTS bookings (
                 id SERIAL PRIMARY KEY,
@@ -1371,13 +1405,25 @@ app.get('/api/cars', async (req, res) => {
                 cars: []
             });
         }
-        const result = await pool.query('SELECT * FROM cars');
+        const result = await pool.query('SELECT * FROM cars WHERE available = true');
         // Map DB fields to frontend fields
         const cars = result.rows.map(car => {
-            // Parse unavailable_dates if present
+            // Parse JSON fields if stored as strings
             let unavailable_dates = car.unavailable_dates;
             if (unavailable_dates && typeof unavailable_dates === 'string') {
                 try { unavailable_dates = JSON.parse(unavailable_dates); } catch {}
+            }
+            let features = car.features;
+            if (features && typeof features === 'string') {
+                try { features = JSON.parse(features); } catch {}
+            }
+            let monthly_pricing = car.monthly_pricing;
+            if (monthly_pricing && typeof monthly_pricing === 'string') {
+                try { monthly_pricing = JSON.parse(monthly_pricing); } catch {}
+            }
+            let specs = car.specs;
+            if (specs && typeof specs === 'string') {
+                try { specs = JSON.parse(specs); } catch {}
             }
             return {
                 id: car.car_id, // map car_id to id
@@ -1385,10 +1431,10 @@ app.get('/api/cars', async (req, res) => {
                 description: car.description,
                 image: car.image,
                 category: car.category,
-                features: car.features,
-                monthly_pricing: car.monthly_pricing,
+                features,
+                monthly_pricing,
                 available: car.available,
-                specs: car.specs,
+                specs,
                 manual_status: car.manual_status,
                 unavailable_dates: unavailable_dates || []
             };
@@ -1404,6 +1450,130 @@ app.get('/api/cars', async (req, res) => {
             error: error.message,
             cars: []
         });
+    }
+});
+
+// Get single car by car_id (GET /api/cars/:id)
+app.get('/api/cars/:id', async (req, res) => {
+    try {
+        if (!global.dbConnected) {
+            return res.status(503).json({ success: false, error: 'Database not connected' });
+        }
+        const { id } = req.params;
+        const result = await pool.query('SELECT * FROM cars WHERE car_id = $1', [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ success: false, error: 'Car not found' });
+        }
+        let car = result.rows[0];
+        if (car.features && typeof car.features === 'string') {
+            try { car.features = JSON.parse(car.features); } catch {}
+        }
+        if (car.monthly_pricing && typeof car.monthly_pricing === 'string') {
+            try { car.monthly_pricing = JSON.parse(car.monthly_pricing); } catch {}
+        }
+        if (car.specs && typeof car.specs === 'string') {
+            try { car.specs = JSON.parse(car.specs); } catch {}
+        }
+        if (car.unavailable_dates && typeof car.unavailable_dates === 'string') {
+            try { car.unavailable_dates = JSON.parse(car.unavailable_dates); } catch {}
+        }
+        return res.json({ success: true, car });
+    } catch (err) {
+        console.error('❌ Error fetching car:', err);
+        return res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Get monthly pricing for a car
+app.get('/api/cars/:id/pricing', async (req, res) => {
+    try {
+        if (!global.dbConnected) {
+            return res.status(503).json({ success: false, error: 'Database not connected' });
+        }
+        const { id } = req.params;
+        const result = await pool.query('SELECT monthly_pricing FROM cars WHERE car_id = $1', [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ success: false, error: 'Car not found' });
+        }
+        let pricing = result.rows[0].monthly_pricing || {};
+        if (typeof pricing === 'string') {
+            try { pricing = JSON.parse(pricing); } catch {}
+        }
+        return res.json({ success: true, monthly_pricing: pricing });
+    } catch (err) {
+        console.error('❌ Error fetching car pricing:', err);
+        return res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Update monthly pricing for a car
+app.put('/api/cars/:id/pricing', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { monthly_pricing } = req.body;
+        if (!monthly_pricing) {
+            return res.status(400).json({ success: false, error: 'Missing monthly_pricing data' });
+        }
+        await pool.query(
+            'UPDATE cars SET monthly_pricing = $1, updated_at = NOW() WHERE car_id = $2',
+            [monthly_pricing, id]
+        );
+        return res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Error updating car pricing:', err);
+        return res.status(500).json({ success: false, error: 'Failed to update pricing' });
+    }
+});
+
+// Get manual availability blocks for a car
+app.get('/api/cars/:id/availability', async (req, res) => {
+    try {
+        if (!global.dbConnected) {
+            return res.status(503).json({ success: false, error: 'Database not connected' });
+        }
+        const { id } = req.params;
+        const blocksRes = await pool.query(
+            'SELECT id, start_date, end_date FROM manual_blocks WHERE car_id = $1 ORDER BY start_date',
+            [id]
+        );
+        return res.json({ success: true, blocks: blocksRes.rows });
+    } catch (err) {
+        console.error('❌ Error fetching availability:', err);
+        return res.status(500).json({ success: false, error: 'Failed to fetch availability' });
+    }
+});
+
+// Add a manual availability block for a car
+app.post('/api/cars/:id/availability', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { start_date, end_date } = req.body;
+        if (!start_date || !end_date) {
+            return res.status(400).json({ success: false, error: 'Missing start_date or end_date' });
+        }
+        const result = await pool.query(
+            `INSERT INTO manual_blocks (car_id, start_date, end_date)
+             VALUES ($1,$2,$3)
+             ON CONFLICT (car_id, start_date, end_date) DO NOTHING
+             RETURNING id, start_date, end_date`,
+            [id, start_date, end_date]
+        );
+        return res.json({ success: true, block: result.rows[0] });
+    } catch (err) {
+        console.error('❌ Error adding availability block:', err);
+        return res.status(500).json({ success: false, error: 'Failed to add availability block' });
+    }
+});
+
+// Delete a manual availability block for a car
+app.delete('/api/cars/:id/availability/:blockId', requireAdminAuth, async (req, res) => {
+    try {
+        const { id, blockId } = req.params;
+        await pool.query('DELETE FROM manual_blocks WHERE id = $1 AND car_id = $2', [blockId, id]);
+        return res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Error deleting availability block:', err);
+        return res.status(500).json({ success: false, error: 'Failed to delete availability block' });
     }
 });
 
