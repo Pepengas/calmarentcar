@@ -41,8 +41,8 @@ const { pool } = require('../database');
     };
 
     await pool.query(
-      `INSERT INTO cars (car_id, name, description, image, category, features, specs, monthly_pricing, available)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      `INSERT INTO cars (car_id, name, description, image, category, features, specs, monthly_pricing, manual_status, unavailable_dates, available, display_order)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
        ON CONFLICT (car_id) DO NOTHING`,
       [
         carId,
@@ -52,8 +52,11 @@ const { pool } = require('../database');
         'Economy',
         JSON.stringify(features),
         JSON.stringify(specs),
-        '{}',
-        true
+        JSON.stringify({}),
+        'manual',
+        JSON.stringify([]),
+        true,
+        0
       ]
     );
 
