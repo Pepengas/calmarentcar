@@ -2,8 +2,12 @@ import React from 'react';
 import { Html } from '@react-email/html';
 import { Head } from '@react-email/head';
 import { Preview } from '@react-email/preview';
+import { calculateInclusiveDisplayDays, formatLocationName } from '../assets/js/utils/date.js';
 
 export default function BookingConfirmation({ data }) {
+  const duration = calculateInclusiveDisplayDays(data.pickup, data.return);
+  const pickupLocation = data.pickupLocation ? formatLocationName(data.pickupLocation) : undefined;
+  const dropoffLocation = data.dropoffLocation ? formatLocationName(data.dropoffLocation) : undefined;
   return (
     <Html>
       <Head />
@@ -20,8 +24,15 @@ export default function BookingConfirmation({ data }) {
               <h2 style={{ color: '#4b125c' }}>Booking Confirmation</h2>
               <p><strong>Reference:</strong> {data.reference}</p>
               <p><strong>Car:</strong> {data.car}</p>
+              {pickupLocation && (
+                <p><strong>Pickup Location:</strong> {pickupLocation}</p>
+              )}
+              {dropoffLocation && (
+                <p><strong>Drop-off Location:</strong> {dropoffLocation}</p>
+              )}
               <p><strong>Pickup Date:</strong> {data.pickup}</p>
               <p><strong>Return Date:</strong> {data.return}</p>
+              <p><strong>Rental Duration:</strong> {duration} {duration === 1 ? 'day' : 'days'}</p>
               <hr style={{ border: 'none', borderTop: '1px solid #ccc', margin: '20px 0' }} />
               <p><strong>Add-ons:</strong> {data.addons}</p>
               <p><strong>Total Price (with add-ons):</strong> €{data.total}</p>
