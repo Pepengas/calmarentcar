@@ -97,7 +97,9 @@
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <script>
+    <script type="module">
+        import { calculateInclusiveDisplayDays, formatLocationName } from 'assets/js/utils/date.js';
+
         document.addEventListener('DOMContentLoaded', function() {
             // Elements
             const loadingContainer = document.getElementById('loadingContainer');
@@ -197,18 +199,15 @@
                 
                 // Calculate rental duration in days
                 if (rental.pickup_date && rental.return_date) {
-                    const pickup = new Date(rental.pickup_date);
-                    const dropoff = new Date(rental.return_date);
-                    const diffTime = Math.abs(dropoff - pickup);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    document.getElementById('rental-days').textContent = `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+                    const days = calculateInclusiveDisplayDays(rental.pickup_date, rental.return_date);
+                    document.getElementById('rental-days').textContent = `${days} day${days !== 1 ? 's' : ''}`;
                 } else {
                     document.getElementById('rental-days').textContent = 'Not available';
                 }
                 
                 // Rental details
-                document.getElementById('pickupLocation').textContent = formatLocation(rental.pickup_location);
-                document.getElementById('dropoffLocation').textContent = formatLocation(rental.dropoff_location);
+                document.getElementById('pickupLocation').textContent = formatLocationName(rental.pickup_location);
+                document.getElementById('dropoffLocation').textContent = formatLocationName(rental.dropoff_location);
                 document.getElementById('pickupDate').textContent = formatDate(rental.pickup_date);
                 document.getElementById('returnDate').textContent = formatDate(rental.return_date);
                 
@@ -278,20 +277,6 @@
                     hour: '2-digit',
                     minute: '2-digit'
                 });
-            }
-            
-            // Helper function to format location
-            function formatLocation(location) {
-                if (!location) return 'Not specified';
-                
-                const locations = {
-                    'airport': 'Chania International Airport',
-                    'port': 'Chania Port',
-                    'city': 'Chania City Center',
-                    'hotel': 'Hotel/Villa in Chania'
-                };
-                
-                return locations[location] || location;
             }
             
             // Helper function to capitalize the first letter

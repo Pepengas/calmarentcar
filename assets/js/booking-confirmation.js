@@ -2,6 +2,7 @@
  * Booking Confirmation Page JavaScript
  * Handles displaying booking details and sending information to admin dashboard
  */
+import { calculateInclusiveDisplayDays, formatLocationName } from './utils/date.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the booking confirmation page
@@ -162,7 +163,7 @@ const BookingConfirmation = {
         
         // Set trip information
         if (this.elements.pickupLocation) {
-            this.elements.pickupLocation.textContent = booking.pickupLocation || 'N/A';
+            this.elements.pickupLocation.textContent = formatLocationName(booking.pickupLocation || 'N/A');
         }
         
         if (this.elements.pickupDatetime) {
@@ -179,7 +180,7 @@ const BookingConfirmation = {
         }
         
         if (this.elements.dropoffLocation) {
-            this.elements.dropoffLocation.textContent = booking.dropoffLocation || 'N/A';
+            this.elements.dropoffLocation.textContent = formatLocationName(booking.dropoffLocation || 'N/A');
         }
         
         if (this.elements.dropoffDatetime) {
@@ -196,8 +197,8 @@ const BookingConfirmation = {
         }
         
         if (this.elements.duration) {
-            const days = booking.durationDays || 1;
-            this.elements.duration.textContent = `${days} ${days === 1 ? 'day' : 'days'}`;
+            const n = calculateInclusiveDisplayDays(booking.pickupDate, booking.returnDate);
+            this.elements.duration.textContent = `${n} ${n === 1 ? 'day' : 'days'}`;
         }
         
         // Set customer information
