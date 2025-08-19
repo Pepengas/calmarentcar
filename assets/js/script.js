@@ -109,7 +109,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             let featuresHtml = '';
             if (car.features && car.features.length > 0) {
-                featuresHtml = `<ul class="car-features"><li>${car.features.join('</li><li>')}</li></ul>`;
+                const featureList = car.features.flatMap(f => f.split(',').map(s => s.trim()));
+                featuresHtml = `<ul class="car-features"><li>${featureList.join('</li><li>')}</li></ul>`;
             }
             
             card.innerHTML = `
