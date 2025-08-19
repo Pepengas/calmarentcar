@@ -44,6 +44,17 @@
       "October": 50,
       "extraDay": 35
     },
+    "citroen-c3-777": {
+      "category": "C",
+      "April": 55,
+      "May": 65,
+      "June": 70,
+      "July": 80,
+      "August": 90,
+      "September": 70,
+      "October": 50,
+      "extraDay": 35
+    },
     "Volkswagen Golf": {
       "category": "D",
       "April": 65,
