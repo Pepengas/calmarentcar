@@ -93,10 +93,16 @@ async function createTables() {
                 booster_seat BOOLEAN,
                 special_requests TEXT,
                 status TEXT DEFAULT 'pending',
+                confirmation_email_sent BOOLEAN DEFAULT false,
                 date_submitted TIMESTAMP DEFAULT NOW()
             )
         `);
-        console.log('✅ Bookings table created successfully.');
+        console.log('✅ Bookings table created/verified successfully.');
+
+        // Ensure confirmation_email_sent column exists even if table was created previously
+        await pool.query(
+            `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS confirmation_email_sent BOOLEAN DEFAULT false`
+        );
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS admins (
