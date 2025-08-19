@@ -199,31 +199,41 @@ function standardizeCar(car) {
     image = DEFAULT_IMAGES[name];
   }
   
-  // Handle features - convert from string if needed
-  let features = car.features || [];
-  if (typeof features === 'string') {
-    try {
-      features = JSON.parse(features);
-    } catch (e) {
+    // Handle features - convert from string if needed
+    let features = car.features || [];
+    if (typeof features === 'string') {
+      try {
+        features = JSON.parse(features);
+      } catch (e) {
+        features = getDefaultFeatures(name);
+      }
+    }
+    if (!features.length) {
       features = getDefaultFeatures(name);
     }
-  }
-  if (!features.length) {
-    features = getDefaultFeatures(name);
-  }
-  
-  // Handle monthly pricing - convert from string if needed
-  let monthly_pricing = car.monthly_pricing || car.monthlyPricing || {};
-  if (typeof monthly_pricing === 'string') {
-    try {
-      monthly_pricing = JSON.parse(monthly_pricing);
-    } catch (e) {
-      const basePrice = car.pricePerDay || BASE_PRICES[name] || 45;
-      monthly_pricing = getDefaultMonthlyPricing(basePrice);
+
+    // Handle specs - convert from string if needed
+    let specs = car.specs || {};
+    if (typeof specs === 'string') {
+      try {
+        specs = JSON.parse(specs);
+      } catch (e) {
+        specs = {};
+      }
     }
-  }
-  
-  // Check if monthly_pricing has all required months
+
+    // Handle monthly pricing - convert from string if needed
+    let monthly_pricing = car.monthly_pricing || car.monthlyPricing || {};
+    if (typeof monthly_pricing === 'string') {
+      try {
+        monthly_pricing = JSON.parse(monthly_pricing);
+      } catch (e) {
+        const basePrice = car.pricePerDay || BASE_PRICES[name] || 45;
+        monthly_pricing = getDefaultMonthlyPricing(basePrice);
+      }
+    }
+
+    // Check if monthly_pricing has all required months
   const requiredMonths = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -245,16 +255,20 @@ function standardizeCar(car) {
   }
   
   // Return standardized car object
-  return {
-    car_id,
-    name,
-    description,
-    image,
-    category,
-    features,
-    monthly_pricing,
-    available: car.available !== false, // Default to true unless explicitly false
-  };
+    return {
+      car_id,
+      name,
+      description,
+      image,
+      category,
+      features,
+      specs,
+      monthly_pricing,
+      manual_status: car.manual_status || 'automatic',
+      unavailable_dates: car.unavailable_dates || [],
+      available: car.available !== false, // Default to true unless explicitly false
+      display_order: car.display_order || 0,
+    };
 }
 
 // Function to check if a car already exists in the database by car_id
@@ -375,17 +389,25 @@ async function syncAllCarsToDatabase() {
                 image = $2,
                 category = $3,
                 features = $4,
-                monthly_pricing = $5,
-                available = $6,
+                specs = $5,
+                monthly_pricing = $6,
+                manual_status = $7,
+                unavailable_dates = $8,
+                available = $9,
+                display_order = $10,
                 updated_at = NOW()
-            WHERE car_id = $7
+            WHERE car_id = $11
           `, [
             car.description,
             car.image,
             car.category,
             JSON.stringify(car.features),
+            JSON.stringify(car.specs),
             JSON.stringify(car.monthly_pricing),
+            car.manual_status,
+            JSON.stringify(car.unavailable_dates),
             car.available,
+            car.display_order,
             existingCar.car_id
           ]);
           updatedCount++;
@@ -394,8 +416,8 @@ async function syncAllCarsToDatabase() {
           // Insert new car
           await pool.query(`
             INSERT INTO cars (
-              car_id, name, description, image, category, features, monthly_pricing, available
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+              car_id, name, description, image, category, features, specs, monthly_pricing, manual_status, unavailable_dates, available, display_order
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
           `, [
             car.car_id,
             car.name,
@@ -403,8 +425,12 @@ async function syncAllCarsToDatabase() {
             car.image,
             car.category,
             JSON.stringify(car.features),
+            JSON.stringify(car.specs),
             JSON.stringify(car.monthly_pricing),
-            car.available
+            car.manual_status,
+            JSON.stringify(car.unavailable_dates),
+            car.available,
+            car.display_order
           ]);
           insertedCount++;
           console.log(`✅ Inserted: ${car.name}`);

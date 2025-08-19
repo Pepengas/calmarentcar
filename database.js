@@ -44,21 +44,27 @@ async function createTables() {
             return;
         }
         
-        // Create cars table with monthly_pricing
+        // Create cars table using the canonical schema
         await pool.query(`
             CREATE TABLE IF NOT EXISTS cars (
                 id SERIAL PRIMARY KEY,
                 car_id TEXT UNIQUE,
-                make TEXT,
-                model TEXT,
+                name TEXT,
+                description TEXT,
+                image TEXT,
                 category TEXT,
-                specifications JSONB,
-                monthly_pricing JSONB DEFAULT '{}',
+                features JSONB DEFAULT '[]',
+                specs JSONB DEFAULT '{}'::jsonb,
+                monthly_pricing JSONB DEFAULT '{}'::jsonb,
+                manual_status TEXT DEFAULT 'automatic',
+                unavailable_dates JSONB DEFAULT '[]',
+                available BOOLEAN DEFAULT true,
+                display_order INT DEFAULT 0,
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             )
         `);
-        console.log('✅ Cars table created successfully.');
+        console.log('✅ Cars table created/verified successfully.');
 
         // Create bookings table
         await pool.query(`

@@ -35,7 +35,20 @@ async function checkCarTable() {
     console.table(tableInfo.rows);
     
     // Check required columns exist
-    const requiredColumns = ['car_id', 'name', 'description', 'image', 'monthly_pricing', 'features', 'available'];
+    const requiredColumns = [
+      'car_id',
+      'name',
+      'description',
+      'image',
+      'category',
+      'features',
+      'specs',
+      'monthly_pricing',
+      'manual_status',
+      'unavailable_dates',
+      'available',
+      'display_order'
+    ];
     const missingColumns = [];
     const existingColumns = tableInfo.rows.map(row => row.column_name);
     
@@ -134,21 +147,22 @@ async function addSampleCars() {
         const image = `https://calmarental.com/images/cars/${car.name.toLowerCase().replace(/\s+/g, '-')}.jpg`;
         
         // Insert car
-        await pool.query(`
-          INSERT INTO cars (
-            car_id, name, description, image, category, features, monthly_pricing, available
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-          ON CONFLICT (car_id) DO NOTHING
-        `, [
-          carId,
-          car.name,
-          car.description,
-          image,
-          car.category,
-          JSON.stringify(car.features),
-          JSON.stringify(car.monthly_pricing),
-          true
-        ]);
+          await pool.query(`
+            INSERT INTO cars (
+              car_id, name, description, image, category, features, specs, monthly_pricing, available
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ON CONFLICT (car_id) DO NOTHING
+          `, [
+            carId,
+            car.name,
+            car.description,
+            image,
+            car.category,
+            JSON.stringify(car.features),
+            JSON.stringify({}),
+            JSON.stringify(car.monthly_pricing),
+            true
+          ]);
         
         console.log(`✅ Added car: ${car.name}`);
       } catch (error) {
