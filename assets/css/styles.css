@@ -2363,3 +2363,31 @@ select#pickup-location, select#dropoff-location {
         padding: 1rem !important;
     }
 }
+
+/* Our Fleet slider overrides */
+.our-fleet-slider {
+    position: relative;
+}
+
+.our-fleet-slider .cars-grid {
+    display: flex;
+}
+
+.our-fleet-slider .swiper-button-prev,
+.our-fleet-slider .swiper-button-next {
+    color: var(--primary-color);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@media (max-width: 767px) {
+    .our-fleet-slider .swiper-button-prev,
+    .our-fleet-slider .swiper-button-next {
+        display: none;
+    }
+}
+
+.our-fleet-slider .swiper-pagination {
+    position: static;
+    margin-top: 20px;
+}

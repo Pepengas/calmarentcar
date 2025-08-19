@@ -37,6 +37,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     
     <!-- Preload critical resources -->
     <link rel="preload" fetchpriority="high" as="image" href="images/CalmaLogoTrans.png" type="image/png">
@@ -792,10 +795,11 @@
                     <h2>Our Fleet</h2>
                     <p>Choose from our selection of well-maintained vehicles to suit your needs</p>
                 </div>
-                
-                <div class="cars-grid">
+
+                <div class="our-fleet-slider swiper">
+                    <div class="cars-grid swiper-wrapper">
                     <!-- Car 1 -->
-                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaAygo.jpg" alt="Toyota Aygo" title="Photo of Toyota Aygo" loading="lazy" width="300" height="200">
                         </div>
@@ -811,7 +815,7 @@
                     </div>
                     
                     <!-- Car 2 -->
-                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaTiguan.jpg" alt="Volkswagen Tiguan R line" title="Photo of Volkswagen Tiguan R line" loading="lazy" width="300" height="200">
                         </div>
@@ -827,7 +831,7 @@
                     </div>
                     
                     <!-- Car 3 -->
-                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaGolf.jpg" alt="Volkswagen Golf" title="Photo of Volkswagen Golf" loading="lazy" width="300" height="200">
                         </div>
@@ -843,7 +847,7 @@
                     </div>
                     
                     <!-- Car 4 -->
-                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/Calmai10.jpg" alt="Hyundai i10" title="Photo of Hyundai i10" loading="lazy" width="300" height="200">
                         </div>
@@ -859,7 +863,7 @@
                     </div>
                     
                     <!-- Car 5 -->
-                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaCitroen.jpg" alt="Citroen C3" title="Photo of Citroen C3" loading="lazy" width="300" height="200">
                         </div>
@@ -875,7 +879,7 @@
                     </div>
                     
                     <!-- Car 6 -->
-                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CitroenC3_A.jpg" alt="Citroën C3 rental car" title="Photo of Citroën C3" loading="lazy" width="300" height="200">
                         </div>
@@ -891,7 +895,7 @@
                     </div>
 
                     <!-- Car 7 -->
-                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaSuzuki.jpg" alt="Suzuki Celerio" title="Photo of Suzuki Celerio" loading="lazy" width="300" height="200">
                         </div>
@@ -907,7 +911,7 @@
                     </div>
 
                     <!-- Car 8 -->
-                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaFiatPanda.jpg" alt="Fiat Panda" title="Photo of Fiat Panda" loading="lazy" width="300" height="200">
                         </div>
@@ -923,7 +927,7 @@
                     </div>
 
                     <!-- Car 9 -->
-                    <div class="car-card" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaAudiA3.jpg" alt="Audi A3" title="Photo of Audi A3" loading="lazy" width="300" height="200">
                         </div>
@@ -937,6 +941,10 @@
                             <a href="/" class="btn btn-primary">Book Now</a>
                         </div>
                     </div>
+                    </div>
+                    <div class="swiper-button-prev" aria-label="Previous cars"></div>
+                    <div class="swiper-button-next" aria-label="Next cars"></div>
+                    <div class="swiper-pagination"></div>
                 </div>
             </div>
         </section>
@@ -1499,9 +1507,52 @@
     <div class="notification-container" id="notification-container"></div>
 
     <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script type="module" src="assets/js/main.js"></script>
     <script src="assets/js/fix-cars.js"></script>
     <script src="assets/js/mobile-menu.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sliderEl = document.querySelector('.our-fleet-slider');
+            if (sliderEl) {
+                new Swiper(sliderEl, {
+                    slidesPerView: 4,
+                    spaceBetween: 24,
+                    loop: true,
+                    speed: 600,
+                    autoplay: {
+                        delay: 3000,
+                        disableOnInteraction: false,
+                        pauseOnMouseEnter: true
+                    },
+                    navigation: {
+                        prevEl: '.our-fleet-slider .swiper-button-prev',
+                        nextEl: '.our-fleet-slider .swiper-button-next'
+                    },
+                    pagination: {
+                        el: '.our-fleet-slider .swiper-pagination',
+                        clickable: true
+                    },
+                    breakpoints: {
+                        0: {
+                            slidesPerView: 1
+                        },
+                        768: {
+                            slidesPerView: 2
+                        },
+                        1200: {
+                            slidesPerView: 4
+                        }
+                    },
+                    watchOverflow: true,
+                    a11y: {
+                        enabled: true
+                    }
+                });
+            }
+        });
+    </script>
     
     <!-- FAQ Accordion Script -->
     <script>
