@@ -449,6 +449,7 @@ header {
     display: flex;
     flex-direction: column;
     height: 100%;
+    width: 100%;
 }
 
 .car-card:hover {
@@ -529,12 +530,16 @@ header {
 }
 
 .car-pricing {
-    margin-top: auto;
     font-size: 0.95rem;
+    margin-bottom: 16px;
 }
 
 .btn.btn-primary {
     margin-top: 16px;
+}
+
+.car-details .btn.btn-primary {
+    margin-top: auto;
 }
 
 /* About/Additional Sections */
@@ -1506,8 +1511,8 @@ footer {
 
 /* Car Cards Pricing */
 .car-pricing {
-    margin-top: auto;
     font-size: 0.95rem;
+    margin-bottom: 16px;
 }
 
 .price {
@@ -2373,6 +2378,11 @@ select#pickup-location, select#dropoff-location {
     display: flex;
 }
 
+.our-fleet-slider .swiper-slide {
+    display: flex;
+    height: auto;
+}
+
 .our-fleet-slider .swiper-button-prev,
 .our-fleet-slider .swiper-button-next {
     color: var(--primary-color);
@@ -2384,6 +2394,10 @@ select#pickup-location, select#dropoff-location {
     .our-fleet-slider .swiper-button-prev,
     .our-fleet-slider .swiper-button-next {
         display: none;
+    }
+
+    .our-fleet-slider .swiper-slide {
+        justify-content: center;
     }
 }
 
