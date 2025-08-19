@@ -65,38 +65,6 @@
     ]
   },
   {
-    "id": "citroen-c3-777",
-    "name": "Citroën C3",
-    "description": "Stylish compact car with excellent comfort.",
-    "pricePerDay": 40,
-    "image": "/images/CitroenC3_A.jpg",
-    "features": [
-      "Air Condition",
-      "ABS",
-      "Airbag",
-      "Bluetooth",
-      "Parking Sensors (Αισθητήρες)",
-      "Rear Camera (Κάμερα)",
-      "Heated Seats (Θερμαινόμενα καθίσματα)"
-    ]
-  },
-  {
-    "id": "citroen-c3-b",
-    "name": "Citroen C3_B",
-    "description": "Stylish compact car with excellent comfort.",
-    "pricePerDay": 40,
-    "image": "/images/CitroenC3_A.jpg",
-    "features": [
-      "Air Condition",
-      "ABS",
-      "Airbag",
-      "Bluetooth",
-      "Parking Sensors (Αισθητήρες)",
-      "Rear Camera (Κάμερα)",
-      "Heated Seats (Θερμαινόμενα καθίσματα)"
-    ]
-  },
-  {
     "id": "swift",
     "name": "Suzuki Swift",
     "description": "Sporty and nimble, ideal for exploring Crete.",
