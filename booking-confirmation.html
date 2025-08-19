@@ -130,7 +130,14 @@
 
             async function confirmPayment() {
                 try {
-                    const res = await fetch(`/api/bookings/${bookingReference}/confirm-payment`, { method: 'POST' });
+                    const res = await fetch(`/api/bookings/${bookingReference}/confirm-payment`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('adminToken') || 'calma-admin-token-2023'}`
+                        },
+                        body: JSON.stringify({ sessionId })
+                    });
                     if (!res.ok) {
                         console.error('Payment confirmation failed');
                     }
