@@ -475,6 +475,42 @@ function requireAdminAuth(req, res, next) {
     return res.status(401).json({ success: false, error: "Authentication required" });
 }
 
+// Send security alerts to admin
+async function alertAdmin(subject, message) {
+    console.error(`[ALERT] ${subject}: ${message}`);
+    if (!resend) return;
+    const to = process.env.ADMIN_ALERT_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL;
+    if (!to) return;
+    try {
+        await resend.emails.send({
+            from: 'Calma Car Rental <alert@calmarental.com>',
+            to,
+            subject,
+            html: `<p>${message}</p>`
+        });
+    } catch (err) {
+        console.error('Failed to send alert email:', err);
+    }
+}
+
+// Lightweight token-based auth for internal/payment routes
+function requirePaymentAuth(req, res, next) {
+    const authHeader = req.headers['authorization'] || '';
+    const token = authHeader.startsWith('Bearer ')
+        ? authHeader.slice(7)
+        : authHeader;
+    const expected = process.env.PAYMENT_CONFIRM_TOKEN || process.env.ADMIN_API_TOKEN;
+
+    if (expected && token === expected) {
+        return next();
+    }
+
+    const reference = req.params?.reference;
+    console.warn(`[PaymentConfirm] Unauthorized attempt${reference ? ` for booking ${reference}` : ''}`);
+    alertAdmin('Unauthorized payment confirmation attempt', `Reference: ${reference || 'unknown'}, IP: ${req.ip}`);
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+}
+
 
 // --- Addons In-Memory Store and API ---
 let addons = [
@@ -832,10 +868,53 @@ app.get('/api/bookings/:reference',
 
 // Confirm payment and send booking email
 app.post('/api/bookings/:reference/confirm-payment',
-    validate([param('reference').trim().notEmpty()]),
+    requirePaymentAuth,
+    validate([
+        param('reference').trim().notEmpty(),
+        body('sessionId').trim().notEmpty()
+    ]),
     async (req, res) => {
     try {
         const { reference } = req.params;
+        const { sessionId } = req.body;
+
+        if (!sessionId) {
+            console.warn(`[PaymentConfirm] Missing sessionId for ${reference}`);
+            await alertAdmin('Missing sessionId in payment confirmation', `Reference: ${reference}`);
+            return res.status(400).json({ success: false, error: 'Missing sessionId' });
+        }
+
+        let stripeSession;
+        try {
+            stripeSession = await stripe.checkout.sessions.retrieve(sessionId);
+        } catch (err) {
+            console.error(`[PaymentConfirm] Stripe session retrieval failed for ${sessionId}:`, err.message);
+            await alertAdmin('Stripe session retrieval failed', `Reference: ${reference}, Session: ${sessionId}, Error: ${err.message}`);
+            return res.status(400).json({ success: false, error: 'Invalid payment session' });
+        }
+
+        if (stripeSession.payment_status !== 'paid' ||
+            stripeSession.status !== 'complete' ||
+            stripeSession.metadata?.bookingReference !== reference) {
+            console.warn(`[PaymentConfirm] Payment not verified for booking ${reference}`);
+            await alertAdmin('Payment verification failed', `Reference: ${reference}, Session: ${sessionId}`);
+            return res.status(400).json({ success: false, error: 'Payment not verified' });
+        }
+
+        if (stripeSession.payment_intent) {
+            try {
+                const intent = await stripe.paymentIntents.retrieve(stripeSession.payment_intent);
+                if (intent.status !== 'succeeded') {
+                    console.warn(`[PaymentConfirm] Payment intent not succeeded for booking ${reference}`);
+                    await alertAdmin('Payment intent not succeeded', `Reference: ${reference}, Intent: ${stripeSession.payment_intent}`);
+                    return res.status(400).json({ success: false, error: 'Payment not verified' });
+                }
+            } catch (err) {
+                console.error(`[PaymentConfirm] Failed to retrieve payment intent ${stripeSession.payment_intent}:`, err.message);
+                await alertAdmin('Payment intent retrieval failed', `Reference: ${reference}, Intent: ${stripeSession.payment_intent}, Error: ${err.message}`);
+                return res.status(400).json({ success: false, error: 'Invalid payment intent' });
+            }
+        }
 
         if (!global.dbConnected) {
             console.warn('🚨 Skipping DB call: no connection');
@@ -875,6 +954,7 @@ app.post('/api/bookings/:reference/confirm-payment',
         return res.json({ success: true, booking });
     } catch (error) {
         console.error('Error confirming booking payment:', error);
+        await alertAdmin('Error confirming booking payment', error.message);
         return res.status(500).json({ success: false, error: error.message });
     }
 });
