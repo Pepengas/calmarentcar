@@ -24,7 +24,10 @@ const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 // Register JSX support for React email templates
 const { register: esbuildRegister } = require('esbuild-register/dist/node');
-esbuildRegister({ extensions: ['.jsx'] });
+// Also transpile regular `.js` files so that ESM syntax in shared utilities
+// like `assets/js/utils/date.js` can be required in the Node.js environment
+// (e.g. when rendering React email templates).
+esbuildRegister({ extensions: ['.jsx', '.js'] });
 
 const React = require('react');
 const { render } = require('@react-email/render');
