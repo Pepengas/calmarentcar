@@ -5,7 +5,12 @@
     "description": "Compact and fuel-efficient, perfect for city driving.",
     "pricePerDay": 35,
     "image": "https://calmarental.com/images/CalmaAygo.jpg",
-    "features": ["Automatic", "4 Seats", "Air Conditioning", "Fuel Efficient"]
+    "features": [
+      "Automatic",
+      "4 Seats",
+      "Air Conditioning",
+      "Fuel Efficient"
+    ]
   },
   {
     "id": "tiguan",
@@ -13,7 +18,12 @@
     "description": "Spacious SUV with advanced features for comfort.",
     "pricePerDay": 75,
     "image": "https://calmarental.com/images/CalmaTiguan.jpg",
-    "features": ["Automatic", "5 Seats", "SUV", "Bluetooth"]
+    "features": [
+      "Automatic",
+      "5 Seats",
+      "SUV",
+      "Bluetooth"
+    ]
   },
   {
     "id": "golf",
@@ -21,7 +31,12 @@
     "description": "Versatile hatchback with excellent handling.",
     "pricePerDay": 55,
     "image": "https://calmarental.com/images/CalmaGolf.jpg",
-    "features": ["Automatic", "5 Seats", "Air Conditioning", "Cruise Control"]
+    "features": [
+      "Automatic",
+      "5 Seats",
+      "Air Conditioning",
+      "Cruise Control"
+    ]
   },
   {
     "id": "i10",
@@ -29,7 +44,12 @@
     "description": "Economical and easy to drive mini car.",
     "pricePerDay": 32,
     "image": "https://calmarental.com/images/Calmai10.jpg",
-    "features": ["Manual", "4 Seats", "Air Conditioning", "Compact"]
+    "features": [
+      "Manual",
+      "4 Seats",
+      "Air Conditioning",
+      "Compact"
+    ]
   },
   {
     "id": "c3",
@@ -37,7 +57,12 @@
     "description": "Stylish compact car with excellent comfort.",
     "pricePerDay": 40,
     "image": "https://calmarental.com/images/CalmaCitroen.jpg",
-    "features": ["Manual", "5 Seats", "Air Conditioning", "Bluetooth"]
+    "features": [
+      "Manual",
+      "5 Seats",
+      "Air Conditioning",
+      "Bluetooth"
+    ]
   },
   {
     "id": "citroen-c3-777",
@@ -50,9 +75,25 @@
       "ABS",
       "Airbag",
       "Bluetooth",
-      "Parking Sensors (\u0391\u03b9\u03c3\u03b8\u03b7\u03c4\u03ae\u03c1\u03b5\u03c2)",
-      "Rear Camera (\u039a\u03ac\u03bc\u03b5\u03c1\u03b1)",
-      "Heated Seats (\u0398\u03b5\u03c1\u03bc\u03b1\u03b9\u03bd\u03cc\u03bc\u03b5\u03bd\u03b1 \u03ba\u03b1\u03b8\u03af\u03c3\u03bc\u03b1\u03c4\u03b1)"
+      "Parking Sensors (Αισθητήρες)",
+      "Rear Camera (Κάμερα)",
+      "Heated Seats (Θερμαινόμενα καθίσματα)"
+    ]
+  },
+  {
+    "id": "citroen-c3-b",
+    "name": "Citroen C3_B",
+    "description": "Stylish compact car with excellent comfort.",
+    "pricePerDay": 40,
+    "image": "/images/CitroenC3_A.jpg",
+    "features": [
+      "Air Condition",
+      "ABS",
+      "Airbag",
+      "Bluetooth",
+      "Parking Sensors (Αισθητήρες)",
+      "Rear Camera (Κάμερα)",
+      "Heated Seats (Θερμαινόμενα καθίσματα)"
     ]
   },
   {
@@ -61,6 +102,11 @@
     "description": "Sporty and nimble, ideal for exploring Crete.",
     "pricePerDay": 38,
     "image": "https://calmarental.com/images/CalmaSuzuki.jpg",
-    "features": ["Manual", "5 Seats", "Air Conditioning", "Sporty"]
+    "features": [
+      "Manual",
+      "5 Seats",
+      "Air Conditioning",
+      "Sporty"
+    ]
   }
-] 
+]

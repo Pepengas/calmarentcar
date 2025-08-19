@@ -55,6 +55,28 @@
       "October": 50,
       "extraDay": 35
     },
+    "citroen-c3-b": {
+      "category": "C",
+      "April": 55,
+      "May": 65,
+      "June": 70,
+      "July": 80,
+      "August": 90,
+      "September": 70,
+      "October": 50,
+      "extraDay": 35
+    },
+    "Citroen C3_2": {
+      "category": "C",
+      "April": 55,
+      "May": 65,
+      "June": 70,
+      "July": 80,
+      "August": 90,
+      "September": 70,
+      "October": 50,
+      "extraDay": 35
+    },
     "Volkswagen Golf": {
       "category": "D",
       "April": 65,
@@ -83,4 +105,4 @@
     "7": 0.7
   },
   "prepaymentPercentage": 45
-} 
+}

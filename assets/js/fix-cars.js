@@ -520,15 +520,16 @@ document.addEventListener('DOMContentLoaded', function() {
           imageUrl = 'images/CalmaLogo.jpg';
         }
       }
+      const displayName = car.id === 'citroen-c3-b' ? 'Citroen C3_2' : car.name;
       html += `
         <div class="car-card" data-car-id="${car.id}">
           <div class="car-image">
-            <img src="${imageUrl}" alt="${car.name}" title="Photo of ${car.name}" onerror="this.src='images/CalmaLogo.jpg'">
+            <img src="${imageUrl}" alt="${displayName}" title="Photo of ${displayName}" onerror="this.src='images/CalmaLogo.jpg'">
             <div class="car-category">${car.category}</div>
           </div>
           <div class="car-details">
             <div>
-              <h3>${car.name}</h3>
+              <h3>${displayName}</h3>
               <div class="car-group">Group ${car.group || ''}</div>
               <p>${car.description || ''}</p>
             </div>
@@ -538,9 +539,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="car-price">Loading...</div>
                 <div class="total-price" style="display:none;"></div>
               </div>
-              <button class="select-car-btn${!isAvailable ? ' unavailable-btn' : ''}" 
-                      data-car-id="${car.id}" 
-                      data-car-name="${car.name}" 
+              <button class="select-car-btn${!isAvailable ? ' unavailable-btn' : ''}"
+                      data-car-id="${car.id}"
+                      data-car-name="${displayName}"
                       data-car-price="0"
                       ${!isAvailable ? 'disabled' : ''}>
                 ${isAvailable ? 'Select This Car' : 'Unavailable'}
