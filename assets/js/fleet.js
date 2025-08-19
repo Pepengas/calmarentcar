@@ -120,7 +120,7 @@ export const Fleet = {
             let featuresHtml = '';
             if (car.features && car.features.length > 0) {
                 const featureList = car.features.flatMap(f => f.split(',').map(s => s.trim()));
-                featuresHtml = `<ul class="car-features"><li>${featureList.join('</li><li>')}</li></ul>`;
+                featuresHtml = `<ul class="car-features">${featureList.map(feature => `<li>${feature}</li>`).join('')}</ul>`;
             }
             // --- Availability logic ---
             let isAvailable = true;
