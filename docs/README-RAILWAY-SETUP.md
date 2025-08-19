@@ -36,6 +36,8 @@ postgresql://postgres:password@containers-us-west-123.railway.app:7890/railway
    - `DATABASE_URL` = [your PostgreSQL connection string]
    - `NODE_ENV` = production
    - `PORT` = 3000
+   - `SESSION_SECRET` = output of `npm run generate-session-secret`
+   - `SESSION_SECRET_PREVIOUS` = previous value when rotating (optional)
 
 4. Deploy your application
 
@@ -47,6 +49,7 @@ postgresql://postgres:password@containers-us-west-123.railway.app:7890/railway
    DATABASE_URL=postgresql://postgres:password@containers-us-west-123.railway.app:7890/railway
    NODE_ENV=production
    PORT=3000
+   SESSION_SECRET=yourRandomStringHere
    ```
 3. Deploy your code to your hosting provider
 
@@ -86,4 +89,6 @@ If you encounter issues, look at the browser's developer console and your Railwa
 ## Security Notes
 
 - Your database contains customer information - make sure admin credentials are secure
-- The provided admin dashboard uses a simple username/password system - consider enhancing security for production 
+- The provided admin dashboard uses a simple username/password system - consider enhancing security for production
+- Generate a strong session secret using `npm run generate-session-secret` and set it as `SESSION_SECRET`
+- Rotate the secret periodically by moving the old value to `SESSION_SECRET_PREVIOUS` and restarting the service

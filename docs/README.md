@@ -11,6 +11,8 @@ The website is deployed on Railway.com. To deploy:
 1. Push changes to the GitHub repository
 2. Railway automatically detects changes and deploys the updated version
 3. Use the build command `npm run build` to update minified files before pushing
+4. Generate a strong session secret with `npm run generate-session-secret` and set it as the `SESSION_SECRET` environment variable
+5. Rotate the secret regularly; keep the old value in `SESSION_SECRET_PREVIOUS` until existing sessions expire
 
 ## Recent Optimizations
 
