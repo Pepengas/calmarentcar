@@ -119,8 +119,15 @@ export const Fleet = {
             const imageUrl = car.image.startsWith('http') ? car.image : `${API_BASE_URL}/${car.image}`;
             let featuresHtml = '';
             if (car.features && car.features.length > 0) {
-                const featureList = car.features.flatMap(f => f.split(',').map(s => s.trim()));
-                featuresHtml = `<ul class="car-features">${featureList.map(feature => `<li>${feature}</li>`).join('')}</ul>`;
+                const featureList = car.features
+                    .flatMap(f => f.split(',').map(s => s.trim()))
+                    .filter(Boolean);
+                featuresHtml = `
+                    <div class="features-line">
+                        <i class="fas fa-music"></i>
+                        <ul class="features-list">${featureList.map(feature => `<li>${feature}</li>`).join('')}</ul>
+                    </div>
+                `.trim();
             }
             // --- Availability logic ---
             let isAvailable = true;

@@ -209,13 +209,40 @@
       display: flex;
       align-items: center;
     }
-    
+
     .spec-item i {
       color: #0066cc;
       margin-right: 0.35rem;
       font-size: 0.9rem;
       width: 16px;
       text-align: center;
+    }
+
+    .spec-item.features-line {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: 0.5rem;
+      align-items: start;
+      grid-column: 1 / -1;
+    }
+
+    .spec-item.features-line i {
+      margin-right: 0;
+    }
+
+    .features-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      white-space: normal;
+    }
+
+    .features-list li {
+      display: inline;
+    }
+
+    .features-list li + li::before {
+      content: ", ";
     }
     
     .car-pricing {

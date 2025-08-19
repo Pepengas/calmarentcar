@@ -494,6 +494,13 @@ document.addEventListener('DOMContentLoaded', function() {
     cars.forEach(car => {
       // Prefer specs field if present
       const specs = car.specs && Object.keys(car.specs).length > 0 ? car.specs : extractSpecsFromFeatures(car.features);
+      const featureList = (specs.entertainment || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      const featuresHtml = featureList.length
+        ? `<div class="spec-item features-line"><i class="fas fa-music"></i><ul class="features-list">${featureList.map(f => `<li>${f}</li>`).join('')}</ul></div>`
+        : '';
       let specsHTML = `
         <div class="car-specs">
           <div class="spec-item"><i class="fas fa-gas-pump"></i><span>Engine: ${specs.engine || '-'}</span></div>
@@ -504,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="spec-item"><i class="fas fa-car-crash"></i><span>ABS: ${specs.abs ? 'Yes' : '-'}</span></div>
           <div class="spec-item"><i class="fas fa-shield-alt"></i><span>Airbag: ${specs.airbag ? 'Yes' : '-'}</span></div>
           <div class="spec-item"><i class="fas fa-gas-pump"></i><span>Fuel: ${specs.fuel || '-'}</span></div>
-          <div class="spec-item"><i class="fas fa-music"></i><span>${specs.entertainment || '-'}</span></div>
+          ${featuresHtml}
         </div>
       `;
       // Check availability
