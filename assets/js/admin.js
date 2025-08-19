@@ -312,28 +312,12 @@ document.addEventListener("DOMContentLoaded", async function() {
                 loadCarDetails(data.cars[0].id);
             }
         } catch (err) {
-            console.warn('[DEBUG] /api/cars failed, falling back to local cars.json');
-            try {
-                const res = await fetch('/cars.json');
-                const cars = await res.json();
-                if (!editCarDropdown) return;
-                editCarDropdown.innerHTML = '';
-                cars.forEach(car => {
-                    const opt = document.createElement('option');
-                    opt.value = car.id;
-                    opt.textContent = car.name;
-                    editCarDropdown.appendChild(opt);
-                });
-                if (cars.length > 0) {
-                    loadCarDetails(cars[0].id);
-                }
-                editCarMsg.textContent = 'Loaded cars from local file.';
-                editCarMsg.className = 'alert alert-info';
-            } catch (err2) {
-                editCarMsg.textContent = 'Error loading cars: ' + err2.message;
-                editCarMsg.className = 'alert alert-danger';
-                console.error('[DEBUG] Error in loadEditCarDropdown:', err2);
+            console.error('[DEBUG] Error in loadEditCarDropdown:', err);
+            if (editCarDropdown) {
+                editCarDropdown.innerHTML = '<option value="">Error loading cars</option>';
             }
+            editCarMsg.textContent = 'Error loading cars: ' + err.message;
+            editCarMsg.className = 'alert alert-danger';
         }
     }
 
@@ -1680,34 +1664,9 @@ async function loadCarsForPricing() {
             priceEditorTable.querySelector('tbody').innerHTML = '<tr><td colspan="10" class="text-danger">No cars found.</td></tr>';
         }
     } catch (err) {
-        console.warn('[Cars Tab] API failed, loading local data');
-        try {
-            const res = await fetch('/cars.json');
-            const cars = await res.json();
-            const pricingRes = await fetch('/assets/js/pricing.json');
-            const pricing = await pricingRes.json();
-            allCarsForPricing = cars.map(car => ({
-                id: car.id,
-                name: car.name,
-                monthly_pricing: (pricing.cars[car.name] || pricing.cars[car.id] || {})
-            }));
-            carDropdown.innerHTML = '';
-            allCarsForPricing.forEach(car => {
-                const opt = document.createElement('option');
-                opt.value = car.id;
-                opt.textContent = car.name;
-                carDropdown.appendChild(opt);
-            });
-            if (allCarsForPricing.length > 0) {
-                renderCarPricingTable(allCarsForPricing[0].id);
-            } else {
-                priceEditorTable.querySelector('tbody').innerHTML = '<tr><td colspan="10" class="text-danger">No cars found.</td></tr>';
-            }
-        } catch (err2) {
-            const tbody = priceEditorTable.querySelector('tbody');
-            if (tbody) tbody.innerHTML = `<tr><td colspan="10" class="text-danger">Error loading cars: ${err2.message}</td></tr>`;
-            console.error('[Cars Tab] Error loading cars for pricing:', err2);
-        }
+        const tbody = priceEditorTable.querySelector('tbody');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="10" class="text-danger">Error loading cars: ${err.message}</td></tr>`;
+        console.error('[Cars Tab] Error loading cars for pricing:', err);
     }
 }
 
@@ -1716,11 +1675,21 @@ carDropdown.addEventListener('change', function() {
 });
 
 // Function to render car pricing table
-function renderCarPricingTable(carId) {
+async function renderCarPricingTable(carId) {
     if (!priceEditorTable) return;
     const car = allCarsForPricing.find(c => c.id === carId);
     if (!car) return;
-    const pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
+    let pricing = {};
+    try {
+        const res = await fetch(`/api/cars/${carId}/pricing`);
+        const data = await res.json();
+        if (data.success) {
+            pricing = data.monthly_pricing || {};
+        }
+    } catch (err) {
+        console.error('[Cars Tab] Failed to load pricing:', err);
+    }
+    car.monthly_pricing = pricing;
     const months = getSortedMonthKeys(pricing);
     const tbody = priceEditorTable.querySelector('tbody');
     tbody.innerHTML = '';
@@ -1784,13 +1753,14 @@ window.saveMonthlyPricingMonth = async function(carId, monthKey, btn) {
         const car = allCarsForPricing.find(c => c.id === carId);
         let pricing = typeof car.monthly_pricing === 'string' ? JSON.parse(car.monthly_pricing) : car.monthly_pricing || {};
         pricing[monthKey] = month_pricing;
-        const res = await fetch('/api/update-prices', {
-            method: 'POST',
+        const res = await fetch(`/api/cars/${carId}/pricing`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             },
-            body: JSON.stringify({ car_id: carId, prices: pricing })
+            credentials: 'include',
+            body: JSON.stringify({ monthly_pricing: pricing })
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed to update pricing');
@@ -1825,24 +1795,9 @@ async function loadCarAvailability() {
         data = await response.json();
         if (!data.success) throw new Error(data.error || 'Failed to fetch cars');
     } catch (err) {
-        console.warn('[DEBUG] loadCarAvailability falling back to local cars.json');
-        try {
-            const res = await fetch('/cars.json');
-            const cars = await res.json();
-            data = {
-                cars: cars.map(c => ({
-                    car_id: c.id,
-                    name: c.name,
-                    manual_status: 'automatic',
-                    manual_blocks: [],
-                    booked_ranges: []
-                }))
-            };
-        } catch (fallbackErr) {
-            tableBody.innerHTML = `<tr><td colspan="5" class="text-danger">Error: ${fallbackErr.message}</td></tr>`;
-            console.log('[DEBUG] Error in loadCarAvailability:', fallbackErr);
-            return;
-        }
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-danger">Error: ${err.message}</td></tr>`;
+        console.error('[DEBUG] Error in loadCarAvailability:', err);
+        return;
     }
     tableBody.innerHTML = '';
     if (!data.cars || data.cars.length === 0) {
@@ -1978,30 +1933,27 @@ async function loadCarAvailability() {
                     return;
                 }
                 
-                // car_id must be the real car.id, not car.name or car.make
-                const payload = { 
-                    car_id: carId, 
-                    start_date: dates[0], 
-                    end_date: dates[1] 
-                };
-                
-                console.log('[DEBUG] Sending manual block request with payload:', payload);
-                
+                console.log('[DEBUG] Sending manual block request with payload:', {
+                    car_id: carId,
+                    start_date: dates[0],
+                    end_date: dates[1]
+                });
+
                 try {
-                    const res = await fetch('/api/admin/manual-block', {
+                    const res = await fetch(`/api/cars/${carId}/availability`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                         },
                         credentials: 'include',
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify({ start_date: dates[0], end_date: dates[1] })
                     });
-                    
+
                     console.log('[DEBUG] Response status:', res.status);
                     const data = await res.json();
                     console.log('[DEBUG] Response data:', data);
-                    
+
                     if (data.success) {
                         showToast('Manual block added successfully');
                         input.value = '';
@@ -2020,8 +1972,9 @@ async function loadCarAvailability() {
         document.querySelectorAll('.delete-block').forEach(icon => {
             icon.addEventListener('click', async function() {
                 const blockId = this.getAttribute('data-block-id');
-                if (!blockId) return;
-                await deleteManualBlock(blockId);
+                const carIdForBlock = this.getAttribute('data-car-id');
+                if (!blockId || !carIdForBlock) return;
+                await deleteManualBlock(carIdForBlock, blockId);
                 loadCarAvailability();
             });
         });
@@ -2080,11 +2033,6 @@ async function loadCarAvailability() {
                 }
             });
         });
-
-    } catch (err) {
-        console.log('[DEBUG] Error in loadCarAvailability:', err);
-        tableBody.innerHTML = `<tr><td colspan="5" class="text-danger">Error: ${err.message}</td></tr>`;
-    }
 }
 
 // Add debounce utility function
@@ -2164,9 +2112,9 @@ async function updateManualStatus(carId, manualStatus) {
 }
 
 // Modify deleteManualBlock to show loading and toast
-async function deleteManualBlock(blockId) {
+async function deleteManualBlock(carId, blockId) {
     try {
-        const res = await fetch(`/api/admin/manual-block/${blockId}`, {
+        const res = await fetch(`/api/cars/${carId}/availability/${blockId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
