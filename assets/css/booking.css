@@ -524,13 +524,15 @@ body.dark-mode .confirmation-message {
     }
     
     .car-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 12px;
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        margin-bottom: 12px;
     }
-    
-    .car-features span {
+
+    .car-features li {
         font-size: 13px;
         padding: 4px 8px;
         background: #f5f5f5;

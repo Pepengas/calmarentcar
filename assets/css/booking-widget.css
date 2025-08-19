@@ -167,13 +167,15 @@
 }
 
 .car-features {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin: 10px 0;
 }
 
-.car-feature {
+.car-features li {
     background-color: #f1f3f5;
     padding: 4px 10px;
     border-radius: 50px;

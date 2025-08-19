@@ -119,7 +119,8 @@ export const Fleet = {
             const imageUrl = car.image.startsWith('http') ? car.image : `${API_BASE_URL}/${car.image}`;
             let featuresHtml = '';
             if (car.features && car.features.length > 0) {
-                featuresHtml = `<ul class="car-features"><li>${car.features.join('</li><li>')}</li></ul>`;
+                const featureList = car.features.flatMap(f => f.split(',').map(s => s.trim()));
+                featuresHtml = `<ul class="car-features"><li>${featureList.join('</li><li>')}</li></ul>`;
             }
             // --- Availability logic ---
             let isAvailable = true;
