@@ -1540,12 +1540,13 @@
           // Make it circular and fill the left side with clones
           loop: true,
           loopAdditionalSlides: Math.max(6, totalSlides), // enough clones so no blank edges
+          loopedSlides: totalSlides, // loop through all cars
+          loopPreventsSliding: false,
           slidesPerGroup: 1,
 
           // Keep the centered 3-cards layout
           centeredSlides: true,
           initialSlide: 0, // Toyota Aygo centered on load
-          watchOverflow: true,
           speed: 400,
 
           // UI (leave your selectors as-is)
