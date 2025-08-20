@@ -796,9 +796,10 @@
                     <p>Choose from our selection of well-maintained vehicles to suit your needs</p>
                 </div>
 
-                <div class="our-fleet-slider swiper">
-                    <div class="cars-grid swiper-wrapper">
-                    <!-- Car 1 -->
+                <div class="our-fleet-slider">
+                    <div class="swiper">
+                        <div class="cars-grid swiper-wrapper">
+                        <!-- Car 1 -->
                     <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
                         <div class="car-image">
                             <img src="images/CalmaAygo.jpg" alt="Toyota Aygo" title="Photo of Toyota Aygo" loading="lazy" width="300" height="200">
@@ -945,6 +946,7 @@
                     <div class="swiper-button-prev" aria-label="Previous cars"></div>
                     <div class="swiper-button-next" aria-label="Next cars"></div>
                     <div class="swiper-pagination"></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1514,47 +1516,22 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const sliderEl = document.querySelector('.our-fleet-slider');
+            const sliderEl = document.querySelector('.our-fleet-slider .swiper');
             if (sliderEl) {
-                new Swiper(sliderEl, {
-                    loop: true,
+                const slider = new Swiper('.our-fleet-slider .swiper', {
                     roundLengths: true,
-                    slidesOffsetBefore: 0,
-                    slidesOffsetAfter: 0,
-                    speed: 600,
-                    autoplay: {
-                        delay: 3000,
-                        disableOnInteraction: false,
-                        pauseOnMouseEnter: true
-                    },
-                    navigation: {
-                        prevEl: '.our-fleet-slider .swiper-button-prev',
-                        nextEl: '.our-fleet-slider .swiper-button-next'
-                    },
-                    pagination: {
-                        el: '.our-fleet-slider .swiper-pagination',
-                        clickable: true
-                    },
+                    watchSlidesProgress: true,
+                    centerInsufficientSlides: true,
+                    rewind: true,
+                    loop: false,
+                    slidesOffsetBefore: 12,
+                    slidesOffsetAfter: 12,
+                    pagination: { el: '.our-fleet-slider .swiper-pagination', clickable: true },
+                    navigation: { nextEl: '.our-fleet-slider .swiper-button-next', prevEl: '.our-fleet-slider .swiper-button-prev' },
                     breakpoints: {
-                        0: {
-                            slidesPerView: 1,
-                            centeredSlides: true,
-                            spaceBetween: 16
-                        },
-                        768: {
-                            slidesPerView: 2,
-                            centeredSlides: false,
-                            spaceBetween: 24
-                        },
-                        1200: {
-                            slidesPerView: 4,
-                            centeredSlides: false,
-                            spaceBetween: 24
-                        }
-                    },
-                    watchOverflow: true,
-                    a11y: {
-                        enabled: true
+                        0:    { slidesPerView: 1, centeredSlides: true,  centeredSlidesBounds: true,  spaceBetween: 16 },
+                        768:  { slidesPerView: 2, centeredSlides: false, centeredSlidesBounds: false, spaceBetween: 24 },
+                        1200: { slidesPerView: 4, centeredSlides: false, centeredSlidesBounds: false, spaceBetween: 24 }
                     }
                 });
             }
