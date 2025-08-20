@@ -11,6 +11,10 @@
   width: 100%;
 }
 
+.country-select {
+  width: 100%;
+}
+
 .country-container {
   width: 100% !important;
   display: block;
