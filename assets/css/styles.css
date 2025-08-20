@@ -2414,6 +2414,7 @@ select#pickup-location, select#dropoff-location {
 .our-fleet-slider .swiper {
     padding-left: 12px;
     padding-right: 12px;
+    box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
