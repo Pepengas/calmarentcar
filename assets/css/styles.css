@@ -429,7 +429,7 @@ header {
     font-size: 1.1rem;
 }
 
-.cars-grid {
+#cars .cars-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 30px;
@@ -1145,7 +1145,7 @@ footer {
     }
     
     /* Make car cards stack nicely */
-    .cars-grid {
+    #cars .cars-grid {
         grid-template-columns: 1fr !important;
         gap: 20px !important;
     }
@@ -2379,17 +2379,24 @@ select#pickup-location, select#dropoff-location {
 
 /* Our Fleet slider overrides */
 .our-fleet-slider {
-    position: relative;
+    overflow: hidden;
 }
 
 .our-fleet-slider .cars-grid {
-    display: flex;
+    display: flex !important;
     gap: 0;
+    align-items: stretch;
 }
 
 .our-fleet-slider .swiper-slide {
     display: flex;
     height: auto;
+    flex: 0 0 auto;
+}
+
+.our-fleet-slider .car-card {
+    width: 100%;
+    margin: 0 auto;
 }
 
 .our-fleet-slider .swiper-button-prev,
@@ -2400,6 +2407,14 @@ select#pickup-location, select#dropoff-location {
 }
 
 @media (max-width: 767px) {
+    .our-fleet-slider .swiper {
+        padding: 0 12px;
+    }
+
+    .our-fleet-slider .swiper-slide {
+        width: calc(100% - 24px);
+    }
+
     .our-fleet-slider .swiper-button-prev,
     .our-fleet-slider .swiper-button-next {
         display: none;

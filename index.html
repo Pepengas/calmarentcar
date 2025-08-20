@@ -1517,9 +1517,10 @@
             const sliderEl = document.querySelector('.our-fleet-slider');
             if (sliderEl) {
                 new Swiper(sliderEl, {
-                    slidesPerView: 4,
-                    spaceBetween: 24,
                     loop: true,
+                    roundLengths: true,
+                    slidesOffsetBefore: 0,
+                    slidesOffsetAfter: 0,
                     speed: 600,
                     autoplay: {
                         delay: 3000,
@@ -1538,15 +1539,17 @@
                         0: {
                             slidesPerView: 1,
                             centeredSlides: true,
-                            spaceBetween: 0
+                            spaceBetween: 16
                         },
                         768: {
                             slidesPerView: 2,
-                            centeredSlides: false
+                            centeredSlides: false,
+                            spaceBetween: 24
                         },
                         1200: {
                             slidesPerView: 4,
-                            centeredSlides: false
+                            centeredSlides: false,
+                            spaceBetween: 24
                         }
                     },
                     watchOverflow: true,
