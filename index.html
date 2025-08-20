@@ -72,7 +72,6 @@
         /* Force car cards to be visible without animations */
         .car-card {
             opacity: 1 !important;
-            transform: translateY(0) !important;
             visibility: visible !important;
         }
         
@@ -800,7 +799,7 @@
                     <div class="swiper">
                         <div class="cars-grid swiper-wrapper">
                         <!-- Car 1 -->
-                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1">
                         <div class="car-image">
                             <img src="images/CalmaAygo.jpg" alt="Toyota Aygo" title="Photo of Toyota Aygo" loading="lazy" width="300" height="200">
                         </div>
@@ -816,7 +815,7 @@
                     </div>
                     
                     <!-- Car 2 -->
-                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1">
                         <div class="car-image">
                             <img src="images/CalmaTiguan.jpg" alt="Volkswagen Tiguan R line" title="Photo of Volkswagen Tiguan R line" loading="lazy" width="300" height="200">
                         </div>
@@ -832,7 +831,7 @@
                     </div>
                     
                     <!-- Car 3 -->
-                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1">
                         <div class="car-image">
                             <img src="images/CalmaGolf.jpg" alt="Volkswagen Golf" title="Photo of Volkswagen Golf" loading="lazy" width="300" height="200">
                         </div>
@@ -848,7 +847,7 @@
                     </div>
                     
                     <!-- Car 4 -->
-                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1">
                         <div class="car-image">
                             <img src="images/Calmai10.jpg" alt="Hyundai i10" title="Photo of Hyundai i10" loading="lazy" width="300" height="200">
                         </div>
@@ -864,7 +863,7 @@
                     </div>
                     
                     <!-- Car 5 -->
-                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1">
                         <div class="car-image">
                             <img src="images/CalmaCitroen.jpg" alt="Citroen C3" title="Photo of Citroen C3" loading="lazy" width="300" height="200">
                         </div>
@@ -880,7 +879,7 @@
                     </div>
                     
                     <!-- Car 6 -->
-                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1">
                         <div class="car-image">
                             <img src="images/CitroenC3_A.jpg" alt="Citroën C3 rental car" title="Photo of Citroën C3" loading="lazy" width="300" height="200">
                         </div>
@@ -896,7 +895,7 @@
                     </div>
 
                     <!-- Car 7 -->
-                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1">
                         <div class="car-image">
                             <img src="images/CalmaSuzuki.jpg" alt="Suzuki Celerio" title="Photo of Suzuki Celerio" loading="lazy" width="300" height="200">
                         </div>
@@ -912,7 +911,7 @@
                     </div>
 
                     <!-- Car 8 -->
-                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1">
                         <div class="car-image">
                             <img src="images/CalmaFiatPanda.jpg" alt="Fiat Panda" title="Photo of Fiat Panda" loading="lazy" width="300" height="200">
                         </div>
@@ -928,7 +927,7 @@
                     </div>
 
                     <!-- Car 9 -->
-                    <div class="car-card swiper-slide" style="opacity: 1; transform: translateY(0);">
+                    <div class="car-card swiper-slide" style="opacity: 1">
                         <div class="car-image">
                             <img src="images/CalmaAudiA3.jpg" alt="Audi A3" title="Photo of Audi A3" loading="lazy" width="300" height="200">
                         </div>
@@ -1521,16 +1520,19 @@
                 const slider = new Swiper('.our-fleet-slider .swiper', {
                     roundLengths: true,
                     watchSlidesProgress: true,
-                    centerInsufficientSlides: true,
                     rewind: true,
                     loop: false,
-                    slidesOffsetBefore: 12,
-                    slidesOffsetAfter: 12,
+                    // IMPORTANT: remove JS offsets to avoid sub-pixel rounding on iOS
+                    slidesOffsetBefore: 0,
+                    slidesOffsetAfter: 0,
                     pagination: { el: '.our-fleet-slider .swiper-pagination', clickable: true },
                     navigation: { nextEl: '.our-fleet-slider .swiper-button-next', prevEl: '.our-fleet-slider .swiper-button-prev' },
                     breakpoints: {
-                        0:    { slidesPerView: 1, centeredSlides: true,  centeredSlidesBounds: true,  spaceBetween: 16 },
+                        // Mobile: no centered slides (prevents iOS drift), 1 slide per view
+                        0:    { slidesPerView: 1, centeredSlides: false, centeredSlidesBounds: false, spaceBetween: 16 },
+                        // Tablet: 2 per view
                         768:  { slidesPerView: 2, centeredSlides: false, centeredSlidesBounds: false, spaceBetween: 24 },
+                        // Desktop: 4 per view
                         1200: { slidesPerView: 4, centeredSlides: false, centeredSlidesBounds: false, spaceBetween: 24 }
                     }
                 });

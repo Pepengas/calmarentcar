@@ -2388,11 +2388,13 @@ select#pickup-location, select#dropoff-location {
     align-items: stretch;
 }
 
+/* Ensure slides are measured without surprise margins */
 .our-fleet-slider .swiper-slide {
     display: flex;
     height: auto;
     flex: 0 0 auto;
     justify-content: center;
+    margin: 0;           /* already zero, keep explicit */
     box-sizing: border-box;
 }
 
@@ -2408,9 +2410,16 @@ select#pickup-location, select#dropoff-location {
     transform: translateY(-50%);
 }
 
-@media (max-width: 767px) {
+/* Provide the side breathing room via CSS so widths remain integral */
+.our-fleet-slider .swiper {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+@media (max-width: 768px) {
     .our-fleet-slider .swiper {
-        padding: 0;
+        padding-left: 15px;
+        padding-right: 15px;
     }
 
     .our-fleet-slider .swiper-slide {
