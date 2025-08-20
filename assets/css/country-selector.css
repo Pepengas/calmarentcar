@@ -7,51 +7,8 @@
   width: 100%;
 }
 
-.country-select {
-  width: 100%;
-}
-
-.country-select {
-  width: 100%;
-}
-
-.country-container {
-  width: 100% !important;
-  display: block;
-}
-
-.country-container .select2-selection--single {
-  width: 100% !important;
-  height: auto !important;
-  padding: 0.9rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background-color: #f9f9f9;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-}
-
-.country-container .select2-selection--single:focus {
-  border-color: #0066cc;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
-  background-color: #fff;
-}
-
-.country-container .select2-selection__rendered {
-  padding-left: 0;
-}
-
-.country-container .select2-selection__arrow {
-  height: 100%;
-  right: 10px;
-}
-
 .country-search-input {
   width: 100%;
-  display: block;
-  box-sizing: border-box;
   padding: 10px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -67,17 +24,17 @@
   box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
 }
 
-/* Dropdown styling */
+/* Completely new approach for the dropdown */
 .country-dropdown {
   display: none;
-  position: absolute !important;
+  position: fixed !important; /* Changed to fixed */
   background-color: #fff !important;
   border: 1px solid #ddd !important;
   border-radius: 4px !important;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2) !important;
   max-height: 250px !important;
   overflow-y: auto !important;
-  z-index: 999999 !important;
+  z-index: 999999 !important; /* Even higher z-index */
   margin-top: 2px !important;
 }
 
