@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
   <!-- Add Select2 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/country-selector.css">
   <!-- Add jQuery -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <!-- Add jQuery UI -->
@@ -1243,7 +1244,9 @@
           
           <div class="form-group">
             <label class="required">Country</label>
-            <select id="nationality" name="nationality" class="form-control country-select" required></select>
+            <div class="country-selector-wrapper">
+              <select id="nationality" name="nationality" class="form-control country-select" required></select>
+            </div>
             <div id="nationality-error" class="validation-message"></div>
           </div>
           
