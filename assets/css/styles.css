@@ -2377,7 +2377,7 @@ select#pickup-location, select#dropoff-location {
     }
 }
 
-/* Our Fleet slider overrides */
+/* iOS drift fix */
 .our-fleet-slider {
     overflow: hidden;
 }
@@ -2392,6 +2392,8 @@ select#pickup-location, select#dropoff-location {
     display: flex;
     height: auto;
     flex: 0 0 auto;
+    justify-content: center;
+    box-sizing: border-box;
 }
 
 .our-fleet-slider .car-card {
@@ -2408,20 +2410,16 @@ select#pickup-location, select#dropoff-location {
 
 @media (max-width: 767px) {
     .our-fleet-slider .swiper {
-        padding: 0 12px;
+        padding: 0;
     }
 
     .our-fleet-slider .swiper-slide {
-        width: calc(100% - 24px);
+        width: 100% !important;
     }
 
     .our-fleet-slider .swiper-button-prev,
     .our-fleet-slider .swiper-button-next {
         display: none;
-    }
-
-    .our-fleet-slider .swiper-slide {
-        justify-content: center;
     }
 }
 
