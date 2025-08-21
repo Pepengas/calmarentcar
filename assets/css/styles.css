@@ -2381,9 +2381,6 @@ select#pickup-location, select#dropoff-location {
 .our-fleet-swiper {
     width: 100%;
 }
-.our-fleet-swiper .cars-grid {
-    display: flex !important;
-}
 .our-fleet-swiper .swiper-slide {
     display: flex;
     justify-content: center;

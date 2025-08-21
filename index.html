@@ -796,7 +796,7 @@
                 </div>
 
                 <div class="swiper our-fleet-swiper">
-                    <div class="swiper-wrapper cars-grid">
+                    <div class="swiper-wrapper">
                         <!-- Car 1 -->
                         <div class="swiper-slide">
                             <div class="car-card" style="opacity: 1">
@@ -1554,14 +1554,15 @@
             prevEl: '.our-fleet-swiper .swiper-button-prev',
           },
           breakpoints: {
-            0:    { slidesPerView: 1,   spaceBetween: 16 },
+            0:    { slidesPerView: 1,   spaceBetween: 0 },
             768:  { slidesPerView: 2,   spaceBetween: 16 },
             1024: { slidesPerView: 3,   spaceBetween: 20 }
           },
           simulateTouch: true,
           resistanceRatio: 0,
           touchStartPreventDefault: false,
-          centerInsufficientSlides: true
+          centerInsufficientSlides: true,
+          centeredSlidesBounds: true
         });
       });
     </script>
