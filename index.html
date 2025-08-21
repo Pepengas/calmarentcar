@@ -796,7 +796,7 @@
                 </div>
 
                 <div class="swiper our-fleet-swiper">
-                    <div class="swiper-wrapper cars-grid">
+                    <div class="swiper-wrapper">
                         <!-- Car 1 -->
                         <div class="swiper-slide">
                             <div class="car-card" style="opacity: 1">
@@ -1534,22 +1534,17 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        const totalSlides = document.querySelectorAll('.our-fleet-swiper .swiper-slide').length;
-
         const swiper = new Swiper('.our-fleet-swiper', {
-          // Make it circular and fill the left side with clones
           loop: true,
-          loopAdditionalSlides: Math.max(6, totalSlides), // enough clones so no blank edges
-          loopedSlides: totalSlides, // loop through all cars
-          loopPreventsSliding: false,
-          slidesPerGroup: 1,
-
-          // Keep the centered 3-cards layout
           centeredSlides: true,
-          initialSlide: 0, // Toyota Aygo centered on load
-          speed: 400,
+          speed: 600,
+          grabCursor: true,
+          autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+          },
 
-          // UI (leave your selectors as-is)
           pagination: {
             el: '.our-fleet-swiper .swiper-pagination',
             clickable: true,
@@ -1558,19 +1553,16 @@
             nextEl: '.our-fleet-swiper .swiper-button-next',
             prevEl: '.our-fleet-swiper .swiper-button-prev',
           },
-
-          // Responsive
           breakpoints: {
-            0:    { slidesPerView: 1.1, spaceBetween: 12 },
+            0:    { slidesPerView: 1,   spaceBetween: 0 },
             768:  { slidesPerView: 2,   spaceBetween: 16 },
             1024: { slidesPerView: 3,   spaceBetween: 20 }
           },
-
-          // iOS/Touch stability
           simulateTouch: true,
           resistanceRatio: 0,
           touchStartPreventDefault: false,
-          centerInsufficientSlides: true
+          centerInsufficientSlides: true,
+          centeredSlidesBounds: true
         });
       });
     </script>

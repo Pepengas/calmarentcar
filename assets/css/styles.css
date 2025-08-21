@@ -2381,16 +2381,22 @@ select#pickup-location, select#dropoff-location {
 .our-fleet-swiper {
     width: 100%;
 }
-.our-fleet-swiper .cars-grid {
-    display: flex !important;
-}
 .our-fleet-swiper .swiper-slide {
     display: flex;
     justify-content: center;
+    flex-shrink: 0;
 }
 /* Ensure cards don’t stretch oddly */
 .our-fleet-swiper .swiper-slide > * {
     max-width: 100%;
+}
+/* Smooth card hover/active effects */
+.our-fleet-swiper .swiper-slide .car-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.our-fleet-swiper .swiper-slide-active .car-card {
+    transform: scale(1.03);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 /* Improve iOS smoothness */
 .our-fleet-swiper,
